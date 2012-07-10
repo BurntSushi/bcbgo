@@ -1,0 +1,39 @@
+bcbgo is a repository that contains a number of connected packages for 
+performing research in computational biology.
+
+Packages
+========
+pdb
+---
+Package pdb includes facilities for reading and writing PDB files, as well as 
+fetching PDB files from the PDB web site.
+
+matt
+----
+Package matt is a wrapper around the structural aligner that we all know and 
+love. It's meant to provide a sane configuration interface for calling matt.
+
+The package will also support the ability to query details about the alignment 
+easily, such as fetching the core RMSD. Currently, there are no facilities to 
+examine other output (such as the alignment itself).
+
+fragbag
+-------
+Package fragbag uses matt to compute a vector of fragments corresponding to a 
+fragment library by picking the best matching fragment for each overlapping and 
+contiguous kmer in the input.
+
+The input in this case is a list of PDB ATOM records.
+
+fragsearch
+----------
+Package fragsearch allows one to search the entire PDB with a bag-of-words 
+vector returned by fragbag.
+
+hhfrag
+------
+Package hhfrag is a wrapper around the HHfrag and hhsuite tools that takes as 
+input a sequence and returns a list of fragments that correspond to lists of 
+PDB ATOM records.
+
+
