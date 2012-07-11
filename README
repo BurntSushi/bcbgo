@@ -5,8 +5,9 @@ Packages
 ========
 pdb
 ---
-Package pdb includes facilities for reading and writing PDB files, as well as 
-fetching PDB files from the PDB web site.
+Package pdb includes support for gathering some information from PDB files.
+Currently, this information is limited to primary amino acid sequence, and the
+start and stop residue indices of ATOM records for each chain.
 
 matt
 ----
@@ -23,12 +24,8 @@ Package fragbag uses matt to compute a vector of fragments corresponding to a
 fragment library by picking the best matching fragment for each overlapping and 
 contiguous kmer in the input.
 
-The input in this case is a list of PDB ATOM records.
-
-fragsearch
-----------
-Package fragsearch allows one to search the entire PDB with a bag-of-words 
-vector returned by fragbag.
+fragbag also provides types and methods for dealing with fragbag's fragment
+libraries.
 
 hhfrag
 ------
