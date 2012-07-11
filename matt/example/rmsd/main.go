@@ -15,10 +15,10 @@ func main() {
 	// Other options like specifying the chain or residue ranges can be
 	// tweaked by using the matt.PDBArg type directly.
 	pdbArgs := [][]matt.PDBArg{
-		{arg("./sample1.pdb"), arg("./sample2.pdb")},
-		{arg("./sample2.pdb"), arg("./sample3.pdb")},
-		{arg("./sample1.pdb"), arg("./sample3.pdb")},
-		{arg("./sample1.pdb"), arg("./sample2.pdb"), arg("./sample3.pdb")},
+		{arg("sample1.pdb"), arg("sample2.pdb")},
+		{arg("sample2.pdb"), arg("sample3.pdb")},
+		{arg("sample1.pdb"), arg("sample3.pdb")},
+		{arg("sample1.pdb"), arg("sample2.pdb"), arg("sample3.pdb")},
 	}
 
 	// Run all of the argument sets with Matt in parallel. The indices in
@@ -40,7 +40,7 @@ func main() {
 }
 
 func arg(loc string) matt.PDBArg {
-	return matt.PDBArg{Location: loc}
+	return matt.PDBArg{Location: fmt.Sprintf("../../../data/samples/%s", loc)}
 }
 
 func argsetString(argset []matt.PDBArg) string {
