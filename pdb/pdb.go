@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/BurntSushi/bcbgo/matt"
 )
 
 // AminoThreeToOne is a map from three letter amino acids to their
@@ -90,6 +92,27 @@ func New(fileName string) (*Entry, error) {
 	}
 
 	return entry, nil
+}
+
+// PDBArg is a convenience method for creating a PDBArg that can be used in
+// the 'matt' package. It sets 'Location' in PDBArg to 'Path' from 'Entry'.
+func (e *Entry) PDBArg() matt.PDBArg {
+	return matt.PDBArg{Location: e.Path}
+}
+
+// PDBArgChain is a convenience method for creating a PDBArg for a specific
+// chain that can be used in the 'matt' package.
+//
+// PDBArgChain panics if 'chainIdent' is not in the chain map for this Entry.
+func (e *Entry) PDBArgChain(chainIdent byte) matt.PDBArg {
+	if _, ok := e.Chains[chainIdent]; !ok {
+		panic(fmt.Sprintf("The chain identifier '%c' was not found in the "+
+			"chain map for the '%s' PDB entry.", chainIdent, e.Path))
+	}
+	return matt.PDBArg{
+		Location: e.Path,
+		Chain:    chainIdent,
+	}
 }
 
 // String returns a sort list of all chains, their residue start/stop indics,
