@@ -115,7 +115,7 @@ func (e *Entry) PDBArgChain(chainIdent byte) matt.PDBArg {
 	}
 }
 
-// String returns a sort list of all chains, their residue start/stop indics,
+// String returns a sorted list of all chains, their residue start/stop indices,
 // and the amino acid sequence.
 func (e *Entry) String() string {
 	lines := make([]string, 0)
