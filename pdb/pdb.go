@@ -5,13 +5,15 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"path"
 	"os"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
 )
 
+// AminoThreeToOne is a map from three letter amino acids to their
+// corresponding single letter representation.
 var AminoThreeToOne = map[string]byte{
 	"ALA": 'A', "ARG": 'R', "ASN": 'N', "ASP": 'D', "CYS": 'C',
 	"GLU": 'E', "GLN": 'Q', "GLY": 'G', "HIS": 'H', "ILE": 'I',
@@ -20,15 +22,23 @@ var AminoThreeToOne = map[string]byte{
 	"SEC": 'U', "PYL": 'O',
 }
 
+// AminoOneToThree is the reverse of AminoThreeToOne. It is created in
+// this packages 'init' function.
 var AminoOneToThree = map[byte]string{}
 
 func init() {
+	// Create a reverse map of AminoThreeToOne.
 	for k, v := range AminoThreeToOne {
 		AminoOneToThree[v] = k
 	}
 }
 
+// Entry represents all information known about a particular PDB file (that
+// has been implemented in this package).
+//
+// Currently, a PDB entry is simply a file path and a map of protein chains.
 type Entry struct {
+	Path   string
 	Chains map[byte]*Chain
 }
 
@@ -54,6 +64,7 @@ func New(fileName string) (*Entry, error) {
 	}
 
 	entry := &Entry{
+		Path:   fileName,
 		Chains: make(map[byte]*Chain, 0),
 	}
 
@@ -81,6 +92,8 @@ func New(fileName string) (*Entry, error) {
 	return entry, nil
 }
 
+// String returns a sort list of all chains, their residue start/stop indics,
+// and the amino acid sequence.
 func (e *Entry) String() string {
 	lines := make([]string, 0)
 	for _, chain := range e.Chains {
@@ -90,25 +103,34 @@ func (e *Entry) String() string {
 	return strings.Join(lines, "\n")
 }
 
+// getOrMakeChain looks for a chain in the 'Chains' map corresponding to the
+// chain indentifier. If one exists, it is returned. If one doesn't exist,
+// it is created, memory is allocated and it is returned.
 func (e *Entry) getOrMakeChain(ident byte) *Chain {
 	if chain, ok := e.Chains[ident]; ok {
 		return chain
 	}
 	e.Chains[ident] = &Chain{
-		Ident: ident,
-		Sequence: make([]byte, 0, 10),
+		Ident:            ident,
+		Sequence:         make([]byte, 0, 10),
 		AtomResidueStart: 0,
-		AtomResidueEnd: 0,
+		AtomResidueEnd:   0,
 	}
 	return e.Chains[ident]
 }
 
+// parseSeqres loads all pertinent information from SEQRES records in a PDB
+// file. In particular, amino acid resides are read and added to the chain's
+// "Sequence" field. If a residue isn't a valid amino acid, it is simply
+// ignored.
+//
+// N.B. This assumes that the SEQRES records are in order in the PDB file.
 func (e *Entry) parseSeqres(line []byte) {
 	chain := e.getOrMakeChain(line[11])
 
 	// Residues are in columns 19-21, 23-25, 27-29, ..., 67-69
 	for i := 19; i <= 67; i += 4 {
-		end := i+3
+		end := i + 3
 
 		// If we're passed the end of this line, quit.
 		if end >= len(line) {
@@ -123,6 +145,13 @@ func (e *Entry) parseSeqres(line []byte) {
 	}
 }
 
+// parseAtom loads all pertinent information from ATOM records in a PDB file.
+// Currently, this only includes deducing the amino acid residue start and
+// stop indices. (Note that the length of the range is not necessarily
+// equivalent to the length of the amino acid sequence found in the SEQRES
+// records.)
+//
+// ATOM records without a valid amino acid residue in columns 18-20 are ignored.
 func (e *Entry) parseAtom(line []byte) {
 	chain := e.getOrMakeChain(line[21])
 
@@ -130,6 +159,13 @@ func (e *Entry) parseAtom(line []byte) {
 	// residue. (Which is in columns 17-19.)
 	residue := strings.TrimSpace(string(line[17:20]))
 	if _, ok := AminoThreeToOne[residue]; !ok {
+		// Sanity check. I'm pretty sure that only amino acids have three
+		// letter abbreviations.
+		if len(residue) == 3 {
+			panic(fmt.Sprintf("The residue '%s' found in PDB file '%s' has "+
+				"length 3, but is not in my amino acid map.",
+				residue, e.Path))
+		}
 		return
 	}
 
@@ -147,12 +183,17 @@ func (e *Entry) parseAtom(line []byte) {
 	}
 }
 
+// Chain represents a protein chain or subunit in a PDB file. Each chain has
+// its own identifier, amino acid sequence (if its a protein sequence), and
+// the start and stop residue indices of the ATOM coordinates.
 type Chain struct {
-	Ident byte
-	Sequence []byte
+	Ident                            byte
+	Sequence                         []byte
 	AtomResidueStart, AtomResidueEnd int
 }
 
+// String returns a FASTA-like formatted string of this chain and all of its
+// related information.
 func (c *Chain) String() string {
 	return fmt.Sprintf("> Chain %c (%d, %d) :: length %d\n%s",
 		c.Ident, c.AtomResidueStart, c.AtomResidueEnd,

@@ -15,7 +15,7 @@ import (
 // chain and a range of residues to align.
 type PDBArg struct {
 	Location string
-	Chain byte
+	Chain    byte
 
 	// Matt allows one to specify a range of residues to be aligned.
 	// If one of ResidueStart or ResidueEnd is specified, BOTH must be specified
@@ -28,10 +28,10 @@ type PDBArg struct {
 //
 //	results, err := matt.DefaultConfig.Run(pdbArg1, pdbArg2, ...)
 var DefaultConfig = Config{
-	Binary: "matt",
+	Binary:       "matt",
 	OutputPrefix: "",
-	Verbose: true,
-	Vomit: false,
+	Verbose:      true,
+	Vomit:        false,
 }
 
 // Config is used to specify the location of the Matt binary in addition to
@@ -153,7 +153,7 @@ func (conf Config) Run(pargs ...PDBArg) (Results, error) {
 				parg.ResidueEnd == 0 ||
 				parg.Chain == 0 {
 
-				panic("When either ResidueStart or ResidueEnd is set, then "+
+				panic("When either ResidueStart or ResidueEnd is set, then " +
 					"both must be set, and the Chain must be set.")
 			}
 			args = append(args, fmt.Sprintf("%s:%c(%d-%d)",
@@ -183,10 +183,10 @@ func (conf Config) Run(pargs ...PDBArg) (Results, error) {
 // "Fasta", "Pdb", "Spt" and "Txt" to retrieve the file names of each of
 // Matt's corresponding output files.
 type Results struct {
-	prefix string
+	prefix     string
 	CoreLength int
-	RMSD float64
-	Pval float64
+	RMSD       float64
+	Pval       float64
 }
 
 // newResults uses the Matt prefix to load several interesting pieces of
