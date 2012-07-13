@@ -42,6 +42,12 @@ func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
 	// excessive allocations.
 	bow := lib.NewBow()
 
+	// Create a list of atom sets for all K-mer windows of all protein chains
+	// in the PDB entry, where K is the fragment size of the library.
+	// The list of atom sets can then have the best fragment for each atom
+	// set computed concurrently with BestFragments.
+	atomSets := make([]pdb.Atoms, 0, 100)
+
 	for _, chain := range entry.Chains {
 		if !chain.ValidProtein() {
 			continue
@@ -52,14 +58,18 @@ func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
 			continue
 		}
 
-		// Otherwise, the chain is bigger than the fragment size. So pick the
-		// best fragment for each overlapping N-mer, where N is the fragment
-		// size.
+		// Otherwise, the chain is bigger than the fragment size. So add each
+		// of its K-mer windows to the atom set.
 		for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
-			atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
-			if fragNum := lib.BestFragment(atoms); fragNum >= 0 {
-				bow.fragfreqs[fragNum] += 1
-			}
+			atomSets = append(atomSets, chain.CaAtoms[i:i+lib.FragmentSize()])
+		}
+	}
+
+	// Get the best fragment numbers for each set, and increase the frequency
+	// of each fragment number returned.
+	for _, bestFragNum := range lib.BestFragments(atomSets) {
+		if bestFragNum >= 0 {
+			bow.fragfreqs[bestFragNum] += 1
 		}
 	}
 	return bow

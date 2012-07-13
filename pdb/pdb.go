@@ -71,6 +71,11 @@ func New(fileName string) (*Entry, error) {
 	}
 
 	// Now traverse each line, and process it according to the record name.
+	// Note that it is imperative that we preserve the order of ATOM records
+	// as we read them. We are currently trying to replicate Fragbag, and this
+	// is what Fragbag does. (A more stable approach would require more
+	// information from the PDB file; like differentiating models, since
+	// sorting on ATOM serial number isn't good enough.)
 	breader := bufio.NewReaderSize(reader, 1000)
 	for {
 		// We ignore 'isPrefix' here, since we never care about lines longer
@@ -89,12 +94,6 @@ func New(fileName string) (*Entry, error) {
 		case "ATOM":
 			entry.parseAtom(line)
 		}
-	}
-
-	// Sort each chain's atom slice.
-	for _, chain := range entry.Chains {
-		sort.Sort(chain.Atoms)
-		sort.Sort(chain.CaAtoms)
 	}
 
 	return entry, nil
@@ -279,7 +278,7 @@ func (c *Chain) PDBArg() matt.PDBArg {
 // ValidProtein returns true when there are ATOM records corresponding to
 // a protein backbone.
 func (c *Chain) ValidProtein() bool {
-	return c.AtomResidueStart > 0 && c.AtomResidueEnd > 0
+	return c.AtomResidueStart != c.AtomResidueEnd
 }
 
 // String returns a FASTA-like formatted string of this chain and all of its
@@ -320,16 +319,4 @@ func (as Atoms) String() string {
 		lines[i] = atom.String()
 	}
 	return strings.Join(lines, "\n")
-}
-
-func (as Atoms) Len() int {
-	return len(as)
-}
-
-func (as Atoms) Less(i, j int) bool {
-	return as[i].Serial < as[j].Serial
-}
-
-func (as Atoms) Swap(i, j int) {
-	as[i], as[j] = as[j], as[i]
 }

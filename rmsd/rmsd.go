@@ -6,7 +6,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/pdb"
 
-	matrix "github.com/skelterjohn/go.matrix"
+	matrix "github.com/BurntSushi/go.matrix"
 )
 
 // RMSD implements a version of the Kabsch alogrithm that is described here:
@@ -38,6 +38,10 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 			"they have equal length. But the lengths of the two structures "+
 			"provided are %d and %d.", len(struct1), len(struct2)))
 	}
+
+	// This will disable any attempt at parallelizing matrix multiplication
+	// when GOMAXPROCS > 1. It just isn't read for prime-time.
+	matrix.WhichParMethod = 0
 
 	// In order to "center" the coordinates, we
 	// subtract the centroid for each set of atom coordinates.

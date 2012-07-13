@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -96,7 +97,7 @@ func NewLibrary(path string) (*Library, error) {
 	// Set the fragment size of this library to the size of one of the
 	// fragments. Then make sure every other fragment has the same size.
 	for _, frag := range lib.fragments {
-		size := frag.realSize()
+		size := len(frag.OneChain().CaAtoms)
 		if lib.fragmentSize == 0 {
 			lib.fragmentSize = size
 		} else {
@@ -154,6 +155,93 @@ func (lib *Library) BestFragment(atoms pdb.Atoms) int {
 	return bestFragNum
 }
 
+type rmsdPoolJob struct {
+	fragNum int
+	atoms   pdb.Atoms
+}
+
+type rmsdPoolResult struct {
+	fragNum int
+	rmsd    float64
+}
+
+// BestFragments runs Kabsch in parallel over the entire fragment library
+// for *each* set of atoms provided. The best fragment for each atom set
+// is returned in a slice of integers whose indices correspond exactly to
+// the indices of 'atomSets'.
+func (lib *Library) BestFragments(atomSets []pdb.Atoms) []int {
+	// Create the worker pool.
+	jobs, results := lib.rmsdWorkers(0, 0)
+	bestFrags := make([]int, len(atomSets))
+
+	for setIndex, atoms := range atomSets {
+		// Start a goroutine that reads the results returned from the worker
+		// pool, and determines the best matching fragment in terms of
+		// smallest RMSD.
+		bestFragChan := make(chan int, 0)
+		go func() {
+			bestFrag, bestRmsd := -1, 0.0
+			for i := 0; i < lib.Size(); i++ {
+				result := <-results
+				if bestFrag == -1 || result.rmsd < bestRmsd {
+					bestFrag, bestRmsd = result.fragNum, result.rmsd
+				}
+			}
+			bestFragChan <- bestFrag
+		}()
+
+		// Send out all of the jobs to the workers.
+		for i := 0; i < lib.Size(); i++ {
+			jobs <- rmsdPoolJob{
+				fragNum: i,
+				atoms:   atoms,
+			}
+		}
+
+		// Wait for the best fragment computation to finish, then move on to
+		// the next atom set.
+		//
+		// This is CRITICAL! If we don't wait (i.e., slapping this into
+		// a goroutine), then it's quite likely that results from one atom set
+		// will get confused for another atom set.
+		bestFrags[setIndex] = <-bestFragChan
+	}
+	return bestFrags
+}
+
+// rmsdWorkers starts a pool of workers ready to compute the RMSD of any two
+// atom slices. If 'numWorkers' is 0, then GOMAXPROCS workers will be started.
+// If 'bufferSize' is 0, then the buffer will be set to the number of fragments
+// in the library. The bigger the buffer, the more memory will be used.
+func (lib *Library) rmsdWorkers(
+	numWorkers int, bufferSize int) (chan rmsdPoolJob, chan rmsdPoolResult) {
+
+	workers := numWorkers
+	if workers == 0 {
+		workers = runtime.GOMAXPROCS(0)
+	}
+	bufSize := bufferSize
+	if bufSize == 0 {
+		bufSize = lib.Size()
+	}
+
+	jobs := make(chan rmsdPoolJob, bufSize)
+	results := make(chan rmsdPoolResult, bufSize)
+	for i := 0; i < workers; i++ {
+		go func() {
+			for job := range jobs {
+				results <- rmsdPoolResult{
+					fragNum: job.fragNum,
+					rmsd: rmsd.RMSD(
+						job.atoms,
+						lib.Fragment(job.fragNum).OneChain().CaAtoms),
+				}
+			}
+		}()
+	}
+	return jobs, results
+}
+
 // String returns a string with the name of the library (base name of the 
 // library directory), the number of fragments in the library and the size
 // of each fragment.
@@ -204,16 +292,4 @@ func (frag LibFragment) String() string {
 	}
 	return fmt.Sprintf("> %d (%s)\n%s",
 		frag.Ident, frag.library, strings.Join(atoms, "\n"))
-}
-
-// realSize reads the fragment file and counts the number of occurrences of
-// "ATOM" to report the actual size of the fragment.
-//
-// NewLibrary enforces the invariant that all fragments in the library have
-// the same size.
-//
-// If 'realSize' returns an error, then the fragment file wasn't readable.
-// The 'NewLibrary' constructor should then fail and return this error.
-func (frag LibFragment) realSize() int {
-	return len(frag.OneChain().CaAtoms)
 }
