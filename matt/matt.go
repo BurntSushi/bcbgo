@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -82,38 +83,72 @@ type Config struct {
 // GOMAXPROCS is the maximum number of CPUs that can be executing
 // simultaneously. As of July 10, 2012, this value is set by default to 1.
 func (conf Config) RunAll(argsets [][]PDBArg) ([]*Results, []error) {
-	// Force the OutputPrefix to be blank so that we use temp directories.
-	conf.OutputPrefix = ""
-	resultChans := make([]chan *Results, len(argsets))
-	errorChans := make([]chan error, len(argsets))
-	for i, argset := range argsets {
-		resultChans[i] = make(chan *Results, 0)
-		errorChans[i] = make(chan error, 0)
-		go func(i int, argset []PDBArg) {
-			res, err := conf.Run(argset...)
-			res.CleanDir()
-			if err != nil {
-				errorChans[i] <- err
-			} else {
-				resultChans[i] <- &res
-			}
-		}(i, argset)
+	type work struct {
+		argset []PDBArg
+		rchan  chan *Results
+		echan  chan error
 	}
 
-	results := make([]*Results, len(argsets))
-	errors := make([]error, len(argsets))
-	for i := range argsets {
-		select {
-		case res := <-resultChans[i]:
-			results[i] = res
-			errors[i] = nil
-		case err := <-errorChans[i]:
-			results[i] = nil
-			errors[i] = err
+	// Force the OutputPrefix to be blank so that we use temp directories.
+	conf.OutputPrefix = ""
+
+	// The workers that will run matt.
+	worker := func(workChan chan work) {
+		for work := range workChan {
+			res, err := conf.Run(work.argset...)
+			res.CleanDir()
+			if err != nil {
+				work.echan <- err
+			} else {
+				work.rchan <- &res
+			}
 		}
 	}
+
+	// Start N workers, where N is the number of CPUs.
+	workChan := make(chan work, 100)
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go worker(workChan)
+	}
+
+	resultChans := make([]chan *Results, len(argsets))
+	errorChans := make([]chan error, len(argsets))
+	results := make([]*Results, len(argsets))
+	errors := make([]error, len(argsets))
+	done := make(chan struct{}, 0)
+	go func() {
+		for i := range argsets {
+			select {
+			case res := <-resultChans[i]:
+				results[i] = res
+				errors[i] = nil
+			case err := <-errorChans[i]:
+				results[i] = nil
+				errors[i] = err
+			}
+			close(resultChans[i])
+			close(errorChans[i])
+		}
+		done <- struct{}{}
+	}()
+
+	for i, argset := range argsets {
+		resultChans[i] = make(chan *Results, 1)
+		errorChans[i] = make(chan error, 1)
+		workChan <- work{
+			argset: argset,
+			rchan:  resultChans[i],
+			echan:  errorChans[i],
+		}
+	}
+
+	<-done
+	close(workChan)
 	return results, errors
 }
+
+// RunSequence is like RunAll, but each argument set is passed to matt as
+// an addition '-o' alignment.
 
 // Run will execute Matt using a particular configuration with a set of
 // PDB file arguments. It handles creation of a temporary directory where
@@ -191,21 +226,21 @@ type Results struct {
 
 // newResults uses the Matt prefix to load several interesting pieces of
 // information from Matt's txt output file. Namely, the core length, RMSD
-// and p-value. newResults panics if the output file cannot be read, but
-// returns an error if it can't parse the txt file.
+// and p-value. newResults returns an error if the output file cannot be read
+// or parsed.
 func newResults(prefix string) (Results, error) {
 	res := Results{prefix: prefix}
 
 	txtf, err := os.Open(res.Txt())
 	if err != nil {
-		panic(fmt.Sprintf("Could not read Matt's txt output file '%s' "+
-			"because: %s.", res.Txt(), err))
+		return res, fmt.Errorf("Could not read Matt's txt output file '%s' "+
+			"because: %s.", res.Txt(), err)
 	}
 
 	txtb, err := ioutil.ReadAll(txtf)
 	if err != nil {
-		panic(fmt.Sprintf("Could not process Matt's txt output file '%s' "+
-			"because: %s.", res.Txt(), err))
+		return res, fmt.Errorf("Could not process Matt's txt output file '%s' "+
+			"because: %s.", res.Txt(), err)
 	}
 
 	txtLines := strings.Split(strings.TrimSpace(string(txtb)), "\n")
