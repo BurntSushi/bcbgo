@@ -91,28 +91,34 @@ func New(fileName string) (*Entry, error) {
 		}
 	}
 
+	// Sort each chain's atom slice.
+	for _, chain := range entry.Chains {
+		sort.Sort(chain.Atoms)
+		sort.Sort(chain.CaAtoms)
+	}
+
 	return entry, nil
+}
+
+// OneChain returns a single chain in the PDB file. If there is more than one
+// chain, OneChain will panic. This is convenient when you expect a PDB file to
+// have only a single chain, but don't know the name.
+func (e *Entry) OneChain() *Chain {
+	if len(e.Chains) != 1 {
+		panic(fmt.Sprintf("OneChain can only be called on PDB entries with "+
+			"ONE chain. But the '%s' PDB entry has %d chains.",
+			e.Path, len(e.Chains)))
+	}
+	for _, chain := range e.Chains {
+		return chain
+	}
+	panic("unreachable")
 }
 
 // PDBArg is a convenience method for creating a PDBArg that can be used in
 // the 'matt' package. It sets 'Location' in PDBArg to 'Path' from 'Entry'.
 func (e *Entry) PDBArg() matt.PDBArg {
 	return matt.PDBArg{Location: e.Path}
-}
-
-// PDBArgChain is a convenience method for creating a PDBArg for a specific
-// chain that can be used in the 'matt' package.
-//
-// PDBArgChain panics if 'chainIdent' is not in the chain map for this Entry.
-func (e *Entry) PDBArgChain(chainIdent byte) matt.PDBArg {
-	if _, ok := e.Chains[chainIdent]; !ok {
-		panic(fmt.Sprintf("The chain identifier '%c' was not found in the "+
-			"chain map for the '%s' PDB entry.", chainIdent, e.Path))
-	}
-	return matt.PDBArg{
-		Location: e.Path,
-		Chain:    chainIdent,
-	}
 }
 
 // String returns a sorted list of all chains, their residue start/stop indices,
@@ -134,10 +140,12 @@ func (e *Entry) getOrMakeChain(ident byte) *Chain {
 		return chain
 	}
 	e.Chains[ident] = &Chain{
+		entry:            e,
 		Ident:            ident,
 		Sequence:         make([]byte, 0, 10),
 		AtomResidueStart: 0,
 		AtomResidueEnd:   0,
+		CaAtoms:          make(Atoms, 0, 30),
 	}
 	return e.Chains[ident]
 }
@@ -195,8 +203,9 @@ func (e *Entry) parseAtom(line []byte) {
 	// The residue sequence number is in columns 22-25. Grab it, trim it,
 	// and look for an integer.
 	snum := strings.TrimSpace(string(line[22:26]))
+	inum := int(0)
 	if num, err := strconv.ParseInt(snum, 10, 32); err == nil {
-		inum := int(num)
+		inum = int(num)
 		switch {
 		case chain.AtomResidueStart == 0 || inum < chain.AtomResidueStart:
 			chain.AtomResidueStart = inum
@@ -204,21 +213,123 @@ func (e *Entry) parseAtom(line []byte) {
 			chain.AtomResidueEnd = inum
 		}
 	}
+
+	// Build an Atom value. We need the serial number from columns 6-10,
+	// the atom name from columns 12-15, the amino acid residue from
+	// columns 17-19 (we already have that: 'residue'), the residue sequence
+	// number from columns 22-25 (already have that too: 'inum'), and the
+	// three dimension coordinates in columns 30-37 (x), 38-45 (y), and
+	// 46-53 (z).
+	atom := Atom{
+		Name:       strings.TrimSpace(string(line[12:16])),
+		Residue:    residue,
+		ResidueInd: inum,
+		Coords:     [3]float64{},
+	}
+
+	serialStr := strings.TrimSpace(string(line[6:11]))
+	if serial64, err := strconv.ParseInt(serialStr, 10, 32); err == nil {
+		atom.Serial = int(serial64)
+	}
+
+	xstr := strings.TrimSpace(string(line[30:38]))
+	ystr := strings.TrimSpace(string(line[38:46]))
+	zstr := strings.TrimSpace(string(line[46:54]))
+	if x64, err := strconv.ParseFloat(xstr, 64); err == nil {
+		atom.Coords[0] = x64
+	}
+	if y64, err := strconv.ParseFloat(ystr, 64); err == nil {
+		atom.Coords[1] = y64
+	}
+	if z64, err := strconv.ParseFloat(zstr, 64); err == nil {
+		atom.Coords[2] = z64
+	}
+
+	// Now add our atom to the chain.
+	chain.Atoms = append(chain.Atoms, atom)
+	if atom.Name == "CA" {
+		chain.CaAtoms = append(chain.CaAtoms, atom)
+	}
 }
 
 // Chain represents a protein chain or subunit in a PDB file. Each chain has
 // its own identifier, amino acid sequence (if its a protein sequence), and
 // the start and stop residue indices of the ATOM coordinates.
+//
+// It also contains a slice of all carbon-alpha ATOM records corresponding
+// to an amino acid.
 type Chain struct {
+	entry                            *Entry
 	Ident                            byte
 	Sequence                         []byte
 	AtomResidueStart, AtomResidueEnd int
+	Atoms                            Atoms
+	CaAtoms                          Atoms
+}
+
+// PDBArg is a convenience method for creating a PDBArg for a specific
+// chain that can be used in the 'matt' package.
+func (c *Chain) PDBArg() matt.PDBArg {
+	return matt.PDBArg{
+		Location: c.entry.Path,
+		Chain:    c.Ident,
+	}
+}
+
+// ValidProtein returns true when there are ATOM records corresponding to
+// a protein backbone.
+func (c *Chain) ValidProtein() bool {
+	return c.AtomResidueStart > 0 && c.AtomResidueEnd > 0
 }
 
 // String returns a FASTA-like formatted string of this chain and all of its
 // related information.
 func (c *Chain) String() string {
-	return fmt.Sprintf("> Chain %c (%d, %d) :: length %d\n%s",
-		c.Ident, c.AtomResidueStart, c.AtomResidueEnd,
-		len(c.Sequence), string(c.Sequence))
+	return strings.TrimSpace(
+		fmt.Sprintf("> Chain %c (%d, %d) :: length %d\n%s",
+			c.Ident, c.AtomResidueStart, c.AtomResidueEnd,
+			len(c.Sequence), string(c.Sequence)))
+}
+
+// Atom contains information about an ATOM record, including the serial
+// number, the residue (and residue sequence number), the atom name and the
+// three dimensional coordinates.
+type Atom struct {
+	Serial     int
+	Name       string
+	ResidueInd int
+	Residue    string
+
+	// Coords is a triple where the first element is X, the second is Y and
+	// the third is Z.
+	Coords [3]float64
+}
+
+func (a Atom) String() string {
+	return fmt.Sprintf("(%d, %s, %d, %s, [%0.4f %0.4f %0.4f])",
+		a.Serial, a.Name, a.ResidueInd, a.Residue,
+		a.Coords[0], a.Coords[1], a.Coords[2])
+}
+
+// Atoms names a slice of Atom for sorting.
+type Atoms []Atom
+
+func (as Atoms) String() string {
+	lines := make([]string, len(as))
+	for i, atom := range as {
+		lines[i] = atom.String()
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (as Atoms) Len() int {
+	return len(as)
+}
+
+func (as Atoms) Less(i, j int) bool {
+	return as[i].Serial < as[j].Serial
+}
+
+func (as Atoms) Swap(i, j int) {
+	as[i], as[j] = as[j], as[i]
 }
