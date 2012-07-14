@@ -6,26 +6,42 @@ Packages
 pdb
 ---
 Package pdb includes support for gathering some information from PDB files.
-Currently, this information is limited to primary amino acid sequence, and the
-start and stop residue indices of ATOM records for each chain.
+Currently, this information is limited to primary amino acid sequence, the
+start and stop residue indices of ATOM records for each chain, and data on all
+ATOM records stored in the PDB file. A special slice, called CaAtoms, is also
+created that stores only ATOM records corresponding to carbon-alpha atoms.
 
 matt
 ----
 Package matt is a wrapper around the structural aligner that we all know and 
 love. It's meant to provide a sane configuration interface for calling matt.
 
-The package will also support the ability to query details about the alignment 
+The package also supports the ability to query details about the alignment 
 easily, such as fetching the core RMSD. Currently, there are no facilities to 
 examine other output (such as the alignment itself).
 
+rmsd
+----
+Package rmsd provides an implementation of the Kabsch algorithm to compute the 
+RMSD between two equal length sets of atoms. It uses skelterjohn's go.matrix 
+package for matrix operations and more notably, singular value decomposition 
+(go.matrix can be found at 'github.com/skelterjohn/go.matrix' and installed 
+with 'go get github.com/skelterjohn/go.matrix').
+
 fragbag
 -------
-Package fragbag uses matt to compute a vector of fragments corresponding to a 
-fragment library by picking the best matching fragment for each overlapping and 
-contiguous kmer in the input.
+Package fragbag uses package rmsd to compute a vector of fragments 
+corresponding to a fragment library by picking the best matching fragment for 
+each overlapping and contiguous kmer in the input.
 
 fragbag also provides types and methods for dealing with fragbag's fragment
-libraries.
+libraries. There are also facilities for converting bag-of-word vectors to
+and from the original Fragbag's output. (i.e., the numbering of fragments
+looks like: 'a', 'b', ..., 'z', 'A', 'B', ..., 'Z', '52', '53', '54', ....)
+
+Finally, fragbag's bag-of-words type ('BOW') provides implementations of 
+several operations on bags-of-words. Namely, addition, string representation 
+and several different forms of distance computation.
 
 hhfrag
 ------
