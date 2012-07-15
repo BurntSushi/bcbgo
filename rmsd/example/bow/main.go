@@ -7,14 +7,35 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"runtime/pprof"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/pdb"
 )
 
+var (
+	// When non-empty, a CPU profile will be saved to the file path specified.
+	flagProfile string
+
+	// When non-empty, a memory profile will be saved to the file path 
+	// specified.
+	flagMemProfile string
+)
+
 func main() {
 	if flag.NArg() < 2 {
 		usage()
+	}
+
+	// Run the CPU profile if we're instructed to.
+	if len(flagProfile) > 0 {
+		f, err := os.Create(flagProfile)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
 
 	// Look for and create a new library of fragments at the path provided.
@@ -36,9 +57,23 @@ func main() {
 		fmt.Println(lib.NewBowPDB(entry))
 		fmt.Println("---------------------------------------------------")
 	}
+
+	if len(flagMemProfile) > 0 {
+		f, err := os.Create(flagMemProfile)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.WriteHeapProfile(f)
+		f.Close()
+	}
 }
 
 func init() {
+	flag.StringVar(&flagProfile, "profile", "",
+		"If set, a CPU profile will be saved to the file name provided.")
+	flag.StringVar(&flagProfile, "memprofile", "",
+		"If set, a memory profile will be saved to the file name provided.")
 	flag.Usage = usage
 	flag.Parse()
 }
