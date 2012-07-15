@@ -32,7 +32,7 @@ import (
 type Library struct {
 	Path         string
 	fragmentSize int
-	fragments    []LibFragment
+	fragments    []*LibFragment
 }
 
 // NewLibrary constucts a new Fragbag library given a path to the directory
@@ -68,7 +68,7 @@ func NewLibrary(path string) (*Library, error) {
 
 	// Check that the fragment numbering is contiguous, and populate
 	// our fragments slice.
-	lib.fragments = make([]LibFragment, len(fragNums))
+	lib.fragments = make([]*LibFragment, len(fragNums))
 	sort.Sort(sort.IntSlice(fragNums))
 	lastNum := -1
 	for _, fragNum := range fragNums {
@@ -124,7 +124,7 @@ func (lib *Library) FragmentSize() int {
 
 // Fragment returns a LibFragment corresponding to the fragment number
 // fragNum. Fragment will panic if such a fragment does not exist.
-func (lib *Library) Fragment(fragNum int) LibFragment {
+func (lib *Library) Fragment(fragNum int) *LibFragment {
 	if fragNum >= 0 && fragNum < len(lib.fragments) {
 		return lib.fragments[fragNum]
 	}
@@ -270,13 +270,13 @@ type LibFragment struct {
 // given a fragment library. A pdb.Entry is also created and embedded with
 // the Location corresponding to a file path concatenation of the library path
 // and the fragment number.
-func (lib *Library) newLibFragment(fragNum int) (LibFragment, error) {
+func (lib *Library) newLibFragment(fragNum int) (*LibFragment, error) {
 	path := path.Join(lib.Path, fmt.Sprintf("%d", fragNum))
 	entry, err := pdb.New(path)
 	if err != nil {
-		return LibFragment{}, err
+		return nil, err
 	}
-	return LibFragment{
+	return &LibFragment{
 		library: lib,
 		Ident:   fragNum,
 		Entry:   entry,
@@ -284,7 +284,7 @@ func (lib *Library) newLibFragment(fragNum int) (LibFragment, error) {
 }
 
 // String returns the fragment number, library and its corresponding atoms.
-func (frag LibFragment) String() string {
+func (frag *LibFragment) String() string {
 	chain := frag.OneChain()
 	atoms := make([]string, len(chain.CaAtoms))
 	for i, atom := range chain.CaAtoms {
