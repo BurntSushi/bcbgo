@@ -6,7 +6,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/pdb"
 
-	matrix "github.com/BurntSushi/go.matrix"
+	matrix "github.com/skelterjohn/go.matrix"
 )
 
 // RMSD implements a version of the Kabsch alogrithm that is described here:
