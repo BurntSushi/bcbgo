@@ -96,6 +96,12 @@ func New(fileName string) (*Entry, error) {
 		}
 	}
 
+	// If we didn't pick up any chains, this probably isn't a valid PDB file.
+	if len(entry.Chains) == 0 {
+		return nil, fmt.Errorf("The file '%s' does not appear to be a valid "+
+			"PDB file.", fileName)
+	}
+
 	return entry, nil
 }
 
@@ -118,6 +124,11 @@ func (e *Entry) OneChain() *Chain {
 // the 'matt' package. It sets 'Location' in PDBArg to 'Path' from 'Entry'.
 func (e *Entry) PDBArg() matt.PDBArg {
 	return matt.PDBArg{Location: e.Path}
+}
+
+// Name returns the base name of the path of this PDB entry.
+func (e *Entry) Name() string {
+	return path.Base(e.Path)
 }
 
 // String returns a sorted list of all chains, their residue start/stop indices,

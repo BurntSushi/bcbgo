@@ -175,6 +175,13 @@ func (lib *Library) BestFragments(atomSets []pdb.Atoms) []int {
 	bestFrags := make([]int, len(atomSets))
 
 	for setIndex, atoms := range atomSets {
+		if len(atoms) != lib.FragmentSize() {
+			panic(fmt.Sprintf("BestFragments can only be called with sets "+
+				"of atoms with length equivalent to the fragment size of the "+
+				"library. The length a set given is %d, but the "+
+				"fragment size of the library is %d.",
+				len(atoms), lib.FragmentSize()))
+		}
 		// Start a goroutine that reads the results returned from the worker
 		// pool, and determines the best matching fragment in terms of
 		// smallest RMSD.
