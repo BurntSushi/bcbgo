@@ -5,8 +5,8 @@ install:
 	go install -p 6 ./cmd/*
 
 gofmt:
-	gofmt -w */*.go */example/*/*.go
-	colcheck */*.go */example/*/*.go
+	gofmt -w */*.go cmd/*/*.go */example/*/*.go
+	colcheck */*.go cmd/*/*.go */example/*/*.go
 
 tags:
 	find ./ \( \
