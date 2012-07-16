@@ -1,5 +1,10 @@
 package fragbag
 
+import (
+	"fmt"
+	"strings"
+)
+
 // BOWDiff represents the difference between two bag-of-words vectors. The
 // types are quite similar, except diffFreqs represents difference between
 // the frequency of a particular fragment number.
@@ -41,4 +46,22 @@ func (bdiff BOWDiff) IsSame() bool {
 		}
 	}
 	return true
+}
+
+// String returns a string representation of the BOW diff vector. Only fragments
+// with non-zero differences are emitted.
+//
+// The output looks like
+// '{fragNum: diff-frequency, fragNum: diff-frequency, ...}'.
+// i.e., '{1: 4, 3: 1}' where all fragment numbers except '1' and '3' have
+// a difference frequency of zero.
+func (bdiff BOWDiff) String() string {
+	pieces := make([]string, 0, 10)
+	for i := 0; i < bdiff.library.Size(); i++ {
+		freq := bdiff.diffFreqs[i]
+		if freq != 0 {
+			pieces = append(pieces, fmt.Sprintf("%d: %d", i, freq))
+		}
+	}
+	return fmt.Sprintf("{%s}", strings.Join(pieces, ", "))
 }
