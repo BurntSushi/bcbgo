@@ -5,7 +5,48 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/BurntSushi/bcbgo/pdb"
 )
+
+// NewBowPDBOldStyle returns a bag-of-words describing a pdb file using
+// a particular idiosynracy from the old Fragbag program: all carbon-alpha
+// ATOM records are smushed into one slice, and each N-mer window is used
+// to compute a "best" fragment. The idiosyncracy here is that chain
+// information is thrown out, and RMSD computations are performed across chain
+// boundaries. The regular NewBowPDB method does *not* do this.
+func (lib *Library) NewBowPDBOldStyle(entry *pdb.Entry) BOW {
+	// We don't use the public 'Increment' or 'Add' methods to avoid
+	// excessive allocations.
+	bow := lib.NewBow()
+
+	// Flatten the atoms into one big slice first.
+	atoms := make(pdb.Atoms, 0, 500)
+	for _, chain := range entry.Chains {
+		if !chain.ValidProtein() {
+			continue
+		}
+		atoms = append(atoms, chain.CaAtoms...)
+	}
+
+	// Create a list of atom sets for all K-mer windows of all protein chains
+	// in the PDB entry, where K is the fragment size of the library.
+	// The list of atom sets can then have the best fragment for each atom
+	// set computed concurrently with BestFragments.
+	atomSets := make([]pdb.Atoms, 0, 100)
+	for i := 0; i <= len(atoms)-lib.FragmentSize(); i++ {
+		atomSets = append(atomSets, atoms[i:i+lib.FragmentSize()])
+	}
+
+	// Get the best fragment numbers for each set, and increase the frequency
+	// of each fragment number returned.
+	for _, bestFragNum := range lib.BestFragments(atomSets) {
+		if bestFragNum >= 0 {
+			bow.fragfreqs[bestFragNum] += 1
+		}
+	}
+	return bow
+}
 
 // This file segregates several methods the provide interoperability between
 // the old Fragbag program (written by Rachel Kolodny) and this fragbag

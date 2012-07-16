@@ -45,7 +45,7 @@ func (lib *Library) NewBowMap(freqMap map[int]int16) BOW {
 	return bow
 }
 
-// NewPDB returns a bag-of-words describing a pdb file.
+// NewBowPDB returns a bag-of-words describing a pdb file.
 //
 // All protein chains in the PDB file are used.
 func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
