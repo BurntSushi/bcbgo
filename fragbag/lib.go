@@ -137,7 +137,7 @@ func (lib *Library) Fragment(fragNum int) *LibFragment {
 //
 // BestFragment panics if the length of atoms is not equivalent to the
 // fragment size of the library.
-func (lib *Library) BestFragment(atoms pdb.Atoms) int {
+func (lib *Library) BestFragment(atoms pdb.Atoms) (int, float64) {
 	if len(atoms) != lib.FragmentSize() {
 		panic(fmt.Sprintf("BestFragment can only be called with a list of "+
 			"atoms with length equivalent to the fragment size of the "+
@@ -152,7 +152,7 @@ func (lib *Library) BestFragment(atoms pdb.Atoms) int {
 			bestRmsd, bestFragNum = testRmsd, frag.Ident
 		}
 	}
-	return bestFragNum
+	return bestFragNum, bestRmsd
 }
 
 type rmsdPoolJob struct {
