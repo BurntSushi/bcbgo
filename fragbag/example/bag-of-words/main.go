@@ -1,3 +1,5 @@
+// Example bag-of-words shows how to compute a bag-of-words vector given a
+// fragment library and a PDB file.
 package main
 
 import (
@@ -15,19 +17,21 @@ func main() {
 		usage()
 	}
 
+	// Initialize the fragment library whatever is provided. If the library
+	// isn't valid or doesn't exist, exit with an error.
 	lib, err := fragbag.NewLibrary(flag.Arg(0))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(lib)
+	fmt.Printf("Using library %s.\n", lib)
 
 	pdb, err := pdb.New(flag.Arg(1))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(pdb)
+	fmt.Printf("Computing the bag-of-words vector for %s.\n", pdb.Name())
 
 	fmt.Println(lib.NewBowPDB(pdb))
 }
