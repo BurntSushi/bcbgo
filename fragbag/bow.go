@@ -34,6 +34,17 @@ func (lib *Library) NewBow() BOW {
 	return bow
 }
 
+// NewBowMap returns a bag-of-words with the vector initialized to the map
+// provided. The keys of the map should be fragment numbers and the values
+// should be frequencies.
+func (lib *Library) NewBowMap(freqMap map[int]int16) BOW {
+	bow := lib.NewBow()
+	for fragNum, freq := range freqMap {
+		bow.fragfreqs[fragNum] = freq
+	}
+	return bow
+}
+
 // NewPDB returns a bag-of-words describing a pdb file.
 //
 // All protein chains in the PDB file are used.
@@ -82,6 +93,22 @@ func (bow BOW) Increment(fragNum int) {
 	bow.fragfreqs[fragNum] += 1
 }
 
+// Equal tests whether two fragments are equal. In order for "equality" to
+// be defined, both fragments MUST be from the same library. If they aren't,
+// Equal will panic.
+//
+// Two BOWs are equivalent when the frequencies of every fragment are equal.
+func (bow1 BOW) Equal(bow2 BOW) bool {
+	mustHaveSameLibrary(bow1, bow2)
+	mustHaveSameLength(bow1, bow2)
+	for i, freq1 := range bow1.fragfreqs {
+		if freq1 != bow2.fragfreqs[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // Add performs an add operation on each fragment frequency and returns
 // a new BOW. Add will panic if the operands came from different fragment
 // libraries.
@@ -128,6 +155,27 @@ func mustHaveSameLibrary(bows ...BOW) {
 		if lib != bow.library {
 			panic(fmt.Sprintf("A BOW belongs to library '%s', but another "+
 				"BOW belongs to library '%s'.", bow.library, lib))
+		}
+	}
+}
+
+// mustHaveSameLength panics if any two BOWs have differing lengths when they
+// were expected to have the same. (i.e., it is appropriate to call this
+// right after 'mustHaveSameLibrary', but NOT before.)
+//
+// This exists to discover bugs.
+func mustHaveSameLength(bows ...BOW) {
+	lenMatch, refBow := -1, BOW{}
+	for _, bow := range bows {
+		if lenMatch == -1 {
+			lenMatch = len(bow.fragfreqs)
+			refBow = bow
+			continue
+		}
+		if lenMatch != len(bow.fragfreqs) {
+			panic(fmt.Sprintf("BUG: Two BOWs belonging to the same library "+
+				"have lengths %d and %d. The BOWs are \n\n%s\n\n%s.\n",
+				lenMatch, len(bow.fragfreqs), refBow, bow))
 		}
 	}
 }
