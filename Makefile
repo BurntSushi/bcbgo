@@ -2,6 +2,7 @@ all: gofmt data/fraglibs/centers400_11
 
 install:
 	go install -p 6 ./fragbag ./matt ./pdb ./rmsd
+	go install -p 6 ./cmd/*
 
 gofmt:
 	gofmt -w */*.go */example/*/*.go
