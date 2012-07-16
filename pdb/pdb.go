@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -41,7 +40,7 @@ func init() {
 // Currently, a PDB entry is simply a file path and a map of protein chains.
 type Entry struct {
 	Path   string
-	Chains map[byte]*Chain
+	Chains []*Chain
 }
 
 // New creates a new PDB Entry from a file. If the file cannot be read, or there
@@ -67,7 +66,7 @@ func New(fileName string) (*Entry, error) {
 
 	entry := &Entry{
 		Path:   fileName,
-		Chains: make(map[byte]*Chain, 0),
+		Chains: make([]*Chain, 0),
 	}
 
 	// Now traverse each line, and process it according to the record name.
@@ -105,6 +104,17 @@ func New(fileName string) (*Entry, error) {
 	return entry, nil
 }
 
+// Chain looks for the chain with identifier ident and returns it. 'nil' is
+// returned if the chain could not be found.
+func (e *Entry) Chain(ident byte) *Chain {
+	for _, chain := range e.Chains {
+		if chain.Ident == ident {
+			return chain
+		}
+	}
+	return nil
+}
+
 // OneChain returns a single chain in the PDB file. If there is more than one
 // chain, OneChain will panic. This is convenient when you expect a PDB file to
 // have only a single chain, but don't know the name.
@@ -114,10 +124,7 @@ func (e *Entry) OneChain() *Chain {
 			"ONE chain. But the '%s' PDB entry has %d chains.",
 			e.Path, len(e.Chains)))
 	}
-	for _, chain := range e.Chains {
-		return chain
-	}
-	panic("unreachable")
+	return e.Chains[0]
 }
 
 // PDBArg is a convenience method for creating a PDBArg that can be used in
@@ -131,25 +138,25 @@ func (e *Entry) Name() string {
 	return path.Base(e.Path)
 }
 
-// String returns a sorted list of all chains, their residue start/stop indices,
+// String returns a list of all chains, their residue start/stop indices,
 // and the amino acid sequence.
 func (e *Entry) String() string {
 	lines := make([]string, 0)
 	for _, chain := range e.Chains {
 		lines = append(lines, chain.String())
 	}
-	sort.Sort(sort.StringSlice(lines))
 	return strings.Join(lines, "\n")
 }
 
-// getOrMakeChain looks for a chain in the 'Chains' map corresponding to the
+// getOrMakeChain looks for a chain in the 'Chains' slice corresponding to the
 // chain indentifier. If one exists, it is returned. If one doesn't exist,
 // it is created, memory is allocated and it is returned.
 func (e *Entry) getOrMakeChain(ident byte) *Chain {
-	if chain, ok := e.Chains[ident]; ok {
+	chain := e.Chain(ident)
+	if chain != nil {
 		return chain
 	}
-	e.Chains[ident] = &Chain{
+	newChain := &Chain{
 		entry:            e,
 		Ident:            ident,
 		Sequence:         make([]byte, 0, 10),
@@ -157,7 +164,8 @@ func (e *Entry) getOrMakeChain(ident byte) *Chain {
 		AtomResidueEnd:   0,
 		CaAtoms:          make(Atoms, 0, 30),
 	}
-	return e.Chains[ident]
+	e.Chains = append(e.Chains, newChain)
+	return newChain
 }
 
 // parseSeqres loads all pertinent information from SEQRES records in a PDB

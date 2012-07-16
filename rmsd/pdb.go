@@ -21,13 +21,13 @@ import (
 func PDB(entry1 *pdb.Entry, chainId1 byte, start1, end1 int,
 	entry2 *pdb.Entry, chainId2 byte, start2, end2 int) (float64, error) {
 
-	chain1, ok := entry1.Chains[chainId1]
-	if !ok {
+	chain1 := entry1.Chain(chainId1)
+	if chain1 == nil {
 		return 0.0, fmt.Errorf("The chain '%c' could not be found in '%s'.",
 			chainId1, entry1.Name())
 	}
-	chain2, ok := entry2.Chains[chainId2]
-	if !ok {
+	chain2 := entry2.Chain(chainId2)
+	if chain2 == nil {
 		return 0.0, fmt.Errorf("The chain '%c' could not be found in '%s'.",
 			chainId2, entry2.Name())
 	}
