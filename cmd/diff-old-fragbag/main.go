@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	flagFragbag string
+	flagFragbag  string
+	flagOldStyle bool
 )
 
 func main() {
@@ -60,7 +61,12 @@ func main() {
 		}
 
 		// Now use package fragbag to compute a BOW.
-		newBow := lib.NewBowPDBOldStyle(entry)
+		var newBow fragbag.BOW
+		if flagOldStyle {
+			newBow = lib.NewBowPDBOldStyle(entry)
+		} else {
+			newBow = lib.NewBowPDB(entry)
+		}
 
 		// Create a diff and check if they are the same. If so, we passed.
 		// Otherwise, print an error report.
@@ -96,6 +102,8 @@ func fatalf(format string, v ...interface{}) {
 func init() {
 	flag.StringVar(&flagFragbag, "fragbag", "fragbag",
 		"The old fragbag executable.")
+	flag.BoolVar(&flagOldStyle, "oldstyle", false,
+		"When true, NewBowPDBOldStyle will be used to compute BOW vectors.")
 	flag.Usage = usage
 	flag.Parse()
 }
