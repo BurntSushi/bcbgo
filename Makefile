@@ -16,7 +16,7 @@ data/fraglibs/%: data/fraglibs/%.brk
 # fragments for a flattened list of all ATOM records in each PDB file. This
 # results in RMSD calculations that can span over multiple chains.
 diff-fragbag-oldstyle:
-	GOMAXPROCS=6 diff-old-fragbag \
+	GOMAXPROCS=6 diff-kolodny-fragbag \
 			--fragbag ~/tmp/collab/libbuild \
 			--oldstyle \
 			data/fraglibs/centers400_11.brk data/fraglibs/centers400_11 \
@@ -27,7 +27,7 @@ diff-fragbag-oldstyle:
 # each chain individually, and never computes the RMSD for a set of ATOM 
 # records that overlap multiple chains.
 diff-fragbag-newstyle:
-	GOMAXPROCS=6 diff-old-fragbag \
+	GOMAXPROCS=6 diff-kolodny-fragbag \
 			--fragbag ~/tmp/collab/libbuild \
 			data/fraglibs/centers400_11.brk data/fraglibs/centers400_11 \
 			data/kolodny-fragbag-testset/*.pdb
