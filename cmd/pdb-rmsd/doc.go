@@ -10,10 +10,6 @@ A PDB file may either be plain text or compressed using the Lempel-Ziv coding
 Usage:
 	pdb-rmsd pdb-file chain-id start stop pdb-file chain-id start stop
 
-The flags are:
-	--help
-		Show the usage and an example invocation.
-
 Details
 
 The algorithm used to compute RMSD is based on the Kabsch algorithm for 
