@@ -19,4 +19,4 @@ sets of points.
 More precisely, the algorithm is described in great detail here:
 http://cnx.org/content/m11608/latest/#MatrixAlignment.
 */
-package documentation
+package main

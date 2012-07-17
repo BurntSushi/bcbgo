@@ -1,5 +1,3 @@
-// pdb-rsmd computes the RMSD between any two sets of carbon-alpha ATOM records
-// specified by chain and an inclusive range of residue indices.
 package main
 
 import (

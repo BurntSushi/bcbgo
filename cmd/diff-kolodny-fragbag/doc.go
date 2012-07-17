@@ -45,4 +45,4 @@ The first mode exists because I believe it to be correct. (Results are
 forthcoming.)
 
 */
-package documentation
+package main
