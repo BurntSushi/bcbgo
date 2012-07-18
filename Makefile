@@ -32,6 +32,11 @@ diff-fragbag-newstyle:
 			data/fraglibs/centers400_11.brk data/fraglibs/centers400_11 \
 			data/kolodny-fragbag-testset/*.pdb
 
+push:
+	git push origin master
+	git push tufts master
+	git push github master
+
 tags:
 	find ./ \( \
 			-name '*.go' \
