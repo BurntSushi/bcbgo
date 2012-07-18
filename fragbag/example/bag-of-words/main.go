@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	if flag.NArg() != 2 {
+	if flag.NArg() < 2 {
 		usage()
 	}
 
@@ -26,14 +26,16 @@ func main() {
 	}
 	fmt.Printf("Using library %s.\n", lib)
 
-	pdb, err := pdb.New(flag.Arg(1))
-	if err != nil {
-		fmt.Println(err)
-		return
+	for _, pdbfile := range flag.Args()[1:] {
+		entry, err := pdb.New(pdbfile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Printf("Computing the bag-of-words vector for %s.\n", entry.Name())
+		fmt.Println(lib.NewBowPDB(entry))
+		fmt.Println("----------------------------------------------")
 	}
-	fmt.Printf("Computing the bag-of-words vector for %s.\n", pdb.Name())
-
-	fmt.Println(lib.NewBowPDB(pdb))
 }
 
 func init() {
@@ -42,7 +44,8 @@ func init() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s frag-lib-directory pdb-file\n",
+	fmt.Fprintf(os.Stderr,
+		"Usage: %s frag-lib-directory pdb-file [ pdb-file ... ]\n",
 		path.Base(os.Args[0]))
 	flag.PrintDefaults()
 	fmt.Fprintf(os.Stderr,
