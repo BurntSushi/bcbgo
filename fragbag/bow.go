@@ -45,10 +45,33 @@ func (lib *Library) NewBowMap(freqMap map[int]int16) BOW {
 	return bow
 }
 
-// NewBowPDB returns a bag-of-words describing a pdb file.
+// NewBowPDB returns a bag-of-words describing a PDB file without concurrency.
+// This is useful when computing the BOW of many PDB files, and the level
+// of concurrency should be at the level of computing BOWs rather than
+// RMSDs for each fragment.
+func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
+	bow := lib.NewBow()
+	for _, chain := range entry.Chains {
+		if !chain.ValidProtein() {
+			continue
+		}
+		if len(chain.CaAtoms) < lib.FragmentSize() {
+			continue
+		}
+		for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
+			atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
+			bestFragNum, _ := lib.BestFragment(atoms)
+			bow.fragfreqs[bestFragNum]++
+		}
+	}
+	return bow
+}
+
+// NewBowPDBPar returns a bag-of-words describing a PDB file by computing
+// the RMSD of each fragment in the PDB file concurrently.
 //
 // All protein chains in the PDB file are used.
-func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
+func (lib *Library) NewBowPDBPar(entry *pdb.Entry) BOW {
 	// We don't use the public 'Increment' or 'Add' methods to avoid
 	// excessive allocations.
 	bow := lib.NewBow()
