@@ -116,6 +116,13 @@ func (bow BOW) Increment(fragNum int) {
 	bow.fragfreqs[fragNum] += 1
 }
 
+// Frequency returns the number of times the fragment numbered fragNum appears
+// in the BOW vector.
+func (bow BOW) Frequency(fragNum int) int16 {
+	bow.library.mustExist(fragNum)
+	return bow.fragfreqs[fragNum]
+}
+
 // Equal tests whether two fragments are equal. In order for "equality" to
 // be defined, both fragments MUST be from the same library. If they aren't,
 // Equal will panic.
