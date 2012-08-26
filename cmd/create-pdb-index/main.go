@@ -33,7 +33,7 @@ func main() {
 			return
 		}
 		fmt.Printf("Computing the bag-of-words vector for %s.\n", entry.Name())
-		fmt.Println(lib.NewBowPDBPar(entry))
+		fmt.Println(lib.NewBowPDB(entry))
 		fmt.Println("----------------------------------------------")
 	}
 }
