@@ -123,6 +123,12 @@ func (bow BOW) Frequency(fragNum int) int16 {
 	return bow.fragfreqs[fragNum]
 }
 
+// Len returns the size of the vector. This is always equivalent to the
+// corresponding library's fragment size.
+func (bow BOW) Len() int {
+	return len(bow.fragfreqs)
+}
+
 // Equal tests whether two fragments are equal. In order for "equality" to
 // be defined, both fragments MUST be from the same library. If they aren't,
 // Equal will panic.

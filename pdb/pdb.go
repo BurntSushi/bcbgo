@@ -21,6 +21,7 @@ var AminoThreeToOne = map[string]byte{
 	"LEU": 'L', "LYS": 'K', "MET": 'M', "PHE": 'F', "PRO": 'P',
 	"SER": 'S', "THR": 'T', "TRP": 'W', "TYR": 'Y', "VAL": 'V',
 	"SEC": 'U', "PYL": 'O',
+	"UNK": 'X',
 }
 
 // AminoOneToThree is the reverse of AminoThreeToOne. It is created in
@@ -39,8 +40,10 @@ func init() {
 //
 // Currently, a PDB entry is simply a file path and a map of protein chains.
 type Entry struct {
-	Path   string
-	Chains []*Chain
+	Path           string
+	IdCode         string
+	Classification string
+	Chains         []*Chain
 }
 
 // New creates a new PDB Entry from a file. If the file cannot be read, or there
@@ -88,6 +91,10 @@ func New(fileName string) (*Entry, error) {
 
 		// The record name is always in the fix six columns.
 		switch strings.TrimSpace(string(line[0:6])) {
+		case "HEADER":
+			if err := entry.parseHeader(line); err != nil {
+				return nil, err
+			}
 		case "SEQRES":
 			entry.parseSeqres(line)
 		case "ATOM":
@@ -166,6 +173,20 @@ func (e *Entry) getOrMakeChain(ident byte) *Chain {
 	}
 	e.Chains = append(e.Chains, newChain)
 	return newChain
+}
+
+// parseHeader loads the "idCode" and "classification" fields from the
+// header record.
+//
+// If the fields are already filled, then we've seen a second header record
+// and therefore report an error.
+func (e *Entry) parseHeader(line []byte) error {
+	if len(e.Classification) > 0 || len(e.IdCode) > 0 {
+		return fmt.Errorf("More than one HEADER record was found.")
+	}
+	e.Classification = strings.TrimSpace(string(line[10:50]))
+	e.IdCode = strings.TrimSpace(string(line[62:66]))
+	return nil
 }
 
 // parseSeqres loads all pertinent information from SEQRES records in a PDB

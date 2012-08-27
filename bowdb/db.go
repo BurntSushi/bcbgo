@@ -1,7 +1,6 @@
-package pdbbow
+package bowdb
 
 import (
-	"encoding/csv"
 	"fmt"
 	"os"
 	"path"
@@ -21,12 +20,8 @@ type DB struct {
 	Library *fragbag.Library
 	Config
 
-	path string
-
-	csvBow       *csv.Writer
-	fileBow      *os.File
-	fileBowIndex *os.File
-	fileInverted *os.File
+	path  string
+	files files
 }
 
 func Create(lib *fragbag.Library, path string) (db *DB, err error) {
@@ -51,53 +46,29 @@ func Create(lib *fragbag.Library, path string) (db *DB, err error) {
 
 	db = &DB{
 		Library: lib,
-		path:    path,
 		Config: Config{
 			LibraryPath: lib.Path,
 		},
+		path: path,
 	}
-	if db.fileBow, err = db.fileCreate(fileBow); err != nil {
-		return
-	}
-	if db.fileBowIndex, err = db.fileCreate(fileBowIndex); err != nil {
-		return
-	}
-	if db.fileInverted, err = db.fileCreate(fileInverted); err != nil {
-		return
-	}
-	db.csvBow = csv.NewWriter(db.fileBow)
 
+	files, err := createFiles(db)
+	if err != nil {
+		return
+	}
+	db.files = files
 	return
 }
 
 func (db *DB) Write(entry *pdb.Entry, bow fragbag.BOW) error {
-	record := make([]string, 1+db.Library.Size())
-	record[0] = entry.Name()
-	for i := 0; i < db.Library.Size(); i++ {
-		record[i+1] = fmt.Sprintf("%d", bow.Frequency(i))
-	}
-	if err := db.csvBow.Write(record); err != nil {
-		return fmt.Errorf("Something bad has happened when trying to write "+
-			"to the database (file '%s'): %s.", db.filePath(fileBow), err)
-	}
-	return nil
+	return db.files.write(entry, bow)
 }
 
 func (db *DB) WriteClose() (err error) {
-	db.csvBow.Flush()
-	if err = db.fileBow.Close(); err != nil {
-		return
-	}
-	if err = db.fileBowIndex.Close(); err != nil {
-		return
-	}
-	if err = db.fileInverted.Close(); err != nil {
-		return
-	}
 	if err = db.Config.write(db.filePath(fileConfig)); err != nil {
 		return
 	}
-	return nil
+	return db.files.writeClose()
 }
 
 func (db *DB) filePath(name string) string {

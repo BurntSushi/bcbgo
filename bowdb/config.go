@@ -1,4 +1,4 @@
-package pdbbow
+package bowdb
 
 import (
 	"encoding/json"
