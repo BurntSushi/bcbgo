@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/csv"
 	"flag"
 	"fmt"
 	"os"
@@ -12,38 +11,20 @@ import (
 
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/pdbbow"
 )
 
 var (
 	flagGoMaxProcs = runtime.NumCPU()
 )
 
-func writedb(dbPath string, lib *fragbag.Library,
-	pool pool) (chan struct{}, error) {
-
-	f, err := os.Create(dbPath)
-	if err != nil {
-		return nil, err
-	}
-
-	csvWriter := csv.NewWriter(f)
-
+func writer(db *pdbbow.DB, pool pool) (chan struct{}, error) {
 	quit := make(chan struct{}, 0)
 	go func() {
 		for result := range pool.results {
-			record := make([]string, 1+lib.Size())
-			record[0] = result.entry.Name()
-			for i := 0; i < lib.Size(); i++ {
-				record[i+1] = fmt.Sprintf("%d", result.bow.Frequency(i))
+			if err := db.Write(result.entry, result.bow); err != nil {
+				fatalf("%s\n", err)
 			}
-			if err := csvWriter.Write(record); err != nil {
-				fatalf("Something bad has happened when trying to write "+
-					"to the database: %s\n", err)
-			}
-		}
-		csvWriter.Flush()
-		if err := f.Close(); err != nil {
-			fatalf("Bad stuff happened when closing the database: %s\n", err)
 		}
 		quit <- struct{}{}
 	}()
@@ -62,8 +43,13 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "Using library %s.\n", lib)
 
+	db, err := pdbbow.Create(lib, flag.Arg(0))
+	if err != nil {
+		fatalf("%s\n", err)
+	}
+
 	pool := newBowWorkers(lib, max(1, flagGoMaxProcs))
-	doneWriting, err := writedb(flag.Arg(0), lib, pool)
+	doneWriting, err := writer(db, pool)
 	if err != nil {
 		fatalf("Could not create database file: %s\n", err)
 	}
@@ -83,9 +69,13 @@ func main() {
 			i+1, total, 100.0*(float64(i+1)/float64(total)))
 	}
 
-	fmt.Fprint(os.Stderr, "\n")
+	fmt.Fprint(os.Stderr, "\nComputing final BOW vectors...\n")
 	pool.done()
 	<-doneWriting
+
+	if err := db.WriteClose(); err != nil {
+		fatalf("There was an error closing the database: %s\n", err)
+	}
 }
 
 func init() {
@@ -103,8 +93,7 @@ func usage() {
 		path.Base(os.Args[0]))
 	flag.PrintDefaults()
 	fmt.Fprintf(os.Stderr,
-		"\nex. './%s ../../../data/fraglibs/centers400_11 "+
-			"../../../data/samples/1ctf.pdb'\n",
+		"\nex. './%s data/fraglibs/centers400_11 data/samples/*.pdb'\n",
 		path.Base(os.Args[0]))
 	os.Exit(1)
 }

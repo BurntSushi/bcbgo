@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -45,8 +46,14 @@ func NewLibrary(path string) (*Library, error) {
 		return nil, err
 	}
 
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil,
+			fmt.Errorf("Could not get absolute path for '%s': %s.", path, err)
+	}
+
 	lib := &Library{
-		Path:         path,
+		Path:         absPath,
 		fragmentSize: 0,
 		fragments:    nil,
 	}
