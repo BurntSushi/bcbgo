@@ -16,12 +16,58 @@ const (
 	fileInverted = "inverted"
 )
 
+const (
+	SearchFull = iota
+	SearchInverted
+)
+
 type DB struct {
 	Library *fragbag.Library
 	Config
 
-	path  string
-	files files
+	path     string
+	files    files
+	searcher searcher
+}
+
+func Open(path string, searchType int) (db *DB, err error) {
+	if _, err = os.Open(path); err != nil {
+		return nil, fmt.Errorf("Cannot open '%d' directory: %s", path, err)
+	}
+
+	db = &DB{
+		path: path,
+	}
+	db.Config, err = openConfig(db.filePath(fileConfig))
+	if err != nil {
+		return
+	}
+
+	db.Library, err = fragbag.NewLibrary(db.LibraryPath)
+	if err != nil {
+		return
+	}
+
+	db.files, err = openFiles(db)
+	if err != nil {
+		return
+	}
+
+	switch searchType {
+	case SearchFull:
+		db.searcher, err = newFullSearcher(db)
+		if err != nil {
+			return
+		}
+	case SearchInverted:
+		db.searcher, err = newInvertedSearcher(db)
+		if err != nil {
+			return
+		}
+	default:
+		panic(fmt.Sprintf("Unrecognized search type: %d.", searchType))
+	}
+	return
 }
 
 func Create(lib *fragbag.Library, path string) (db *DB, err error) {
@@ -52,12 +98,19 @@ func Create(lib *fragbag.Library, path string) (db *DB, err error) {
 		path: path,
 	}
 
-	files, err := createFiles(db)
+	db.files, err = createFiles(db)
 	if err != nil {
 		return
 	}
-	db.files = files
 	return
+}
+
+func (db *DB) Search(opts SearchOptions, bow fragbag.BOW) SearchResults {
+	return db.searcher.search(opts, bow)
+}
+
+func (db *DB) SearchPDB(opts SearchOptions, entry *pdb.Entry) SearchResults {
+	return db.searcher.search(opts, db.Library.NewBowPDBPar(entry))
 }
 
 func (db *DB) Write(entry *pdb.Entry, bow fragbag.BOW) error {
@@ -69,6 +122,10 @@ func (db *DB) WriteClose() (err error) {
 		return
 	}
 	return db.files.writeClose()
+}
+
+func (db *DB) ReadClose() (err error) {
+	return db.files.readClose()
 }
 
 func (db *DB) filePath(name string) string {

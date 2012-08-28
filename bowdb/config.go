@@ -18,8 +18,9 @@ func openConfig(p string) (conf Config, err error) {
 	}
 
 	decoder := json.NewDecoder(f)
-	if err = decoder.Decode(conf); err != nil {
-		return
+	if err = decoder.Decode(&conf); err != nil {
+		return conf,
+			fmt.Errorf("Error decoding JSON in '%s': %s.", p, err)
 	}
 	if err = f.Close(); err != nil {
 		return

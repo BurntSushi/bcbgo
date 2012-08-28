@@ -2,6 +2,7 @@ package fragbag
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/pdb"
@@ -150,12 +151,24 @@ func (bow1 BOW) Equal(bow2 BOW) bool {
 // libraries.
 func (bow1 BOW) Add(bow2 BOW) BOW {
 	mustHaveSameLibrary(bow1, bow2)
+	mustHaveSameLength(bow1, bow2)
 
 	sum := bow1.library.NewBow()
 	for i := 0; i < sum.library.Size(); i++ {
 		sum.fragfreqs[i] = bow1.fragfreqs[i] + bow2.fragfreqs[i]
 	}
 	return sum
+}
+
+// Euclid returns the euclidean distance between bow1 and bow2.
+func (bow1 BOW) Euclid(bow2 BOW) float64 {
+	f1, f2 := bow1.fragfreqs, bow2.fragfreqs
+	squareSum := float64(0)
+	for i := 0; i < bow1.library.Size(); i++ {
+		squareSum += float64(int32(f2[i]-f1[i]) * int32(f2[i]-f1[i]))
+	}
+	s := math.Sqrt(squareSum)
+	return s
 }
 
 // String returns a string representation of the BOW vector. Only fragments

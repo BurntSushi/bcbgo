@@ -6,22 +6,43 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/pdb"
 )
 
+const csvExtras = 2
+
 type files struct {
 	db *DB
 
-	bow            *os.File
-	bowIndex       *os.File
-	inverted       *os.File
+	bow      *os.File
+	bowIndex *os.File
+	inverted *os.File
+	invIndex inverted
+
+	// The following are used to keep state during writing.
 	bowIndexOffset int64
 	sequenceId     sequenceId
 	bufBow         *bytes.Buffer
 	csvBow         *csv.Writer
-	invIndex       inverted
+}
+
+func openFiles(db *DB) (fs files, err error) {
+	fs.db = db
+	fs.invIndex = newInvertedIndex(db.Library.Size())
+
+	if fs.bow, err = db.fileOpen(fileBow); err != nil {
+		return
+	}
+	if fs.bowIndex, err = db.fileOpen(fileBowIndex); err != nil {
+		return
+	}
+	if fs.inverted, err = db.fileOpen(fileInverted); err != nil {
+		return
+	}
+	return
 }
 
 func createFiles(db *DB) (fs files, err error) {
@@ -31,6 +52,9 @@ func createFiles(db *DB) (fs files, err error) {
 	fs.bufBow = new(bytes.Buffer)
 	fs.csvBow = csv.NewWriter(fs.bufBow)
 	fs.invIndex = newInvertedIndex(db.Library.Size())
+
+	fs.csvBow.Comma = ','
+	fs.csvBow.UseCRLF = false
 
 	if fs.bow, err = db.fileCreate(fileBow); err != nil {
 		return
@@ -44,14 +68,48 @@ func createFiles(db *DB) (fs files, err error) {
 	return
 }
 
+func (fs *files) read() ([]searchItem, error) {
+	reader := csv.NewReader(fs.bow)
+	reader.Comma = ','
+	reader.FieldsPerRecord = -1
+	reader.TrimLeadingSpace = true
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]searchItem, len(records))
+	for i, record := range records {
+		bowMap := make(map[int]int16, fs.db.Library.Size())
+		for j := 0; j < fs.db.Library.Size(); j++ {
+			n64, err := strconv.ParseInt(record[j+csvExtras], 10, 16)
+			if err != nil {
+				return nil,
+					fmt.Errorf("Could not parse '%d' as a 16-bit integer "+
+						"in file '%s' because: %s",
+						record[j+csvExtras], fileBow, err)
+			}
+			bowMap[j] = int16(n64)
+
+			items[i] = searchItem{
+				PDBItem{
+					IdCode:         record[0],
+					Classification: record[1],
+				},
+				fs.db.Library.NewBowMap(bowMap),
+			}
+		}
+	}
+	return items, nil
+}
+
 func (fs *files) write(entry *pdb.Entry, bow fragbag.BOW) error {
 	endian := binary.BigEndian
-	extras := 2
-	record := make([]string, extras+fs.db.Library.Size())
+	record := make([]string, csvExtras+fs.db.Library.Size())
 	record[0] = entry.IdCode
 	record[1] = entry.Classification
 	for i := 0; i < fs.db.Library.Size(); i++ {
-		record[i+extras] = fmt.Sprintf("%d", bow.Frequency(i))
+		record[i+csvExtras] = fmt.Sprintf("%d", bow.Frequency(i))
 	}
 
 	fs.bufBow.Reset()
@@ -85,6 +143,19 @@ func (fs files) writeClose() (err error) {
 		return
 	}
 	if err = fs.invIndex.write(fs.inverted); err != nil {
+		return
+	}
+	if err = fs.inverted.Close(); err != nil {
+		return
+	}
+	return nil
+}
+
+func (fs files) readClose() (err error) {
+	if err = fs.bow.Close(); err != nil {
+		return
+	}
+	if err = fs.bowIndex.Close(); err != nil {
 		return
 	}
 	if err = fs.inverted.Close(); err != nil {
