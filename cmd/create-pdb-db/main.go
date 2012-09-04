@@ -25,7 +25,7 @@ var (
 func writer(db *bowdb.DB,
 	pchan chan progressJob, pool pool) (chan struct{}, error) {
 
-	quit := make(chan struct{}, 0)
+	done := make(chan struct{}, 0)
 	go func() {
 		for result := range pool.results {
 			pchan <- progressJob{result.chain.Entry.IdCode, nil}
@@ -33,9 +33,9 @@ func writer(db *bowdb.DB,
 				fatalf("%s\n", err)
 			}
 		}
-		quit <- struct{}{}
+		done <- struct{}{}
 	}()
-	return quit, nil
+	return done, nil
 }
 
 type progressJob struct {
@@ -43,10 +43,11 @@ type progressJob struct {
 	err     error
 }
 
-func progress(total int) chan progressJob {
+func progress(total int) (chan progressJob, chan struct{}) {
 	pchan := make(chan progressJob, 15)
 	successCnt, errCnt := 0, 0
 	counted := make(map[string]struct{}, 100)
+	done := make(chan struct{}, 0)
 	go func() {
 		for pjob := range pchan {
 			if _, ok := counted[pjob.pdbFile]; ok {
@@ -67,8 +68,9 @@ func progress(total int) chan progressJob {
 				100.0*(float64(successCnt+errCnt)/float64(total)),
 				errCnt)
 		}
+		done <- struct{}{}
 	}()
-	return pchan
+	return pchan, done
 }
 
 func main() {
@@ -97,7 +99,7 @@ func main() {
 	}
 
 	pool := newBowWorkers(lib, max(1, flagGoMaxProcs))
-	progressChan := progress(len(pdbFiles))
+	progressChan, doneProgress := progress(len(pdbFiles))
 	doneWriting, err := writer(db, progressChan, pool)
 	if err != nil {
 		fatalf("Could not create database file: %s\n", err)
@@ -117,12 +119,26 @@ func main() {
 			progressChan <- progressJob{pdbFile, err}
 			continue
 		}
+
+		// If there aren't any protein chains, skip this entry but update
+		// the progress bar.
+		hasProteinChains := false
+		for _, chain := range entry.Chains {
+			if chain.ValidProtein() {
+				hasProteinChains = true
+				break
+			}
+		}
+		if !hasProteinChains {
+			progressChan <- progressJob{pdbFile, nil}
+		}
 		pool.enqueue(entry)
 	}
 
 	pool.done()
 	<-doneWriting
 	close(progressChan)
+	<-doneProgress
 	verbosef("\n")
 
 	if err := db.WriteClose(); err != nil {
