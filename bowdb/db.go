@@ -113,8 +113,8 @@ func (db *DB) SearchPDB(opts SearchOptions, entry *pdb.Entry) SearchResults {
 	return db.searcher.search(opts, db.Library.NewBowPDBPar(entry))
 }
 
-func (db *DB) Write(entry *pdb.Entry, bow fragbag.BOW) error {
-	return db.files.write(entry, bow)
+func (db *DB) Write(chain *pdb.Chain, bow fragbag.BOW) error {
+	return db.files.write(chain, bow)
 }
 
 func (db *DB) WriteClose() (err error) {

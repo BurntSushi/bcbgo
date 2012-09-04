@@ -22,6 +22,7 @@ var AminoThreeToOne = map[string]byte{
 	"SER": 'S', "THR": 'T', "TRP": 'W', "TYR": 'Y', "VAL": 'V',
 	"SEC": 'U', "PYL": 'O',
 	"UNK": 'X', "ACE": 'X', "NH2": 'X',
+	"ASX": 'X', "GLX": 'X',
 }
 
 // AminoOneToThree is the reverse of AminoThreeToOne. It is created in
@@ -159,12 +160,16 @@ func (e *Entry) String() string {
 // chain indentifier. If one exists, it is returned. If one doesn't exist,
 // it is created, memory is allocated and it is returned.
 func (e *Entry) getOrMakeChain(ident byte) *Chain {
+	if ident == ' ' {
+		ident = '_'
+	}
+
 	chain := e.Chain(ident)
 	if chain != nil {
 		return chain
 	}
 	newChain := &Chain{
-		entry:            e,
+		Entry:            e,
 		Ident:            ident,
 		Sequence:         make([]byte, 0, 10),
 		AtomResidueStart: 0,
@@ -298,7 +303,7 @@ func (e *Entry) parseAtom(line []byte) {
 // It also contains a slice of all carbon-alpha ATOM records corresponding
 // to an amino acid.
 type Chain struct {
-	entry                            *Entry
+	Entry                            *Entry
 	Ident                            byte
 	Sequence                         []byte
 	AtomResidueStart, AtomResidueEnd int
@@ -310,7 +315,7 @@ type Chain struct {
 // chain that can be used in the 'matt' package.
 func (c *Chain) PDBArg() matt.PDBArg {
 	return matt.PDBArg{
-		Location: c.entry.Path,
+		Location: c.Entry.Path,
 		Chain:    c.Ident,
 	}
 }

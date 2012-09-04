@@ -103,11 +103,11 @@ func (fs *files) read() ([]searchItem, error) {
 	return items, nil
 }
 
-func (fs *files) write(entry *pdb.Entry, bow fragbag.BOW) error {
+func (fs *files) write(chain *pdb.Chain, bow fragbag.BOW) error {
 	endian := binary.BigEndian
 	record := make([]string, csvExtras+fs.db.Library.Size())
-	record[0] = entry.IdCode
-	record[1] = entry.Classification
+	record[0] = fmt.Sprintf("%s%c", chain.Entry.IdCode, chain.Ident)
+	record[1] = chain.Entry.Classification
 	for i := 0; i < fs.db.Library.Size(); i++ {
 		record[i+csvExtras] = fmt.Sprintf("%d", bow.Frequency(i))
 	}

@@ -14,7 +14,7 @@ type pool struct {
 }
 
 type result struct {
-	entry *pdb.Entry
+	chain *pdb.Chain
 	bow   fragbag.BOW
 }
 
@@ -26,7 +26,11 @@ func newBowWorkers(lib *fragbag.Library, numWorkers int) pool {
 		go func() {
 			wg.Add(1)
 			for entry := range entries {
-				results <- result{entry, lib.NewBowPDB(entry)}
+				for _, chain := range entry.Chains {
+					if chain.ValidProtein() {
+						results <- result{chain, lib.NewBowChain(chain)}
+					}
+				}
 			}
 			wg.Done()
 		}()

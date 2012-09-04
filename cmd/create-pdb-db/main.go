@@ -28,8 +28,8 @@ func writer(db *bowdb.DB,
 	quit := make(chan struct{}, 0)
 	go func() {
 		for result := range pool.results {
-			pchan <- progressJob{"", nil}
-			if err := db.Write(result.entry, result.bow); err != nil {
+			pchan <- progressJob{result.chain.Entry.IdCode, nil}
+			if err := db.Write(result.chain, result.bow); err != nil {
 				fatalf("%s\n", err)
 			}
 		}
@@ -46,8 +46,14 @@ type progressJob struct {
 func progress(total int) chan progressJob {
 	pchan := make(chan progressJob, 15)
 	successCnt, errCnt := 0, 0
+	counted := make(map[string]struct{}, 100)
 	go func() {
 		for pjob := range pchan {
+			if _, ok := counted[pjob.pdbFile]; ok {
+				continue
+			}
+
+			counted[pjob.pdbFile] = struct{}{}
 			if pjob.err != nil {
 				errorf("\rCould not parse PDB file '%s' because: %s\n",
 					pjob.pdbFile, pjob.err)

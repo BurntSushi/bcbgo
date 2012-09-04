@@ -46,6 +46,20 @@ func (lib *Library) NewBowMap(freqMap map[int]int16) BOW {
 	return bow
 }
 
+// NewBowChain returns a bag-of-words describing a chain in a PDB entry.
+func (lib *Library) NewBowChain(chain *pdb.Chain) BOW {
+	bow := lib.NewBow()
+	if len(chain.CaAtoms) < lib.FragmentSize() {
+		return bow
+	}
+	for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
+		atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
+		bestFragNum, _ := lib.BestFragment(atoms)
+		bow.fragfreqs[bestFragNum]++
+	}
+	return bow
+}
+
 // NewBowPDB returns a bag-of-words describing a PDB file without concurrency.
 // This is useful when computing the BOW of many PDB files, and the level
 // of concurrency should be at the level of computing BOWs rather than
