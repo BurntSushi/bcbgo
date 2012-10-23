@@ -78,6 +78,7 @@ func main() {
 	}
 
 	bowOpts := bowdb.DefaultSearchOptions
+	bowOpts.Limit = 200
 	mattOpts := matt.DefaultConfig
 	mattOpts.Verbose = false
 
