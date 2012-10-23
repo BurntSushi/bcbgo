@@ -27,6 +27,7 @@ var (
 	flagQuiet      = false
 	flagOutputCsv  = false
 	flagInverted   = false
+	flagLimit      = 25
 )
 
 func outputResults(results results) {
@@ -58,7 +59,7 @@ func outputResults(results results) {
 			for _, result := range query.results.Results {
 				fmt.Printf("%s\t%c\t%s\t%0.4f\n",
 					result.IdCode, result.ChainIdent, result.Classification,
-					result.Euclid)
+					result.Cosine)
 			}
 			fmt.Printf("\n")
 		}
@@ -92,6 +93,9 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	opts := bowdb.DefaultSearchOptions
+	opts.Limit = flagLimit
+
 	allResults := make(results, 0, 100)
 	for _, pdbFile := range pdbFiles {
 		entry, err := pdb.New(pdbFile)
@@ -106,7 +110,7 @@ func main() {
 			}
 
 			bow := db.Library.NewBowChain(chain)
-			results, err := db.Search(bowdb.DefaultSearchOptions, bow)
+			results, err := db.Search(opts, bow)
 			if err != nil {
 				errorf("Could not get search results for PDB entry %s "+
 					"(chain %c): %s\n", entry.IdCode, chain.Ident, err)
@@ -134,6 +138,8 @@ func init() {
 			"\twith a tab delimiter.")
 	flag.BoolVar(&flagInverted, "inverted", flagInverted,
 		"When set, the search will use an inverted index.")
+	flag.IntVar(&flagLimit, "limit", flagLimit,
+		"The limit of results returned for each query chain.")
 	flag.StringVar(&flagCpuProfile, "cpuprofile", flagCpuProfile,
 		"When set, a CPU profile will be written to the file provided.")
 	flag.IntVar(&flagGoMaxProcs, "p", flagGoMaxProcs,

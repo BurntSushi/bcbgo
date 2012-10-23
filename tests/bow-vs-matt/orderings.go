@@ -59,7 +59,7 @@ func getBowOrdering(
 		ordered[i] = chain{
 			idCode: result.IdCode,
 			ident: result.ChainIdent,
-			dist: result.Euclid,
+			dist: result.Cosine,
 		}
 	}
 

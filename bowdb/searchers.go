@@ -70,6 +70,8 @@ func search(items []searchItem,
 		sr := SearchResult{
 			item.PDBItem,
 			bow.Euclid(item.BOW),
+			bow.Cosine(item.BOW),
+			item.BOW,
 		}
 		srs.maybeAdd(sr)
 	}

@@ -181,8 +181,34 @@ func (bow1 BOW) Euclid(bow2 BOW) float64 {
 	for i := 0; i < bow1.library.Size(); i++ {
 		squareSum += float64(int32(f2[i]-f1[i]) * int32(f2[i]-f1[i]))
 	}
-	s := math.Sqrt(squareSum)
-	return s
+	return math.Sqrt(squareSum)
+}
+
+// Cosine returns the cosine distance between bow1 and bow2.
+func (bow1 BOW) Cosine(bow2 BOW) float64 {
+	r := 1.0 - (bow1.Dot(bow2) / (bow1.Magnitude() * bow2.Magnitude()))
+	if math.IsNaN(r) {
+		return 1.0
+	}
+	return r
+}
+
+// Dot returns the dot product of bow1 and bow2.
+func (bow1 BOW) Dot(bow2 BOW) float64 {
+	dot := float64(0)
+	for i := 0; i < bow1.library.Size(); i++ {
+		dot += float64(int32(bow1.fragfreqs[i]) * int32(bow2.fragfreqs[i]))
+	}
+	return dot
+}
+
+// magnitude returns the vector length of the bow.
+func (bow BOW) Magnitude() float64 {
+	mag := float64(0)
+	for i := 0; i < bow.library.Size(); i++ {
+		mag += float64(int32(bow.fragfreqs[i]) * int32(bow.fragfreqs[i]))
+	}
+	return math.Sqrt(mag)
 }
 
 // String returns a string representation of the BOW vector. Only fragments

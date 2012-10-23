@@ -8,6 +8,7 @@ import (
 
 const (
 	Euclid = iota
+	Cosine
 )
 
 const (
@@ -30,8 +31,8 @@ type SearchOptions struct {
 var DefaultSearchOptions = SearchOptions{
 	Limit:     25,
 	Threshold: 0.0,
-	SearchBy:  Euclid,
-	SortBy:    Euclid,
+	SearchBy:  Cosine,
+	SortBy:    Cosine,
 	Order:     OrderAsc,
 }
 
@@ -106,6 +107,8 @@ func (srs SearchResults) Less(i, j int) bool {
 	switch srs.SortBy {
 	case Euclid:
 		valCmp = func(r SearchResult) float64 { return r.Euclid }
+	case Cosine:
+		valCmp = func(r SearchResult) float64 { return r.Cosine }
 	default:
 		panic(fmt.Sprintf("Unknown sort type: %d.", srs.SortBy))
 	}
@@ -126,6 +129,8 @@ type PDBItem struct {
 type SearchResult struct {
 	PDBItem
 	Euclid float64
+	Cosine float64
+	BOW    fragbag.BOW
 }
 
 // better is satisfied when sr1 is a better search result than sr2 according
@@ -134,6 +139,8 @@ func (sr1 SearchResult) better(opts SearchOptions, sr2 SearchResult) bool {
 	switch opts.SearchBy {
 	case Euclid:
 		return sr1.Euclid < sr2.Euclid
+	case Cosine:
+		return sr1.Cosine < sr2.Cosine
 	default:
 		panic(fmt.Sprintf("Unknown search type: %d.", opts.SearchBy))
 	}
