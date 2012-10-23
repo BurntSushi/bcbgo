@@ -16,6 +16,7 @@ import (
 // chain and a range of residues to align.
 type PDBArg struct {
 	Location string
+	IdCode   string
 	Chain    byte
 
 	// Matt allows one to specify a range of residues to be aligned.
@@ -146,9 +147,6 @@ func (conf Config) RunAll(argsets [][]PDBArg) ([]*Results, []error) {
 	close(workChan)
 	return results, errors
 }
-
-// RunSequence is like RunAll, but each argument set is passed to matt as
-// an addition '-o' alignment.
 
 // Run will execute Matt using a particular configuration with a set of
 // PDB file arguments. It handles creation of a temporary directory where
