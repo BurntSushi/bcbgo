@@ -1,6 +1,7 @@
 package bowdb
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
@@ -8,7 +9,9 @@ import (
 
 type searchFull []searchItem
 
-type searchInverted []searchItem
+type searchInverted struct {
+	*DB
+}
 
 func newFullSearcher(db *DB) (searchFull, error) {
 	items, err := db.files.read()
@@ -19,58 +22,59 @@ func newFullSearcher(db *DB) (searchFull, error) {
 }
 
 func (sf searchFull) search(
+	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
+
+	return search([]searchItem(sf), opts, bow), nil
+}
+
+func newInvertedSearcher(db *DB) (searchInverted, error) {
+	// We don't do anything here because we don't know what bows we're
+	// searching for yet.
+	return searchInverted{db}, nil
+}
+
+func (si searchInverted) search(
+	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
+
+	set := make(map[string]bool, 100)
+	allItems := make([]searchItem, 0, 100)
+	for i := 0; i < bow.Len(); i++ {
+		// Only include search items with a bow fragment in common.
+		if bow.Frequency(i) == 0 {
+			continue
+		}
+
+		items, err := si.DB.files.readInvertedSearchItem(i)
+		if err != nil {
+			return SearchResults{}, err
+		}
+
+		// Make sure we don't search duplicate search items.
+		for _, item := range items {
+			key := fmt.Sprintf("%s%c", item.IdCode, item.ChainIdent)
+			if set[key] {
+				continue
+			}
+			allItems = append(allItems, item)
+			set[key] = true
+		}
+	}
+	return search(allItems, opts, bow), nil
+}
+
+func search(items []searchItem,
 	opts SearchOptions, bow fragbag.BOW) SearchResults {
 
-	results := make([]SearchResult, 0, max(1, opts.Limit))
-	for _, item := range sf {
+	srs := newSearchResults(opts)
+	for _, item := range items {
 		sr := SearchResult{
 			item.PDBItem,
 			bow.Euclid(item.BOW),
 		}
-
-		// If we don't have any results yet, indiscriminately add this result
-		// and move on.
-		if len(results) == 0 {
-			results = append(results, sr)
-			continue
-		}
-
-		// This search result is better than our current worst search result.
-		// Thus, add it to our result set in proper ascending order.
-		// Finally, check to see if the results list is bigger than the
-		// limit. If so, trim.
-		worst := results[len(results)-1]
-		if len(results) < opts.Limit || sr.better(opts, worst) {
-			added := false
-			for i := 0; i < len(results); i++ {
-				if sr.better(opts, results[i]) {
-					results = append(results[:i],
-						append([]SearchResult{sr}, results[i:]...)...)
-					added = true
-					break
-				}
-			}
-			if !added {
-				results = append(results, sr)
-			}
-			if len(results) > opts.Limit {
-				results = results[:opts.Limit]
-			}
-		}
+		srs.maybeAdd(sr)
 	}
-	srs := SearchResults{opts, results}
 	sort.Sort(srs)
 	return srs
-}
-
-func newInvertedSearcher(db *DB) (searchInverted, error) {
-	return nil, nil
-}
-
-func (si searchInverted) search(
-	opts SearchOptions, bow fragbag.BOW) SearchResults {
-
-	return SearchResults{}
 }
 
 func max(a, b int) int {

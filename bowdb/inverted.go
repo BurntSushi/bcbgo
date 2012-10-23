@@ -22,7 +22,7 @@ func newInvertedIndex(size int) inverted {
 func newInvertedIndexJson(r io.Reader) (inverted, error) {
 	index := make([][]sequenceId, 0)
 	decoder := json.NewDecoder(r)
-	if err := decoder.Decode(index); err != nil {
+	if err := decoder.Decode(&index); err != nil {
 		return nil, err
 	}
 	return index, nil

@@ -105,11 +105,15 @@ func Create(lib *fragbag.Library, path string) (db *DB, err error) {
 	return
 }
 
-func (db *DB) Search(opts SearchOptions, bow fragbag.BOW) SearchResults {
+func (db *DB) Search(
+	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
+
 	return db.searcher.search(opts, bow)
 }
 
-func (db *DB) SearchPDB(opts SearchOptions, entry *pdb.Entry) SearchResults {
+func (db *DB) SearchPDB(
+	opts SearchOptions, entry *pdb.Entry) (SearchResults, error) {
+
 	return db.searcher.search(opts, db.Library.NewBowPDBPar(entry))
 }
 

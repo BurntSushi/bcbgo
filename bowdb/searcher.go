@@ -16,7 +16,7 @@ const (
 )
 
 type searcher interface {
-	search(opts SearchOptions, bow fragbag.BOW) SearchResults
+	search(opts SearchOptions, bow fragbag.BOW) (SearchResults, error)
 }
 
 type SearchOptions struct {
@@ -38,6 +38,53 @@ var DefaultSearchOptions = SearchOptions{
 type SearchResults struct {
 	SearchOptions
 	Results []SearchResult
+}
+
+func newSearchResults(opts SearchOptions) SearchResults {
+	return SearchResults{
+		SearchOptions: opts,
+		Results:       make([]SearchResult, 0, max(1, opts.Limit)),
+	}
+}
+
+func (srs *SearchResults) maybeAdd(sr SearchResult) {
+	// If we don't have any results yet, then we certainly will add this one.
+	if len(srs.Results) == 0 {
+		srs.Results = append(srs.Results, sr)
+		return
+	}
+
+	// We only add this search result IF we don't have enough search results
+	// to fill capacity, or if it's better than the worst result.
+	worst := srs.Results[len(srs.Results)-1]
+	if len(srs.Results) < srs.Limit || sr.better(srs.SearchOptions, worst) {
+		// We know we're adding a result. Now we just need to figure out where
+		// to put it.
+		// XXX: Replace this with a balanced binary tree.
+		added := false
+		for i, result := range srs.Results {
+			// If the search result is better than result, then it belongs
+			// right before result.
+			if sr.better(srs.SearchOptions, result) {
+				srs.Results = append(srs.Results[:i],
+					append([]SearchResult{sr}, srs.Results[i:]...)...)
+				added = true
+				break
+			}
+		}
+
+		// If it wasn't better than anything, then we append it to the end.
+		if !added {
+			// This is only possible if we're below capacity.
+			if len(srs.Results) >= srs.Limit {
+				panic("BUG: Search results exceeded limit.")
+			}
+			srs.Results = append(srs.Results, sr)
+		} else if len(srs.Results) > srs.Limit {
+			// If we inserted while at capacity, trim the last search result.
+			srs.Results = srs.Results[:srs.Limit]
+		}
+	}
 }
 
 func (srs SearchResults) Len() int {
@@ -72,6 +119,7 @@ func (srs SearchResults) Swap(i, j int) {
 
 type PDBItem struct {
 	IdCode         string
+	ChainIdent     byte
 	Classification string
 }
 
