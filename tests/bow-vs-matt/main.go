@@ -83,18 +83,18 @@ func main() {
 	mattOpts.Verbose = false
 
 	chains := createChains(pdbFiles)
-	mattArgs := createMattArgs(chains)
+	// mattArgs := createMattArgs(chains) 
 
 	tabw := tabwriter.NewWriter(os.Stdout, 0, 4, 4, ' ', 0)
 	header := []byte(
 		"BOW entry\t" +
 			"BOW chain\t" +
-			"BOW dist\t" +
-			"Matt entry\t" +
-			"Matt chain\t" +
-			"Matt dist\n")
-	for i, chain := range chains {
-		marg := mattArgs[i]
+			"BOW dist\n")
+			// "Matt entry\t" + 
+			// "Matt chain\t" + 
+			// "Matt dist\n") 
+	for _, chain := range chains {
+		// marg := mattArgs[i] 
 		bow := db.Library.NewBowChain(chain)
 
 		bowOrdered, err := getBowOrdering(db, bowOpts, bow)
@@ -104,19 +104,19 @@ func main() {
 			continue
 		}
 
-		mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs)
-		if err != nil {
-			errorf("Could not get Matt ordering for %s (chain %c): %s\n",
-				chain.Entry.IdCode, chain.Ident, err)
-			continue
-		}
+		// mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs) 
+		// if err != nil { 
+			// errorf("Could not get Matt ordering for %s (chain %c): %s\n", 
+				// chain.Entry.IdCode, chain.Ident, err) 
+			// continue 
+		// } 
 
 		fmt.Printf("Ordering for %s (chain %c)\n",
 			chain.Entry.IdCode, chain.Ident)
 
-		compared := comparison([2]ordering{bowOrdered, mattOrdered})
+		// compared := comparison([2]ordering{bowOrdered, bowOrdered}) 
 		tabw.Write(header)
-		tabw.Write([]byte(compared.String()))
+		tabw.Write([]byte(bowOrdered.String()))
 		tabw.Flush()
 		fmt.Println("\n")
 	}

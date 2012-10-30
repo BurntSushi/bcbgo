@@ -36,6 +36,14 @@ func (o ordering) Swap(i, j int) {
 	o[i], o[j] = o[j], o[i]
 }
 
+func (o ordering) String() string {
+	lines := make([]string, len(o))
+	for i, chain := range o {
+		lines[i] = chain.String()
+	}
+	return strings.Join(lines, "\n")
+}
+
 type chain struct {
 	idCode string
 	ident byte

@@ -1,0 +1,296 @@
+#!/usr/bin/env python2
+
+import argparse
+import gzip
+import os
+import os.path
+import sys
+
+parser = argparse.ArgumentParser(
+    description='Gathering data for the Carugo & Pongor (2002) PRIDE study',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+aa = parser.add_argument
+aa('--pdb-dir', dest='pdb_dir', type=str, default='/media/Nightjar/pdb',
+   metavar='PDB_DIR', help='The location of the PDB directory.')
+aa('--output-dir', dest='output_dir', type=str, default='./data/pride/pdb',
+   metavar='OUTPUT_DIR', help='The location to write the data set.')
+conf = parser.parse_args()
+
+# Tuples of (pdb entry, chain identifier, number of models expected)
+chains = [
+    ("1cg7", "A", 30),
+    ("1ej5", "A", 20),
+    ("1cfp", "A", 25),
+    ("1eit", " ", 10),
+    ("1eio", "A",  5),
+    ("1cfh", " ", 15),
+    ("1cfe", " ", 20),
+    ("3leu", " ", 19),
+    # ("1bqv", " ", 28),
+    # Replaced with
+    ("2jv3", "A", 25),
+    ("1bqz", " ", 20),
+    ("1ayg", " ", 20),
+    ("1ef4", "A", 20),
+    ("1ego", " ", 20),
+    ("1rip", " ",  6),
+    ("1enw", "A", 20),
+    ("1eo0", "A", 10),
+    ("1erd", " ", 20),
+    ("1rfa", " ", 30),
+    ("1rou", " ", 22),
+    ("1rof", " ", 10),
+    ("1ax3", " ", 16),
+    ("1awo", " ", 20),
+    ("1cf4", "B", 20),
+    ("3msp", "A", 20),
+    ("3ncm", "A", 20),
+    ("1tba", "A", 25),
+    ("1suh", " ", 20),
+    ("3ctn", " ", 30),
+    ("3crd", " ", 15),
+    ("1cis", " ", 15),
+    ("1e0l", "A", 10),
+    ("1chl", " ",  7),
+    ("1eci", "B", 20),
+    ("2cbh", " ", 41),
+    ("1ed7", "A", 30),
+    ("1spf", " ", 20),
+    ("1sro", " ", 20),
+    ("1b22", "A", 30),
+    ("3gcc", " ", 46),
+    ("1fdm", " ", 20),
+    ("1qmc", "A", 42),
+    ("1fct", " ", 27),
+    ("1aq5", "A", 20),
+    ("3rpb", "A", 20),
+    ("1ap7", " ", 20),
+    ("1ap0", " ", 26),
+    ("1aoy", " ", 23),
+    ("1apf", " ", 20),
+    ("1apq", " ", 19),
+    ("1apj", " ", 21),
+    ("1fht", " ", 43),
+    ("1qlo", "A", 19),
+    ("1aty", " ",  9),
+    ("1ce4", "A", 20),
+    ("1qu5", "A", 16),
+    ("1auz", " ", 24),
+    ("1esk", "A",  9),
+    ("1auu", "A", 10),
+    ("1r63", " ", 20),
+    ("1r2a", "A", 17),
+    ("1ccv", "A", 20),
+    ("2def", " ", 20),
+    ("1cdb", " ", 18),
+    ("2pcf", "B", 10),
+    ("1qp6", "A", 16),
+    ("2ctn", " ", 30),
+    ("1qr5", "A", 10),
+    ("1wkt", " ", 20),
+    ("1d8b", "A", 15),
+    ("1bf8", " ", 20),
+    ("1d8j", "A", 20),
+    ("1wjb", "A", 40),
+    ("1bgk", " ", 15),
+    ("1bhi", " ", 20),
+    ("1cn7", "A", 20),
+    ("1cmr", " ", 18),
+    ("1cmo", "A", 43),
+    ("2sh1", " ",  8),
+    ("1df6", "A", 16),
+    ("1bnx", "A", 21),
+    ("1dec", " ", 25),
+    ("1ddb", "A", 20),
+    ("1bei", " ", 20),
+    ("1beg", " ", 18),
+    ("2a93", "B", 40),
+    ("2a93", "A", 40),
+    ("1bk8", " ", 25),
+    ("1bmw", " ", 38),
+    ("1zto", " ",  8),
+    ("1cpz", "A", 20),
+    ("2ptl", " ", 21),
+    ("1cou", "A", 18),
+    ("1bm4", "A",  9),
+    ("1cok", "A", 18),
+    ("2abd", " ", 29),
+    ("1bmx", " ",  8),
+    ("1cwx", "A",  4),
+    ("1yuj", "A", 50),
+    ("1yua", " ", 26),
+    ("1zfo", " ", 20),
+    ("1zfd", " ", 45),
+    ("1ztn", " ",  8),
+    ("1zta", " ", 20),
+    # ("1bmy", " ", 10), # replaced with nothing
+    ("1co4", "A", 15),
+    ("2prf", " ", 19),
+    ("1zaq", " ", 12),
+    ("1tpn", " ", 28),
+    ("1trl", "A",  8),
+    ("1dv9", "A", 21),
+    ("2bi6", "H", 18),
+    ("2bds", " ", 42),
+    ("1tvt", " ",  6),
+    ("1tsk", " ", 30),
+    ("1tnn", " ", 16),
+    ("1dz1", "A", 16),
+    ("1dxz", "A", 20),
+    ("1tfi", " ", 12),
+    ("1cjg", "A", 11),
+    # ("1e01", "A", 20),
+    # Replaced with
+    ("1e0g", "A", 20),
+    ("1tle", " ", 14),
+    ("3alc", "A", 17),
+    ("1b6f", "A", 23),
+    ("3bbg", " ",  2),
+    ("1dip", "A", 10),
+    ("2tbd", " ", 30),
+    ("1boe", "A", 20),
+    ("1bal", " ", 56),
+    ("1bak", " ", 20),
+    ("2bby", " ", 30),
+    ("1dgz", "A", 38),
+    ("1vib", " ", 20),
+    ("1bc4", " ", 15),
+    ("1cl4", "A", 12),
+    ("1dny", "A", 21),
+    ("1b8w", "A", 20),
+    ("2u1a", " ", 20),
+    # ("1dlx", "A", 15),
+    # Replaced with
+    ("1ly7", "A", 15),
+    ("1ba5", " ", 18),
+    ("1ba6", " ", 10),
+    ("1dk2", "A", 25),
+    ("1ckv", " ", 14),
+    ("1b9u", "A", 10),
+    ("1b9r", "A", 15),
+    ("1b9q", "A", 19),
+    ("1paa", " ", 10),
+    ("1a6s", "B", 20),
+    ("1a66", "A", 18),
+    ("1a6b", "B", 20),
+    ("1a7m", " ", 20),
+    ("1gyf", "A", 16),
+    ("1peh", " ", 10),
+    ("1pba", " ", 20),
+    ("1c4e", "A", 20),
+    ("1bvh", " ", 15),
+    ("1hqi", " ", 12),
+    ("5znf", " ", 13),
+    ("1hns", " ", 16),
+    ("1ab3", " ", 26),
+    # ("2new", " ", 17),
+    # Replaced with
+    ("1new", "A", 35),
+    ("1pou", " ", 20),
+    ("1pmc", " ", 36),
+    ("1pnh", " ", 25),
+    ("1pnb", "B", 10),
+    ("1pnb", "A", 10),
+    ("1acz", " ",  5),
+    ("1prs", " ", 30),
+    ("1abz", " ", 23),
+    ("1pft", " ", 25),
+    ("1gnc", " ", 10),
+    ("1pfl", " ", 20),
+    ("4znf", " ", 41),
+    ("2nbt", "A", 10),
+    ("1ghk", " ", 25),
+    ("1ghc", " ", 14),
+    ("1hue", "A", 25),
+    ("1mut", " ", 15),
+    ("1ncs", " ", 46),
+    ("1c06", "A", 16),
+    ("1kjs", " ", 20),
+    ("1kla", "A", 17),
+    ("1ksr", " ", 20),
+    ("1lre", " ", 20),
+    ("2lef", "A", 12),
+    ("1by1", "A", 20),
+    ("1axh", " ", 20),
+    ("1bzg", " ", 30),
+    ("1byv", "A", 10),
+    ("2jhb", "A", 20),
+    ("1iie", "A", 20),
+    ("1igl", " ", 20),
+    ("1iml", " ", 48),
+    ("1irg", " ", 20),
+    ("1imt", " ", 39),
+    ("1c20", "A", 21),
+    ("2hp8", " ", 30),
+    ("2hsp", " ", 20),
+    ("1idz", " ", 20),
+    ("1iba", " ", 11),
+    ("1ica", " ", 10),
+    ("1jun", "A",  7),
+    ("1jvr", " ", 20),
+    ("1ngr", " ", 20),
+    ("1joy", "A", 21),
+    ("1khm", "A", 20),
+    ("2if1", " ", 29),
+    ("1nkl", " ", 20),
+    ("1qdp", " ", 20),
+    ("1aiw", " ", 23),
+    ("1fvl", " ", 18),
+    ("1qkh", "A", 21),
+    ("1akp", " ", 15),
+    ("2fow", " ", 26),
+    ("1agt", " ", 17),
+    ("1pyc", " ", 15),
+    ("2fmr", " ", 18),
+    ("1afo", "A", 20),
+    ("1qa5", "A",  2),
+    ("1afp", " ", 40),
+    ("1ah9", " ", 19),
+    ("1qfq", "B", 29),
+    ("2nmb", "A", 14),
+    ("1agg", " ", 24),
+    ("1qk7", "A", 20),
+    ("1qk6", "A", 10),
+    ("1qky", "A", 14),
+    ("1qhk", "A", 20),
+    ("1qkl", "A", 22),
+]
+
+for entry, chain, expected in chains:
+    p = os.path.join(conf.pdb_dir, entry[1:3], 'pdb%s.ent.gz' % entry)
+    if not os.access(p, os.R_OK):
+        print >> sys.stderr, "Could not read %s" % p
+        sys.exit(1)
+
+    # Create the output directory for this PDB entry.
+    if not os.access(os.path.join(conf.output_dir, entry), os.R_OK):
+        os.makedirs(os.path.join(conf.output_dir, entry))
+
+    # The idea here is to gather the "header" of the PDB file, which is
+    # everything up to the very first "MODEL" row. We then keep that around
+    # and make it the header of each PDB file generated (for each model).
+    header = []
+    model = []
+    model_num = 0
+    for line in gzip.open(p):
+        if line.startswith('MODEL'):
+            # For "MODEL" rows, the model number is in columns 12-13
+            model_num = int(line[12:14])
+            model = [line]
+        elif line.startswith('ENDMDL'):
+            model.append(line)
+
+            fpath = os.path.join(conf.output_dir, entry, '%d.pdb' % model_num)
+            f = open(fpath, 'w+')
+            print >> f, ''.join(header),
+            print >> f, ''.join(model),
+            print >> f, 'END'
+        elif line.startswith('ATOM') and model_num > 0:
+            # For "ATOM" rows, the chain identifier is in column 21
+            if line[21] == chain or (line[21] == 'A' and chain == ' '):
+                # We modify the chain identifer to indicate the model number.
+                line = list(line)
+                line[21] = chr(ord('A') - 1 + model_num)
+                model.append(''.join(line))
+        elif model_num == 0:
+            header.append(line)

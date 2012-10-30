@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# != 3 ]; then
+  echo "Usage: `basename $0` pride-pdb-dir frab-lib-dir pride-bow-dir" >&2
+  exit 1
+fi
+
+pdb_dir=$1
+frag_dir=$2
+bow_dir=$3
+
+for d in "$pdb_dir"/*; do
+  echo "Creating BOW database for $d..."
+  create-pdb-db "$bow_dir/$(basename "$d")" "$frag_dir" "$d"/*.pdb
+done
+
