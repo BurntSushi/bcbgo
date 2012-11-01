@@ -33,8 +33,8 @@ import (
 type results []result
 
 type result struct {
-	entry string
-	chain byte
+	entry   string
+	chain   byte
 	results bowdb.SearchResults
 }
 
@@ -90,9 +90,9 @@ func main() {
 		"BOW entry\t" +
 			"BOW chain\t" +
 			"BOW dist\n")
-			// "Matt entry\t" + 
-			// "Matt chain\t" + 
-			// "Matt dist\n") 
+	// "Matt entry\t" + 
+	// "Matt chain\t" + 
+	// "Matt dist\n") 
 	for _, chain := range chains {
 		// marg := mattArgs[i] 
 		bow := db.Library.NewBowChain(chain)
@@ -106,9 +106,9 @@ func main() {
 
 		// mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs) 
 		// if err != nil { 
-			// errorf("Could not get Matt ordering for %s (chain %c): %s\n", 
-				// chain.Entry.IdCode, chain.Ident, err) 
-			// continue 
+		// errorf("Could not get Matt ordering for %s (chain %c): %s\n", 
+		// chain.Entry.IdCode, chain.Ident, err) 
+		// continue 
 		// } 
 
 		fmt.Printf("Ordering for %s (chain %c)\n",

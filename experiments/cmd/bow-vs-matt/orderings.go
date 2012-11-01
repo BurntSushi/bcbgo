@@ -46,8 +46,8 @@ func (o ordering) String() string {
 
 type chain struct {
 	idCode string
-	ident byte
-	dist float64
+	ident  byte
+	dist   float64
 }
 
 func (c chain) String() string {
@@ -66,8 +66,8 @@ func getBowOrdering(
 	for i, result := range results.Results {
 		ordered[i] = chain{
 			idCode: result.IdCode,
-			ident: result.ChainIdent,
-			dist: result.Cosine,
+			ident:  result.ChainIdent,
+			dist:   result.Cosine,
 		}
 	}
 
@@ -95,8 +95,8 @@ func getMattOrdering(
 		}
 		ordered = append(ordered, chain{
 			idCode: target.IdCode,
-			ident: target.Chain,
-			dist: result.RMSD,
+			ident:  target.Chain,
+			dist:   result.RMSD,
 		})
 	}
 	sort.Sort(ordered)
@@ -108,8 +108,8 @@ func createMattArgs(chains []*pdb.Chain) []matt.PDBArg {
 	for i, chain := range chains {
 		args[i] = matt.PDBArg{
 			Location: chain.Entry.Path,
-			IdCode: chain.Entry.IdCode,
-			Chain: chain.Ident,
+			IdCode:   chain.Entry.IdCode,
+			Chain:    chain.Ident,
 		}
 	}
 	return args

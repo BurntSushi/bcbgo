@@ -181,6 +181,10 @@ func (fs *files) getBowOffset(seqId sequenceId) (bowOff int64, err error) {
 }
 
 func (fs *files) read() ([]searchItem, error) {
+	if _, err := fs.bow.Seek(0, os.SEEK_SET); err != nil {
+		return nil, err
+	}
+
 	reader := csv.NewReader(fs.bow)
 	reader.Comma = ','
 	reader.FieldsPerRecord = -1

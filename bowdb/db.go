@@ -128,6 +128,31 @@ func (db *DB) WriteClose() (err error) {
 	return db.files.writeClose()
 }
 
+type Entry struct {
+	IdCode         string
+	ChainIdent     byte
+	Classification string
+	BOW            fragbag.BOW
+}
+
+func (db *DB) ReadAll() ([]Entry, error) {
+	searchItems, err := db.files.read()
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]Entry, len(searchItems))
+	for i, si := range searchItems {
+		entries[i] = Entry{
+			IdCode:         si.IdCode,
+			ChainIdent:     si.ChainIdent,
+			Classification: si.Classification,
+			BOW:            si.BOW,
+		}
+	}
+	return entries, nil
+}
+
 func (db *DB) ReadClose() (err error) {
 	return db.files.readClose()
 }

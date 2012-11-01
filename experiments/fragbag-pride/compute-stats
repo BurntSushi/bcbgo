@@ -1,0 +1,27 @@
+#!/usr/bin/env python2.7
+
+import csv
+import sys
+
+import numpy as np
+
+pairs = {}
+for f in sys.argv[1:]:
+    for row in csv.DictReader(open(f), delimiter='\t'):
+        if len(row['QueryID']) == 0:
+            continue
+        if row['QueryChain'] == row['ResultChain']:
+            continue
+
+        q = (row['QueryID'], row['QueryChain'])
+        r = (row['ResultID'], row['ResultChain'])
+        if (r, q) in pairs:
+            continue
+        pairs[(q, r)] = (float(row['Euclid']), float(row['Cosine']))
+
+euclid = map(lambda (euclid, _): euclid, pairs.values())
+cosine = map(lambda (_, cosine): cosine, pairs.values())
+
+print 'Euclid: %0.4f +/- %0.4f' % (np.mean(euclid), np.std(euclid))
+print 'Cosine: %0.4f +/- %0.4f' % (np.mean(cosine), np.std(cosine))
+

@@ -5,8 +5,8 @@ install:
 	go install -p 6 ./cmd/*
 
 gofmt:
-	gofmt -w */*.go cmd/*/*.go */example/*/*.go
-	colcheck */*.go cmd/*/*.go */example/*/*.go
+	gofmt -w */*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go
+	colcheck */*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go
 
 data/fraglibs/%: data/fraglibs/%.brk
 	scripts/translate-fraglib "data/fraglibs/$*.brk" "data/fraglibs/$*"

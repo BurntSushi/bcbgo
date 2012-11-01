@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# != 2 ]; then
+  echo "Usage: `basename $0` pride-bow-dir pride-pair-dists-dir" >&2
+  exit 1
+fi
+
+pride_bow_dir=$1
+pride_pair_dir=$2
+
+for d in "$pride_bow_dir"/*; do
+  echo "Calculating distances in $(basename "$d")..."
+  experiments/cmd/fragbag-ordering/fragbag-ordering "$d" \
+    > "$pride_pair_dir/$(basename "$d")"
+done
+

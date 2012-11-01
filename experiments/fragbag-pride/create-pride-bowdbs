@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# != 3 ]; then
+  echo "Usage: `basename $0` fraglib-dir pride-pdb-dir pride-bow-dir" >&2
+  exit 1
+fi
+
+frag_dir=$1
+pride_pdb_dir=$2
+pride_bow_dir=$3
+
+for d in "$pride_pdb_dir"/*; do
+  echo "Creating BOW database for $d..."
+  create-bowdb "$pride_bow_dir/$(basename "$d")" "$frag_dir" "$d"/*.pdb
+done
+
