@@ -23,20 +23,26 @@ msg "Building test executables"
 go build -o $differ ./experiments/cmd/diff-kolodny-fragbag
 
 if [ ! -f $exp_dir/concat-chains.log ]; then
+  msg "Diffing old style BOW computation"
   $differ \
     --oldstyle \
     --fragbag "$old_fragbag" \
     "$frag_file" \
     "$frag_dir" \
     "$some_pdb_dir"/* > $exp_dir/concat-chains.log
+else
+  msg "$exp_dir/concat-chains.log already exists; skipping old style diff"
 fi
 
 if [ ! -f $exp_dir/separate-chains.log ]; then
+  msg "Diffing new style BOW computation"
   $differ \
     --fragbag "$old_fragbag" \
     "$frag_file" \
     "$frag_dir" \
     "$some_pdb_dir"/* > $exp_dir/separate-chains.log
+else
+  msg "$exp_dir/separate-chains.log already exists; skipping new style diff"
 fi
 
 msg "Cleanup"
