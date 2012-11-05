@@ -21,8 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
-	"runtime/pprof"
 	"strings"
 	"text/tabwriter"
 
@@ -38,12 +36,7 @@ type result struct {
 	results bowdb.SearchResults
 }
 
-var (
-	flagCpuProfile = ""
-	flagGoMaxProcs = runtime.NumCPU()
-	flagQuiet      = false
-	flagInverted   = false
-)
+var flagInverted = false
 
 func main() {
 	if flag.NArg() < 2 {
@@ -68,33 +61,24 @@ func main() {
 		fatalf("%s\n", err)
 	}
 
-	if len(flagCpuProfile) > 0 {
-		f, err := os.Create(flagCpuProfile)
-		if err != nil {
-			fatalf("%s\n", err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
-
 	bowOpts := bowdb.DefaultSearchOptions
 	bowOpts.Limit = 200
 	mattOpts := matt.DefaultConfig
 	mattOpts.Verbose = false
 
 	chains := createChains(pdbFiles)
-	// mattArgs := createMattArgs(chains) 
+	mattArgs := createMattArgs(chains)
 
 	tabw := tabwriter.NewWriter(os.Stdout, 0, 4, 4, ' ', 0)
 	header := []byte(
 		"BOW entry\t" +
 			"BOW chain\t" +
-			"BOW dist\n")
-	// "Matt entry\t" + 
-	// "Matt chain\t" + 
-	// "Matt dist\n") 
-	for _, chain := range chains {
-		// marg := mattArgs[i] 
+			"BOW dist\t" +
+			"Matt entry\t" +
+			"Matt chain\t" +
+			"Matt dist\n")
+	for i, chain := range chains {
+		marg := mattArgs[i]
 		bow := db.Library.NewBowChain(chain)
 
 		bowOrdered, err := getBowOrdering(db, bowOpts, bow)
@@ -104,19 +88,19 @@ func main() {
 			continue
 		}
 
-		// mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs) 
-		// if err != nil { 
-		// errorf("Could not get Matt ordering for %s (chain %c): %s\n", 
-		// chain.Entry.IdCode, chain.Ident, err) 
-		// continue 
-		// } 
+		mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs)
+		if err != nil {
+			errorf("Could not get Matt ordering for %s (chain %c): %s\n",
+				chain.Entry.IdCode, chain.Ident, err)
+			continue
+		}
 
 		fmt.Printf("Ordering for %s (chain %c)\n",
 			chain.Entry.IdCode, chain.Ident)
 
-		// compared := comparison([2]ordering{bowOrdered, bowOrdered}) 
+		compared := comparison([2]ordering{bowOrdered, mattOrdered})
 		tabw.Write(header)
-		tabw.Write([]byte(bowOrdered.String()))
+		tabw.Write([]byte(compared.String()))
 		tabw.Flush()
 		fmt.Println("\n")
 	}
@@ -133,7 +117,7 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 
 	args := []string{dbPath, fragLibDir}
 	args = append(args, pdbFiles...)
-	cmd := exec.Command("create-pdb-db", args...)
+	cmd := exec.Command("create-bowdb", args...)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -147,17 +131,8 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 func init() {
 	flag.BoolVar(&flagInverted, "inverted", flagInverted,
 		"When set, the search will use an inverted index.")
-	flag.StringVar(&flagCpuProfile, "cpuprofile", flagCpuProfile,
-		"When set, a CPU profile will be written to the file provided.")
-	flag.IntVar(&flagGoMaxProcs, "p", flagGoMaxProcs,
-		"The maximum number of CPUs that can be executing simultaneously.")
-	flag.BoolVar(&flagQuiet, "quiet", flagQuiet,
-		"When set, no progress bar will be shown.\n"+
-			"\tErrors will still be printed to stderr.")
 	flag.Usage = usage
 	flag.Parse()
-
-	runtime.GOMAXPROCS(flagGoMaxProcs)
 }
 
 func usage() {
@@ -166,13 +141,6 @@ func usage() {
 		path.Base(os.Args[0]))
 	flag.PrintDefaults()
 	os.Exit(1)
-}
-
-func verbosef(format string, v ...interface{}) {
-	if flagQuiet {
-		return
-	}
-	fmt.Fprintf(os.Stdout, format, v...)
 }
 
 func errorf(format string, v ...interface{}) {

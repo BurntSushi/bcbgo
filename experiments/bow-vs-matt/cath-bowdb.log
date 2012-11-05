@@ -1,0 +1,180 @@
+Ordering for 1a5t (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1a5t         A            0.0000      1a5t          A             0.0000
+1oai         A            0.1042      1oks          A             0.2310
+3frh         A            0.2453      1oai          A             1.1440
+1t6o         A            0.2484      3frh          A             1.2380
+1cuk         A            0.2485      1bvs          F             1.3960
+1bvs         F            0.2499      1cuk          A             1.4390
+1e94         E            0.2746      1g4a          E             1.5300
+1g4a         E            0.5102      1pov          0             1.6750
+1oks         A            0.7609      1e94          E             2.2850
+1aym         4            1.0000      1aym          4             2.4480
+1ncq         D            1.0000      1ncq          D             2.5570
+1pov         0            1.0000      1t6o          A             2.9790
+
+Ordering for 1aym (chain 4)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1aym         4            0.0000      1aym          4             0.0000
+1pov         0            0.7611      1bvs          F             0.2360
+1ncq         D            0.8325      1oks          A             0.2790
+1e94         E            0.9697      1ncq          D             0.7430
+1t6o         A            1.0000      1cuk          A             1.2960
+1oks         A            1.0000      1t6o          A             1.5430
+1oai         A            1.0000      3frh          A             1.5870
+3frh         A            1.0000      1e94          E             1.7190
+1bvs         F            1.0000      1oai          A             1.7620
+1g4a         E            1.0000      1g4a          E             2.0710
+1a5t         A            1.0000      1pov          0             2.0920
+1cuk         A            1.0000      1a5t          A             2.4480
+
+Ordering for 1bvs (chain F)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1bvs         F            0.0000      1bvs          F             0.0000
+1cuk         A            0.0561      1pov          0             0.1700
+3frh         A            0.0639      1aym          4             0.2360
+1t6o         A            0.0778      1cuk          A             1.1940
+1oai         A            0.0932      1a5t          A             1.3960
+1e94         E            0.1577      3frh          A             1.6640
+1a5t         A            0.2499      1oai          A             1.8030
+1g4a         E            0.4435      1g4a          E             2.0400
+1oks         A            0.7203      1e94          E             2.1660
+1aym         4            1.0000      1ncq          D             2.4040
+1ncq         D            1.0000      1t6o          A             2.8950
+1pov         0            1.0000      1oks          A             3.0300
+
+Ordering for 1cuk (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1cuk         A            0.0000      1cuk          A             0.0000
+1bvs         F            0.0561      1aym          4             1.2960
+3frh         A            0.0710      1a5t          A             1.4390
+1t6o         A            0.0746      1oai          A             1.4470
+1oai         A            0.1142      1bvs          F             1.6190
+1e94         E            0.1646      1pov          0             1.6890
+1a5t         A            0.2485      1g4a          E             1.7740
+1g4a         E            0.4442      1e94          E             1.8760
+1oks         A            0.6925      1ncq          D             1.9810
+1ncq         D            0.9862      3frh          A             2.1820
+1aym         4            1.0000      1t6o          A             3.0180
+1pov         0            1.0000      1oks          A             3.7930
+
+Ordering for 1e94 (chain E)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1e94         E            0.0000      1e94          E             0.0000
+3frh         A            0.1452      1pov          0             0.6510
+1bvs         F            0.1577      1t6o          A             0.7300
+1t6o         A            0.1601      1ncq          D             1.1760
+1cuk         A            0.1646      1aym          4             1.7190
+1oai         A            0.1867      1g4a          E             1.7340
+1a5t         A            0.2746      1cuk          A             1.8760
+1g4a         E            0.2897      1oks          A             1.8810
+1oks         A            0.6882      3frh          A             2.0100
+1ncq         D            0.9599      1bvs          F             2.1660
+1aym         4            0.9697      1a5t          A             2.2850
+1pov         0            0.9885      1oai          A             2.2930
+
+Ordering for 1g4a (chain E)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1g4a         E            -0.0000     1g4a          E             0.0000
+1e94         E            0.2897      1ncq          D             0.4110
+1t6o         A            0.4070      1oks          A             1.3550
+3frh         A            0.4115      1a5t          A             1.5300
+1bvs         F            0.4435      1e94          E             1.6970
+1cuk         A            0.4442      1t6o          A             1.7880
+1oai         A            0.4624      1oai          A             1.9030
+1a5t         A            0.5102      3frh          A             1.9060
+1oks         A            0.6703      1bvs          F             2.0400
+1ncq         D            0.9359      1aym          4             2.0710
+1aym         4            1.0000      1cuk          A             2.1520
+1pov         0            1.0000      1pov          0             2.4420
+
+Ordering for 1ncq (chain D)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1ncq         D            0.0000      1ncq          D             0.0000
+1aym         4            0.8325      1oai          A             0.2730
+1pov         0            0.8812      1g4a          E             0.4110
+1g4a         E            0.9359      1aym          4             0.7430
+1oks         A            0.9468      1e94          E             1.1760
+1e94         E            0.9599      1pov          0             1.4330
+1oai         A            0.9782      1oks          A             1.8620
+1cuk         A            0.9862      1t6o          A             1.8680
+1t6o         A            0.9881      1cuk          A             1.9810
+1a5t         A            1.0000      1bvs          F             2.4040
+1bvs         F            1.0000      3frh          A             2.5090
+3frh         A            1.0000      1a5t          A             2.5570
+
+Ordering for 1oai (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1oai         A            0.0000      1oai          A             0.0000
+1bvs         F            0.0932      1ncq          D             0.2730
+1a5t         A            0.1042      1pov          0             0.2780
+1cuk         A            0.1142      1a5t          A             1.1440
+3frh         A            0.1185      1cuk          A             1.4470
+1t6o         A            0.1242      1aym          4             1.7620
+1e94         E            0.1867      1bvs          F             1.8030
+1g4a         E            0.4624      3frh          A             1.8660
+1oks         A            0.7451      1g4a          E             1.9030
+1ncq         D            0.9782      1oks          A             1.9190
+1aym         4            1.0000      1e94          E             2.2930
+1pov         0            1.0000      1t6o          A             2.7410
+
+Ordering for 1oks (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1oks         A            0.0000      1oks          A             0.0000
+1t6o         A            0.5962      1a5t          A             0.2310
+1g4a         E            0.6703      1aym          4             0.2790
+3frh         A            0.6784      1t6o          A             0.7150
+1e94         E            0.6882      1g4a          E             1.3550
+1cuk         A            0.6925      1ncq          D             1.8620
+1bvs         F            0.7203      1e94          E             1.8810
+1oai         A            0.7451      1oai          A             1.9190
+1a5t         A            0.7609      1pov          0             2.0860
+1ncq         D            0.9468      3frh          A             2.4220
+1aym         4            1.0000      1bvs          F             3.0300
+1pov         0            1.0000      1cuk          A             3.7930
+
+Ordering for 1pov (chain 0)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1pov         0            -0.0000     1pov          0             0.0000
+1aym         4            0.7611      1bvs          F             0.1700
+1ncq         D            0.8812      1oai          A             0.2780
+1e94         E            0.9885      1e94          E             0.6510
+1t6o         A            1.0000      1ncq          D             1.4330
+1oks         A            1.0000      1a5t          A             1.6750
+1oai         A            1.0000      1cuk          A             1.6890
+3frh         A            1.0000      1oks          A             2.0860
+1bvs         F            1.0000      1aym          4             2.0920
+1g4a         E            1.0000      1t6o          A             2.2670
+1a5t         A            1.0000      1g4a          E             2.4420
+1cuk         A            1.0000      3frh          A             2.8140
+
+Ordering for 1t6o (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1t6o         A            0.0000      1t6o          A             0.0000
+3frh         A            0.0640      1oks          A             0.7150
+1cuk         A            0.0746      1aym          4             1.5430
+1bvs         F            0.0778      1g4a          E             1.7880
+1oai         A            0.1242      1ncq          D             1.8680
+1e94         E            0.1601      1pov          0             2.2670
+1a5t         A            0.2484      3frh          A             2.3720
+1g4a         E            0.4070      1oai          A             2.7410
+1oks         A            0.5962      1bvs          F             2.8950
+1ncq         D            0.9881      1a5t          A             2.9790
+1aym         4            1.0000      1cuk          A             3.0180
+1pov         0            1.0000      1e94          E             3.6080
+
+Ordering for 3frh (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+3frh         A            0.0000      3frh          A             0.0000
+1bvs         F            0.0639      1a5t          A             1.4660
+1t6o         A            0.0640      1aym          4             1.5870
+1cuk         A            0.0710      1bvs          F             1.6640
+1oai         A            0.1185      1oai          A             1.8660
+1e94         E            0.1452      1g4a          E             1.9060
+1a5t         A            0.2453      1e94          E             2.0100
+1g4a         E            0.4115      1cuk          A             2.1820
+1oks         A            0.6784      1t6o          A             2.3720
+1aym         4            1.0000      1oks          A             2.4220
+1ncq         D            1.0000      1ncq          D             2.5090
+1pov         0            1.0000      1pov          0             2.8140
+
