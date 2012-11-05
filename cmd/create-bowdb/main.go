@@ -177,7 +177,7 @@ func verbosef(format string, v ...interface{}) {
 	if flagQuiet {
 		return
 	}
-	fmt.Fprintf(os.Stdout, format, v...)
+	fmt.Fprintf(os.Stderr, format, v...)
 }
 
 func errorf(format string, v ...interface{}) {
