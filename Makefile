@@ -11,27 +11,7 @@ gofmt:
 data/fraglibs/%: data/fraglibs/%.brk
 	scripts/translate-fraglib "data/fraglibs/$*.brk" "data/fraglibs/$*"
 
-# 'oldstyle' uses fragbag.(*Library).NewBowPDBOldStyle to compute a BOW vector
-# for each PDB file when using the fragbag package. This approach computes
-# fragments for a flattened list of all ATOM records in each PDB file. This
-# results in RMSD calculations that can span over multiple chains.
-diff-fragbag-oldstyle:
-	GOMAXPROCS=6 diff-kolodny-fragbag \
-			--fragbag ~/tmp/collab/libbuild \
-			--oldstyle \
-			data/fraglibs/centers400_11.brk data/fraglibs/centers400_11 \
-			data/kolodny-fragbag-testset/*.pdb
-
-# 'newstyle' uses fragbag.(*Library).NewBowPDB to compute a BOW vector for each 
-# PDB file when using the fragbag package. This approach computes fragments for 
-# each chain individually, and never computes the RMSD for a set of ATOM 
-# records that overlap multiple chains.
-diff-fragbag-newstyle:
-	GOMAXPROCS=6 diff-kolodny-fragbag \
-			--fragbag ~/tmp/collab/libbuild \
-			data/fraglibs/centers400_11.brk data/fraglibs/centers400_11 \
-			data/kolodny-fragbag-testset/*.pdb
-
+# Utilities
 push:
 	git push origin master
 	git push tufts master
@@ -46,4 +26,18 @@ tags:
 
 loc:
 	find ./ -name '*.go' -print | sort | xargs wc -l
+
+# Experiments with default parameters
+exp-fragbag-pride: data/fraglibs/centers400_11
+	sh experiments/fragbag-pride/run.sh \
+		/media/Nightjar/pdb \
+		data/fraglibs/centers400_11 \
+		data/experiments/fragbag-pride
+
+exp-kolodny-vs-gallant: data/fraglibs/centers400_11
+	sh experiments/kolodny-vs-gallant/run.sh \
+		data/experiments/kolodny-vs-gallant/libbuild \
+		data/experiments/kolodny-vs-gallant/pdbs \
+		data/fraglibs/centers400_11.brk \
+		data/fraglibs/centers400_11
 
