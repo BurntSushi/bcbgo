@@ -109,6 +109,17 @@ func New(fileName string) (*Entry, error) {
 			"PDB file.", fileName)
 	}
 
+	// If we couldn't find an Id code, inspect the base name of the file path.
+	if len(entry.IdCode) == 0 {
+		name := path.Base(fileName)
+		switch {
+		case len(name) >= 7 && name[0:3] == "pdb":
+			entry.IdCode = name[3:7]
+		case len(name) == 7: // cath
+			entry.IdCode = name[0:4]
+		}
+	}
+
 	return entry, nil
 }
 
