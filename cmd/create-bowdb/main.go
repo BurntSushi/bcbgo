@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 
@@ -86,6 +87,9 @@ func main() {
 			fatalf("Could not remove '%s' directory because: %s.", dbPath, err)
 		}
 	}
+	if len(pdbFiles) == 1 && isDir(pdbFiles[0]) {
+		pdbFiles = recursiveFilesInDir(pdbFiles[0])
+	}
 
 	lib, err := fragbag.NewLibrary(libPath)
 	if err != nil {
@@ -164,7 +168,8 @@ func init() {
 
 func usage() {
 	fmt.Fprintf(os.Stderr,
-		"Usage: %s database-path frag-lib-directory pdb-file [pdb-file ...]\n",
+		"Usage: %s database-path frag-lib-directory "+
+			"(pdb-dir | (pdb-file [pdb-file ...]))\n",
 		path.Base(os.Args[0]))
 	flag.PrintDefaults()
 	fmt.Fprintf(os.Stderr,
@@ -194,4 +199,25 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func isDir(f string) bool {
+	fi, err := os.Stat(f)
+	return err == nil && fi.IsDir()
+}
+
+func recursiveFilesInDir(dir string) []string {
+	files := make([]string, 0, 50)
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			errorf("Could not read '%s' because: %s\n", path, err)
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	return files
 }
