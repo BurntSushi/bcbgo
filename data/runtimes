@@ -1,0 +1,9 @@
+Ocelot - Full PDB
+=================
+GOMAXPROCS=6 (total cpus = 6)
+2044m0.251s (34.06 hours)
+
+bows = 164MB
+bows.index = 1.6MB
+inverted = 157MB
+
