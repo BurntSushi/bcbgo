@@ -27,6 +27,12 @@ tags:
 loc:
 	find ./ -name '*.go' -print | sort | xargs wc -l
 
+test:
+	go test ./rmsd
+
+bench-rmsd:
+	go test ./rmsd -run 'nomatch' -bench '.*'
+
 # Experiments with default parameters
 exp-fragbag-pride: data/fraglibs/centers400_11
 	sh experiments/fragbag-pride/run.sh \
