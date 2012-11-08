@@ -144,7 +144,9 @@ func (lib *Library) Fragment(fragNum int) *LibFragment {
 //
 // BestFragment panics if the length of atoms is not equivalent to the
 // fragment size of the library.
-func (lib *Library) BestFragment(atoms pdb.Atoms) (int, float64) {
+func (lib *Library) BestFragment(
+	atoms pdb.Atoms, mem rmsd.QcMemory) (int, float64) {
+
 	if len(atoms) != lib.FragmentSize() {
 		panic(fmt.Sprintf("BestFragment can only be called with a list of "+
 			"atoms with length equivalent to the fragment size of the "+
@@ -154,7 +156,7 @@ func (lib *Library) BestFragment(atoms pdb.Atoms) (int, float64) {
 
 	bestRmsd, bestFragNum := 0.0, -1
 	for _, frag := range lib.fragments {
-		testRmsd := rmsd.QCRMSD(atoms, frag.OneChain().CaAtoms)
+		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.OneChain().CaAtoms)
 		if bestFragNum == -1 || testRmsd < bestRmsd {
 			bestRmsd, bestFragNum = testRmsd, frag.Ident
 		}

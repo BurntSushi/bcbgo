@@ -11,8 +11,9 @@ package rmsd
 // Note that I've left the structure of the original program in tact so that
 // a comparison can be easy. What follows is the original (huge) header.
 //
-// The only major change is the omission of the 'weight' matrix.
-// We don't use.
+// The only major changes is the omission of the 'weight' matrix, and the
+// complete omission of computing the rotational matrix.
+// We don't use either.
 
 /*******************************************************************************
  *  -/_|:|_|_\- 
@@ -109,7 +110,24 @@ import (
 	"github.com/BurntSushi/bcbgo/pdb"
 )
 
+type QcMemory struct {
+	coords1, coords2 [3][]float64
+}
+
+func NewQcMemory(cols int) QcMemory {
+	mem := QcMemory{}
+	for i := 0; i < 3; i++ {
+		mem.coords1[i] = make([]float64, cols)
+		mem.coords2[i] = make([]float64, cols)
+	}
+	return mem
+}
+
 func QCRMSD(struct1, struct2 pdb.Atoms) float64 {
+	return QCRMSDMem(NewQcMemory(len(struct1)), struct1, struct2)
+}
+
+func QCRMSDMem(mem QcMemory, struct1, struct2 pdb.Atoms) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -117,38 +135,29 @@ func QCRMSD(struct1, struct2 pdb.Atoms) float64 {
 	}
 
 	cols := len(struct1)
-	var coords1, coords2 [3][]float64
-	for i := 0; i < 3; i++ {
-		coords1[i] = make([]float64, cols)
-		coords2[i] = make([]float64, cols)
-	}
 	for i := 0; i < cols; i++ {
-		coords1[0][i] = struct1[i].Coords[0]
-		coords1[1][i] = struct1[i].Coords[1]
-		coords1[2][i] = struct1[i].Coords[2]
+		mem.coords1[0][i] = struct1[i].Coords[0]
+		mem.coords1[1][i] = struct1[i].Coords[1]
+		mem.coords1[2][i] = struct1[i].Coords[2]
 
-		coords2[0][i] = struct2[i].Coords[0]
-		coords2[1][i] = struct2[i].Coords[1]
-		coords2[2][i] = struct2[i].Coords[2]
+		mem.coords2[0][i] = struct2[i].Coords[0]
+		mem.coords2[1][i] = struct2[i].Coords[1]
+		mem.coords2[2][i] = struct2[i].Coords[2]
 	}
-
-	rmsd, _ := calcRMSDRotationalMatrix(coords1, coords2)
-	return rmsd
+	return calcRMSD(mem.coords1, mem.coords2)
 }
 
-func calcRMSDRotationalMatrix(
-	coords1, coords2 [3][]float64) (float64, [9]float64) {
+func calcRMSD(
+	coords1, coords2 [3][]float64) float64 {
 
 	centerCoords(coords1)
 	centerCoords(coords2)
 	E0, A := innerProduct(coords1, coords2)
 
-	return fastCalcRMSDAndRotation(A, E0, len(coords1[0]))
+	return fastCalcRMSD(A, E0, len(coords1[0]))
 }
 
-func fastCalcRMSDAndRotation(
-	A [9]float64, E0 float64, numCoords int) (float64, [9]float64) {
-
+func fastCalcRMSD(A [9]float64, E0 float64, numCoords int) float64 {
 	// These are some crazy names...
 	var Sxx, Sxy, Sxz, Syx, Syy, Syz, Szx, Szy, Szz float64
 	var Szz2, Syy2, Sxx2, Sxy2, Syz2, Sxz2, Syx2, Szy2, Szx2 float64
@@ -158,15 +167,8 @@ func fastCalcRMSDAndRotation(
 	var C [4]float64
 	var mxEigenV float64
 	var oldg float64 = 0.0
-	var b, a, delta, qsqr float64
-	var q1, q2, q3, q4, normq float64
-	var a11, a12, a13, a14, a21, a22, a23, a24 float64
-	var a31, a32, a33, a34, a41, a42, a43, a44 float64
-	var a2, x2, y2, z2 float64
-	var xy, az, zx, ay, yz, ax float64
-	var a3344_4334, a3244_4234, a3243_4233 float64
-	var a3143_4133, a3144_4134, a3142_4132 float64
-	var evecprec float64 = 1e-6
+	var b, a, delta float64
+	var x2 float64
 	var evalprec float64 = 1e-11
 
 	Sxx, Sxy, Sxz = A[0], A[1], A[2]
@@ -227,106 +229,7 @@ func fastCalcRMSDAndRotation(
 		}
 	}
 
-	rmsd := math.Sqrt(fabs(2.0 * (E0 - mxEigenV) / float64(numCoords)))
-
-	a11 = SxxpSyy + Szz - mxEigenV
-	a12 = SyzmSzy
-	a13 = -SxzmSzx
-	a14 = SxymSyx
-	a21 = SyzmSzy
-	a22 = SxxmSyy - Szz - mxEigenV
-	a23 = SxypSyx
-	a24 = SxzpSzx
-	a31 = a13
-	a32 = a23
-	a33 = Syy - Sxx - Szz - mxEigenV
-	a34 = SyzpSzy
-	a41 = a14
-	a42 = a24
-	a43 = a34
-	a44 = Szz - SxxpSyy - mxEigenV
-	a3344_4334 = a33*a44 - a43*a34
-	a3244_4234 = a32*a44 - a42*a34
-	a3243_4233 = a32*a43 - a42*a33
-	a3143_4133 = a31*a43 - a41*a33
-	a3144_4134 = a31*a44 - a41*a34
-	a3142_4132 = a31*a42 - a41*a32
-	q1 = a22*a3344_4334 - a23*a3244_4234 + a24*a3243_4233
-	q2 = -a21*a3344_4334 + a23*a3144_4134 - a24*a3143_4133
-	q3 = a21*a3244_4234 - a22*a3144_4134 + a24*a3142_4132
-	q4 = -a21*a3243_4233 + a22*a3143_4133 - a23*a3142_4132
-
-	qsqr = q1*q1 + q2*q2 + q3*q3 + q4*q4
-	if qsqr < evecprec {
-		q1 = a12*a3344_4334 - a13*a3244_4234 + a14*a3243_4233
-		q2 = -a11*a3344_4334 + a13*a3144_4134 - a14*a3143_4133
-		q3 = a11*a3244_4234 - a12*a3144_4134 + a14*a3142_4132
-		q4 = -a11*a3243_4233 + a12*a3143_4133 - a13*a3142_4132
-		qsqr = q1*q1 + q2*q2 + q3*q3 + q4*q4
-
-		if qsqr < evecprec {
-			a1324_1423 := a13*a24 - a14*a23
-			a1224_1422 := a12*a24 - a14*a22
-			a1223_1322 := a12*a23 - a13*a22
-			a1124_1421 := a11*a24 - a14*a21
-			a1123_1321 := a11*a23 - a13*a21
-			a1122_1221 := a11*a22 - a12*a21
-
-			q1 = a42*a1324_1423 - a43*a1224_1422 + a44*a1223_1322
-			q2 = -a41*a1324_1423 + a43*a1124_1421 - a44*a1123_1321
-			q3 = a41*a1224_1422 - a42*a1124_1421 + a44*a1122_1221
-			q4 = -a41*a1223_1322 + a42*a1123_1321 - a43*a1122_1221
-			qsqr = q1*q1 + q2*q2 + q3*q3 + q4*q4
-
-			if qsqr < evecprec {
-				q1 = a32*a1324_1423 - a33*a1224_1422 + a34*a1223_1322
-				q2 = -a31*a1324_1423 + a33*a1124_1421 - a34*a1123_1321
-				q3 = a31*a1224_1422 - a32*a1124_1421 + a34*a1122_1221
-				q4 = -a31*a1223_1322 + a32*a1123_1321 - a33*a1122_1221
-				qsqr = q1*q1 + q2*q2 + q3*q3 + q4*q4
-
-				if qsqr < evecprec {
-					/* if qsqr is too small, return the identity matrix. */
-					return 0.0, [9]float64{
-						1.0, 0.0, 0.0,
-						0.0, 1.0, 0.0,
-						0.0, 0.0, 1.0,
-					}
-				}
-			}
-		}
-	}
-
-	normq = math.Sqrt(qsqr)
-	q1 /= normq
-	q2 /= normq
-	q3 /= normq
-	q4 /= normq
-
-	a2 = q1 * q1
-	x2 = q2 * q2
-	y2 = q3 * q3
-	z2 = q4 * q4
-
-	xy = q2 * q3
-	az = q1 * q4
-	zx = q4 * q2
-	ay = q1 * q3
-	yz = q3 * q4
-	ax = q1 * q2
-
-	var rot [9]float64
-	rot[0] = a2 + x2 - y2 - z2
-	rot[1] = 2 * (xy + az)
-	rot[2] = 2 * (zx - ay)
-	rot[3] = 2 * (xy - az)
-	rot[4] = a2 - x2 + y2 - z2
-	rot[5] = 2 * (yz + ax)
-	rot[6] = 2 * (zx + ay)
-	rot[7] = 2 * (yz - ax)
-	rot[8] = a2 - x2 - y2 + z2
-
-	return rmsd, rot
+	return math.Sqrt(fabs(2.0 * (E0 - mxEigenV) / float64(numCoords)))
 }
 
 func innerProduct(coords1, coords2 [3][]float64) (float64, [9]float64) {

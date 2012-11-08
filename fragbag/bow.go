@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/rmsd"
 )
 
 // BOW represents a bag-of-words vector of size N for a particular fragment
@@ -52,9 +53,11 @@ func (lib *Library) NewBowChain(chain *pdb.Chain) BOW {
 	if len(chain.CaAtoms) < lib.FragmentSize() {
 		return bow
 	}
+
+	mem := rmsd.NewQcMemory(lib.FragmentSize())
 	for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
 		atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
-		bestFragNum, _ := lib.BestFragment(atoms)
+		bestFragNum, _ := lib.BestFragment(atoms, mem)
 		bow.fragfreqs[bestFragNum]++
 	}
 	return bow
@@ -66,6 +69,7 @@ func (lib *Library) NewBowChain(chain *pdb.Chain) BOW {
 // RMSDs for each fragment.
 func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
 	bow := lib.NewBow()
+	mem := rmsd.NewQcMemory(lib.FragmentSize())
 	for _, chain := range entry.Chains {
 		if !chain.ValidProtein() {
 			continue
@@ -75,7 +79,7 @@ func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
 		}
 		for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
 			atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
-			bestFragNum, _ := lib.BestFragment(atoms)
+			bestFragNum, _ := lib.BestFragment(atoms, mem)
 			bow.fragfreqs[bestFragNum]++
 		}
 	}
