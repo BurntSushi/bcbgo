@@ -1,9 +1,19 @@
-Ocelot - Full PDB
-=================
+Ocelot - Full PDB (82804 chains)
+================================
 GOMAXPROCS=6 (total cpus = 6)
 2044m0.251s (34.06 hours)
 
-bows = 164MB
-bows.index = 1.6MB
-inverted = 157MB
+164MB   bows
+1.6MB   bows.index
+157MB   inverted
+
+
+Ocelot - CATH 35 PDB (11926 chains)
+===================================
+GOMAXPROCS=5 (total cpus = 6)
+53m3.534s
+
+9.2MB   bows
+ 94KB   bows.index
+  5MB   inverted
 
