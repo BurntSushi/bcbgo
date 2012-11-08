@@ -1,7 +1,17 @@
-Ocelot - Full PDB (82804 chains)
-================================
+Ocelot - Full PDB (82804 chains, Kabsch)
+========================================
 GOMAXPROCS=6 (total cpus = 6)
 2044m0.251s (34.06 hours)
+
+164MB   bows
+1.6MB   bows.index
+157MB   inverted
+
+
+Ocelot - Full PDB (82804 chains, QC)
+====================================
+GOMAXPROCS=6 (total cpus = 6)
+111m49.207s (1.86 hours)
 
 164MB   bows
 1.6MB   bows.index
