@@ -39,10 +39,6 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 			"provided are %d and %d.", len(struct1), len(struct2)))
 	}
 
-	// This will disable any attempt at parallelizing matrix multiplication
-	// when GOMAXPROCS > 1. It just isn't read for prime-time.
-	matrix.WhichParMethod = 0
-
 	// In order to "center" the coordinates, we
 	// subtract the centroid for each set of atom coordinates.
 	cx1, cy1, cz1 := centroid(struct1)
@@ -51,40 +47,25 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 	// Initialize the go.matrix values from the 3 dimensional ATOM coordinates.
 	// We end up with two 3xN matrices (X and Y), where N is the length of
 	// struct1 and struct2.
-	els1 := make([]float64, 3*len(struct1))
-	els2 := make([]float64, 3*len(struct2))
+	cols := len(struct1)
+	X := make([]float64, 3*cols)
+	Y := make([]float64, 3*cols)
 	for i := 0; i < len(struct1); i++ {
-		o := len(struct1)
 		a1, a2 := struct1[i].Coords, struct2[i].Coords
-		els1[i+0*o] = a1[0] - cx1
-		els1[i+1*o] = a1[1] - cy1
-		els1[i+2*o] = a1[2] - cz1
+		X[0*cols+i] = a1[0] - cx1
+		X[1*cols+i] = a1[1] - cy1
+		X[2*cols+i] = a1[2] - cz1
 
-		els2[i+0*o] = a2[0] - cx2
-		els2[i+1*o] = a2[1] - cy2
-		els2[i+2*o] = a2[2] - cz2
+		Y[0*cols+i] = a2[0] - cx2
+		Y[1*cols+i] = a2[1] - cy2
+		Y[2*cols+i] = a2[2] - cz2
 	}
-	X := matrix.MakeDenseMatrix(els1, 3, len(struct1))
-	Y := matrix.MakeDenseMatrix(els2, 3, len(struct2))
 
 	// Compute the covariance matrix C = X(Y^T)
-	C := must(X.TimesDense(Y.Transpose()))
+	C := covariant_3x3(cols, X, Y)
 
 	// Compute the Singular Value Decomposition of C = VS(W^T)
-	//
-	// N.B. I suspect that this is the most optimizable portion of this
-	// RMSD calculation. If you take a look at the source for SVD (in
-	// skelterjohn's go.matrix package), you'll notice that it is a nightmare.
-	// I think that if we wrote an optimized implementation specifically for
-	// 3x3 matrices, we'd end up squeezing a lot more juice. In particular,
-	// we could use the cubic formula to calculate roots of cubic equations
-	// in order to find the eigen{values,vectors}.
-	V, _, WT, err := C.SVD()
-	if err != nil {
-		// I'm not quite sure if this is the right thing to do here.
-		// It may be that we simply return an invalid RMSD instead.
-		panic(err)
-	}
+	V, WT := C.svd()
 
 	// If the determinant of C is negative, then we have to correct for
 	// something called an "improper rotation" in that the matrix doesn't
@@ -97,29 +78,26 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 	// http://cnx.org/content/m11608/latest/
 	// calls for W. For whatever reason, Fragbag's algorithm seems to use
 	// WT. (i.e., this approach matches its output precisely.)
-	var U *matrix.DenseMatrix
-	VT := V.Transpose()
-	if C.Det() < 0 {
-		adjust := matrix.MakeDenseMatrix([]float64{
+	VT := V.transpose()
+	if C.det() < 0 {
+		adjust := matrix3{
 			1, 0, 0,
 			0, 1, 0,
 			0, 0, -1,
-		}, 3, 3)
-		Wadjust := must(WT.TimesDense(adjust))
-		U = must(Wadjust.TimesDense(VT))
-	} else {
-		U = must(WT.TimesDense(VT))
+		}
+		WT = WT.mult(adjust)
 	}
+	U := WT.mult(VT)
 
 	// Apply the rotational matrix U to X to get the best possible alignment
 	// with Y.
-	Xbest := must(U.TimesDense(X))
+	Xbest := mult_3x3_3xN(cols, U[:], X)
 
 	// Now compute the RMSD between Xbest and Y.
-	rmsd := 0.0
+	var rmsd, dist float64 = 0.0, 0.0
 	for r := 0; r < 3; r++ {
-		for c := 0; c < len(struct1); c++ {
-			dist := Xbest.Get(r, c) - Y.Get(r, c)
+		for c := 0; c < cols; c++ {
+			dist = Xbest[r*cols+c] - Y[r*cols+c]
 			rmsd += dist * dist
 		}
 	}

@@ -73,10 +73,17 @@ func PDB(entry1 *pdb.Entry, chainId1 byte, start1, end1 int,
 	}
 
 	// We're good to go...
-	return RMSD(struct1, struct2), nil
+	return QCRMSD(struct1, struct2), nil
 }
 
 func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func maxf(a, b float64) float64 {
 	if a > b {
 		return a
 	}
