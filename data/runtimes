@@ -8,6 +8,16 @@ GOMAXPROCS=6 (total cpus = 6)
 157MB   inverted
 
 
+Pulsar - Full PDB (82804 chains, Kabsch)
+========================================
+GOMAXPROCS=48 (total cpus = 48)
+3838m4.557s (63.96 hours)
+
+169MB   bows
+1.7MB   bows.index
+164MB   inverted
+
+
 Ocelot - Full PDB (82804 chains, QC)
 ====================================
 GOMAXPROCS=6 (total cpus = 6)
