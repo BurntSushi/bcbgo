@@ -154,7 +154,7 @@ func (lib *Library) BestFragment(atoms pdb.Atoms) (int, float64) {
 
 	bestRmsd, bestFragNum := 0.0, -1
 	for _, frag := range lib.fragments {
-		testRmsd := rmsd.RMSD(atoms, frag.OneChain().CaAtoms)
+		testRmsd := rmsd.QCRMSD(atoms, frag.OneChain().CaAtoms)
 		if bestFragNum == -1 || testRmsd < bestRmsd {
 			bestRmsd, bestFragNum = testRmsd, frag.Ident
 		}
@@ -246,7 +246,7 @@ func (lib *Library) rmsdWorkers(
 			for job := range jobs {
 				results <- rmsdPoolResult{
 					fragNum: job.fragNum,
-					rmsd: rmsd.RMSD(
+					rmsd: rmsd.QCRMSD(
 						job.atoms,
 						lib.Fragment(job.fragNum).OneChain().CaAtoms),
 				}
