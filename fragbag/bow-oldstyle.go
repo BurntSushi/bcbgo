@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 // NewBowPDBOldStyle returns a bag-of-words describing a pdb file using

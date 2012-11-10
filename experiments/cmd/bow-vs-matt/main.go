@@ -24,8 +24,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/BurntSushi/bcbgo/apps/matt"
 	"github.com/BurntSushi/bcbgo/bowdb"
-	"github.com/BurntSushi/bcbgo/matt"
 )
 
 type results []result
@@ -35,8 +35,6 @@ type result struct {
 	chain   byte
 	results bowdb.SearchResults
 }
-
-var flagInverted = false
 
 func main() {
 	if flag.NArg() < 2 {
@@ -50,15 +48,14 @@ func main() {
 		fatalf("%s\n", err)
 	}
 
-	var searchType int
-	if flagInverted {
-		searchType = bowdb.SearchInverted
-	} else {
-		searchType = bowdb.SearchFull
-	}
-	db, err := bowdb.Open(dbPath, searchType)
+	db, err := bowdb.Open(dbPath)
 	if err != nil {
 		fatalf("%s\n", err)
+	}
+
+	searcher, err := db.NewFullSearcher()
+	if err != nil {
+		fatalf("Could not initialize full searcher: %s\n", searcher)
 	}
 
 	bowOpts := bowdb.DefaultSearchOptions
@@ -81,7 +78,7 @@ func main() {
 		marg := mattArgs[i]
 		bow := db.Library.NewBowChain(chain)
 
-		bowOrdered, err := getBowOrdering(db, bowOpts, bow)
+		bowOrdered, err := getBowOrdering(searcher, bowOpts, bow)
 		if err != nil {
 			errorf("Could not get BOW ordering for %s (chain %c): %s\n",
 				chain.Entry.IdCode, chain.Ident, err)
@@ -129,8 +126,6 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 }
 
 func init() {
-	flag.BoolVar(&flagInverted, "inverted", flagInverted,
-		"When set, the search will use an inverted index.")
 	flag.Usage = usage
 	flag.Parse()
 }

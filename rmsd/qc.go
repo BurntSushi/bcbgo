@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 // #cgo CFLAGS: -O3 -ffast-math

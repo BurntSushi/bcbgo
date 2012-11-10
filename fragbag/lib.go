@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 	"github.com/BurntSushi/bcbgo/rmsd"
 )
 

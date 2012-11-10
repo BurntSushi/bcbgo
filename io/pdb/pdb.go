@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/matt"
+	"github.com/BurntSushi/bcbgo/apps/matt"
 )
 
 // AminoThreeToOne is a map from three letter amino acids to their

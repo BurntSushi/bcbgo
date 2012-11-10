@@ -10,7 +10,7 @@ import (
 	"runtime/pprof"
 
 	"github.com/BurntSushi/bcbgo/bowdb"
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 type results []result
@@ -94,12 +94,12 @@ func main() {
 	if flagInverted {
 		searcher, err = db.NewInvertedSearcher()
 		if err != nil {
-			errorf("Could not initialize inverted searcher: %s\n", err)
+			fatalf("Could not initialize inverted searcher: %s\n", err)
 		}
 	} else {
 		searcher, err = db.NewFullSearcher()
 		if err != nil {
-			errorf("Could not initialize full searcher: %s\n", err)
+			fatalf("Could not initialize full searcher: %s\n", err)
 		}
 	}
 

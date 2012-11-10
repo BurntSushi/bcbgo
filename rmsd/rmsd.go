@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 
 	matrix "github.com/skelterjohn/go.matrix"
 )

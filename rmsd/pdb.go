@@ -3,7 +3,7 @@ package rmsd
 import (
 	"fmt"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 // PDB is a convenience function for computing the RMSD between two sets of

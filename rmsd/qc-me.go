@@ -107,7 +107,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 type QcMemory struct {

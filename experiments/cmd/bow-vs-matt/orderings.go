@@ -5,10 +5,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/BurntSushi/bcbgo/apps/matt"
 	"github.com/BurntSushi/bcbgo/bowdb"
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/matt"
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 type comparison [2]ordering
@@ -54,10 +54,10 @@ func (c chain) String() string {
 	return fmt.Sprintf("%s\t%c\t%0.4f", c.idCode, c.ident, c.dist)
 }
 
-func getBowOrdering(
-	db *bowdb.DB, opts bowdb.SearchOptions, bow fragbag.BOW) (ordering, error) {
+func getBowOrdering(searcher bowdb.Searcher,
+	opts bowdb.SearchOptions, bow fragbag.BOW) (ordering, error) {
 
-	results, err := db.Search(opts, bow)
+	results, err := searcher.Search(opts, bow)
 	if err != nil {
 		return nil, err
 	}

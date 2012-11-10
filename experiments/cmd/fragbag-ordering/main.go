@@ -11,10 +11,6 @@ import (
 	"github.com/BurntSushi/bcbgo/bowdb"
 )
 
-var (
-	flagInverted = false
-)
-
 func main() {
 	if flag.NArg() < 1 {
 		usage()
@@ -22,13 +18,7 @@ func main() {
 	dbPath := flag.Arg(0)
 
 	// Open the BOW database.
-	var searchType int
-	if flagInverted {
-		searchType = bowdb.SearchInverted
-	} else {
-		searchType = bowdb.SearchFull
-	}
-	db, err := bowdb.Open(dbPath, searchType)
+	db, err := bowdb.Open(dbPath)
 	if err != nil {
 		fatalf("%s\n", err)
 	}
@@ -39,6 +29,11 @@ func main() {
 		fatalf("%s\n", err)
 	}
 
+	searcher, err := db.NewFullSearcher()
+	if err != nil {
+		fatalf("Could not initialize full searcher: %s\n", err)
+	}
+
 	// Set our search options.
 	bowOpts := bowdb.DefaultSearchOptions
 	bowOpts.Limit = len(entries)
@@ -46,7 +41,7 @@ func main() {
 	fmt.Println("QueryID\tQueryChain\tResultID\tResultChain" +
 		"\tEuclid\tCosine")
 	for _, entry := range entries {
-		results, err := db.Search(bowOpts, entry.BOW)
+		results, err := searcher.Search(bowOpts, entry.BOW)
 		if err != nil {
 			errorf("Could not get BOW ordering for %s (chain %c): %s\n",
 				entry.IdCode, entry.ChainIdent, err)
@@ -68,8 +63,6 @@ func main() {
 }
 
 func init() {
-	flag.BoolVar(&flagInverted, "inverted", flagInverted,
-		"When set, the search will use an inverted index.")
 	flag.Usage = usage
 	flag.Parse()
 }

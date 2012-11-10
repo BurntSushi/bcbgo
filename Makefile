@@ -1,7 +1,7 @@
 all: install gofmt data/fraglibs/centers400_11
 
 install:
-	go install -p 6 ./fragbag ./matt ./pdb ./rmsd
+	go install -p 6 ./apps/* ./bowdb ./fragbag ./io/* ./rmsd
 	go install -p 6 ./cmd/*
 
 gofmt:
@@ -29,6 +29,9 @@ loc:
 
 test:
 	go test ./rmsd
+
+build-exp:
+	go build ./experiments/cmd/*
 
 bench-rmsd:
 	go test ./rmsd -run 'nomatch' -bench '.*'

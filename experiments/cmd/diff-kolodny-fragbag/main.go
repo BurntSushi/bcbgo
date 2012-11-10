@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 var (
