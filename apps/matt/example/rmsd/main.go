@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/matt"
+	"github.com/BurntSushi/bcbgo/apps/matt"
 )
 
 func main() {
@@ -21,9 +21,16 @@ func main() {
 		{arg("sample1.pdb"), arg("sample2.pdb"), arg("sample3.pdb")},
 	}
 
+	// Set 'Verbose' to false to not output anything.
+	// (If there's an error, stderr will be logged to the error return.)
+	config := matt.DefaultConfig
+	config.Verbose = true
+
 	// Run all of the argument sets with Matt in parallel. The indices in
 	// both 'results' and 'errs' correspond to the indices in 'pdbArgs'.
-	results, errs := matt.DefaultConfig.RunAll(pdbArgs)
+	//
+	// RunAll blocks until *all* alignments are finished.
+	results, errs := config.RunAll(pdbArgs)
 
 	// Loop through each error. If the error is nil, then there is result.
 	// Otherwise, print the error.
@@ -40,13 +47,15 @@ func main() {
 }
 
 func arg(loc string) matt.PDBArg {
-	return matt.PDBArg{Location: fmt.Sprintf("../../../data/samples/%s", loc)}
+	return matt.PDBArg{
+		Path: fmt.Sprintf("../../../../data/samples/%s",loc),
+	}
 }
 
 func argsetString(argset []matt.PDBArg) string {
 	basenames := make([]string, len(argset))
 	for i, arg := range argset {
-		basenames[i] = path.Base(arg.Location)
+		basenames[i] = path.Base(arg.Path)
 	}
 	return fmt.Sprintf("(%s)", strings.Join(basenames, ", "))
 }

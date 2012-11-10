@@ -9,13 +9,17 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
+
+	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 // PDBArg corresponds to an argument to Matt. It can be just a file path
-// (represented by the "Location" field), or it can also contain a specific
+// (represented by the "Path" field), or it can also contain a specific
 // chain and a range of residues to align.
 type PDBArg struct {
-	Location string
+	// Path is the only required field.
+	Path string
 	IdCode   string
 	Chain    byte
 
@@ -24,6 +28,26 @@ type PDBArg struct {
 	// in addition to a chain. A violation of this invariant will cause 'Run'
 	// to panic.
 	ResidueStart, ResidueEnd int
+}
+
+// NewPDBArg creates a PDBArg value from a *pdb.Entry. It will fill in the
+// Path and IdCode fields. ResidueStart and ResidueEnd will be set to zero.
+func NewPDBArg(entry *pdb.Entry) PDBArg {
+	return PDBArg{
+		Path: entry.Path,
+		IdCode: entry.IdCode,
+	}
+}
+
+// NewChainArg creates a PDBArg value from a *pdb.Chain. It will fill in the
+// Path, IdCode and Chain fields. ResidueStart and ResidueEnd will be set
+// to zero.
+func NewChainArg(chain *pdb.Chain) PDBArg {
+	return PDBArg{
+		Path: chain.Entry.Path,
+		IdCode: chain.Entry.IdCode,
+		Chain: chain.Ident,
+	}
 }
 
 // DefaultConfig provides some sane defaults to run Matt with. For example:
@@ -83,68 +107,37 @@ type Config struct {
 //
 // GOMAXPROCS is the maximum number of CPUs that can be executing
 // simultaneously. As of July 10, 2012, this value is set by default to 1.
-func (conf Config) RunAll(argsets [][]PDBArg) ([]*Results, []error) {
-	type work struct {
-		argset []PDBArg
-		rchan  chan *Results
-		echan  chan error
-	}
-
+func (conf Config) RunAll(argsets [][]PDBArg) ([]Results, []error) {
 	// Force the OutputPrefix to be blank so that we use temp directories.
 	conf.OutputPrefix = ""
 
-	// The workers that will run matt.
-	worker := func(workChan chan work) {
-		for work := range workChan {
-			res, err := conf.Run(work.argset...)
-			res.CleanDir()
-			if err != nil {
-				work.echan <- err
-			} else {
-				work.rchan <- &res
-			}
-		}
-	}
-
 	// Start N workers, where N is the number of CPUs.
-	workChan := make(chan work, 100)
-	for i := 0; i < runtime.NumCPU(); i++ {
-		go worker(workChan)
-	}
-
-	resultChans := make([]chan *Results, len(argsets))
-	errorChans := make([]chan error, len(argsets))
-	results := make([]*Results, len(argsets))
+	jobs := make(chan int, 100)
+	results := make([]Results, len(argsets))
 	errors := make([]error, len(argsets))
-	done := make(chan struct{}, 0)
-	go func() {
-		for i := range argsets {
-			select {
-			case res := <-resultChans[i]:
-				results[i] = res
-				errors[i] = nil
-			case err := <-errorChans[i]:
-				results[i] = nil
-				errors[i] = err
+	wg := new(sync.WaitGroup)
+	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for job := range jobs {
+				res, err := conf.Run(argsets[job]...)
+				res.CleanDir()
+				if err != nil {
+					errors[job] = err
+				} else {
+					results[job] = res
+				}
 			}
-			close(resultChans[i])
-			close(errorChans[i])
-		}
-		done <- struct{}{}
-	}()
-
-	for i, argset := range argsets {
-		resultChans[i] = make(chan *Results, 1)
-		errorChans[i] = make(chan error, 1)
-		workChan <- work{
-			argset: argset,
-			rchan:  resultChans[i],
-			echan:  errorChans[i],
-		}
+		}()
 	}
+	for i := 0; i < len(argsets); i++ {
+		jobs <- i
+	}
+	close(jobs)
 
-	<-done
-	close(workChan)
+	wg.Wait()
 	return results, errors
 }
 
@@ -175,7 +168,7 @@ func (conf Config) Run(pargs ...PDBArg) (Results, error) {
 	// Now construct the input PDB args.
 	args := []string{"-o", prefix}
 	for _, parg := range pargs {
-		if len(parg.Location) == 0 {
+		if len(parg.Path) == 0 {
 			panic("A PDB argument must have a non-empty location.")
 		}
 		switch {
@@ -190,11 +183,11 @@ func (conf Config) Run(pargs ...PDBArg) (Results, error) {
 					"both must be set, and the Chain must be set.")
 			}
 			args = append(args, fmt.Sprintf("%s:%c(%d-%d)",
-				parg.Location, parg.Chain, parg.ResidueStart, parg.ResidueEnd))
+				parg.Path, parg.Chain, parg.ResidueStart, parg.ResidueEnd))
 		case parg.Chain != 0:
-			args = append(args, fmt.Sprintf("%s:%c", parg.Location, parg.Chain))
+			args = append(args, fmt.Sprintf("%s:%c", parg.Path, parg.Chain))
 		default:
-			args = append(args, parg.Location)
+			args = append(args, parg.Path)
 		}
 	}
 

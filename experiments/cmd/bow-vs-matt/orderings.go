@@ -106,11 +106,7 @@ func getMattOrdering(
 func createMattArgs(chains []*pdb.Chain) []matt.PDBArg {
 	args := make([]matt.PDBArg, len(chains))
 	for i, chain := range chains {
-		args[i] = matt.PDBArg{
-			Location: chain.Entry.Path,
-			IdCode:   chain.Entry.IdCode,
-			Chain:    chain.Ident,
-		}
+		args[i] = matt.NewChainArg(chain)
 	}
 	return args
 }
