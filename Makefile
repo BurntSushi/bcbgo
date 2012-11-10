@@ -50,9 +50,15 @@ exp-kolodny-vs-gallant: data/fraglibs/centers400_11
 		data/fraglibs/centers400_11.brk \
 		data/fraglibs/centers400_11
 
-exp-bow-vs-matt: data/fraglibs/centers400_11
+exp-bow-vs-matt-cath: data/fraglibs/centers400_11
 	sh experiments/bow-vs-matt/run.sh \
 		data/experiments/bow-vs-matt/pdbs \
 		data/fraglibs/centers400_11 \
 		data/experiments/bow-vs-matt/cath-bowdb
+
+exp-bow-vs-matt-za: data/fraglibs/centers400_11
+	sh experiments/bow-vs-matt/run.sh \
+		/media/Nightjar/pdb/za \
+		data/fraglibs/centers400_11 \
+		data/experiments/bow-vs-matt/za-bowdb
 

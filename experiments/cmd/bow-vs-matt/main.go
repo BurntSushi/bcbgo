@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
 	"text/tabwriter"
 
@@ -55,7 +56,7 @@ func main() {
 
 	searcher, err := db.NewFullSearcher()
 	if err != nil {
-		fatalf("Could not initialize full searcher: %s\n", searcher)
+		fatalf("Could not initialize full searcher: %s\n", err)
 	}
 
 	bowOpts := bowdb.DefaultSearchOptions
@@ -128,6 +129,8 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 func init() {
 	flag.Usage = usage
 	flag.Parse()
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func usage() {

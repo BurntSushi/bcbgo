@@ -96,7 +96,7 @@ func getMattOrdering(
 		ordered = append(ordered, chain{
 			idCode: target.IdCode,
 			ident:  target.Chain,
-			dist:   result.RMSD,
+			dist:   100 * (result.RMSD / float64(result.CoreLength)), // SAS
 		})
 	}
 	sort.Sort(ordered)
