@@ -19,9 +19,9 @@ import (
 // chain and a range of residues to align.
 type PDBArg struct {
 	// Path is the only required field.
-	Path string
-	IdCode   string
-	Chain    byte
+	Path   string
+	IdCode string
+	Chain  byte
 
 	// Matt allows one to specify a range of residues to be aligned.
 	// If one of ResidueStart or ResidueEnd is specified, BOTH must be specified
@@ -34,7 +34,7 @@ type PDBArg struct {
 // Path and IdCode fields. ResidueStart and ResidueEnd will be set to zero.
 func NewPDBArg(entry *pdb.Entry) PDBArg {
 	return PDBArg{
-		Path: entry.Path,
+		Path:   entry.Path,
 		IdCode: entry.IdCode,
 	}
 }
@@ -44,9 +44,9 @@ func NewPDBArg(entry *pdb.Entry) PDBArg {
 // to zero.
 func NewChainArg(chain *pdb.Chain) PDBArg {
 	return PDBArg{
-		Path: chain.Entry.Path,
+		Path:   chain.Entry.Path,
 		IdCode: chain.Entry.IdCode,
-		Chain: chain.Ident,
+		Chain:  chain.Ident,
 	}
 }
 
