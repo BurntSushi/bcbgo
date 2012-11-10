@@ -14,17 +14,17 @@ import (
 //
 // A brief, high-level overview:
 //
-// Build the 3xN matrices X and Y containing, for the sets x and y 
-// respectively, the coordinates for each of the N atoms after centering 
-// the atoms by subtracting the centroids. 
-//  
-// Compute the covariance matrix C=X(Y^T) 
-//  
-// Compute the SVD (Singular Value Decomposition) of C=VS(W^T) 
-//  
-// Compute d=sign(det(C)) 
-//  
-// Compute the optimal rotation U as U = W([1 0 0] [0 1 0] [0 0 d])(V^T) 
+// Build the 3xN matrices X and Y containing, for the sets x and y
+// respectively, the coordinates for each of the N atoms after centering
+// the atoms by subtracting the centroids.
+//
+// Compute the covariance matrix C=X(Y^T)
+//
+// Compute the SVD (Singular Value Decomposition) of C=VS(W^T)
+//
+// Compute d=sign(det(C))
+//
+// Compute the optimal rotation U as U = W([1 0 0] [0 1 0] [0 0 d])(V^T)
 //
 // (In the last step, we're using WT instead of W, since that's apparently
 // what Fragbag does, and we're looking to imitate them. At least, at first!)

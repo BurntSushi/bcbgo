@@ -139,7 +139,7 @@ func (lib *Library) Fragment(fragNum int) *LibFragment {
 		"'%s' fragment library.", fragNum, lib))
 }
 
-// BestFragment runs Kabsch using the provided PDB argument against all 
+// BestFragment runs Kabsch using the provided PDB argument against all
 // fragments in the library and returns the fragment number with the best RMSD.
 //
 // BestFragment panics if the length of atoms is not equivalent to the
@@ -258,7 +258,7 @@ func (lib *Library) rmsdWorkers(
 	return jobs, results
 }
 
-// String returns a string with the name of the library (base name of the 
+// String returns a string with the name of the library (base name of the
 // library directory), the number of fragments in the library and the size
 // of each fragment.
 func (lib *Library) String() string {

@@ -14,7 +14,7 @@ import (
 // library.
 type BOW struct {
 	// library corresponds to the fragment library used to compute this
-	// bag-of-words. All BOW operations are only defined when all operands 
+	// bag-of-words. All BOW operations are only defined when all operands
 	// belong to the same fragment library.
 	library *Library
 
@@ -34,6 +34,16 @@ func (lib *Library) NewBow() BOW {
 		bow.fragfreqs[i] = 0
 	}
 	return bow
+}
+
+// NewBowSlice creates a new BOW vector with the given slice.
+// It is an unchecked run time error to give a slice with length not
+// equal to the fragment size.
+func (lib *Library) NewBowSlice(freqs []int16) BOW {
+	return BOW{
+		library:   lib,
+		fragfreqs: freqs,
+	}
 }
 
 // NewBowMap returns a bag-of-words with the vector initialized to the map
@@ -128,6 +138,12 @@ func (lib *Library) NewBowPDBPar(entry *pdb.Entry) BOW {
 	return bow
 }
 
+// Set will set the frequency of the given fragment number to the count
+// specified. No bounds checking is performed at the library level.
+func (bow BOW) Set(fragNum int, cnt int16) {
+	bow.fragfreqs[fragNum] = cnt
+}
+
 // Increment will increment the frequency of the given fragment number by 1.
 // If a fragment of fragNum does not exist, Increment will panic.
 func (bow BOW) Increment(fragNum int) {
@@ -182,7 +198,8 @@ func (bow1 BOW) Add(bow2 BOW) BOW {
 func (bow1 BOW) Euclid(bow2 BOW) float64 {
 	f1, f2 := bow1.fragfreqs, bow2.fragfreqs
 	squareSum := float64(0)
-	for i := 0; i < bow1.library.Size(); i++ {
+	libsize := bow1.library.Size()
+	for i := 0; i < libsize; i++ {
 		squareSum += float64(int32(f2[i]-f1[i]) * int32(f2[i]-f1[i]))
 	}
 	return math.Sqrt(squareSum)
@@ -200,7 +217,8 @@ func (bow1 BOW) Cosine(bow2 BOW) float64 {
 // Dot returns the dot product of bow1 and bow2.
 func (bow1 BOW) Dot(bow2 BOW) float64 {
 	dot := float64(0)
-	for i := 0; i < bow1.library.Size(); i++ {
+	libsize := bow1.library.Size()
+	for i := 0; i < libsize; i++ {
 		dot += float64(int32(bow1.fragfreqs[i]) * int32(bow2.fragfreqs[i]))
 	}
 	return dot
@@ -209,7 +227,8 @@ func (bow1 BOW) Dot(bow2 BOW) float64 {
 // magnitude returns the vector length of the bow.
 func (bow BOW) Magnitude() float64 {
 	mag := float64(0)
-	for i := 0; i < bow.library.Size(); i++ {
+	libsize := bow.library.Size()
+	for i := 0; i < libsize; i++ {
 		mag += float64(int32(bow.fragfreqs[i]) * int32(bow.fragfreqs[i]))
 	}
 	return math.Sqrt(mag)

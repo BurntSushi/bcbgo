@@ -13,7 +13,7 @@ type searchInverted struct {
 	*DB
 }
 
-func newFullSearcher(db *DB) (searchFull, error) {
+func (db *DB) NewFullSearcher() (Searcher, error) {
 	items, err := db.files.read()
 	if err != nil {
 		return nil, err
@@ -21,45 +21,70 @@ func newFullSearcher(db *DB) (searchFull, error) {
 	return searchFull(items), nil
 }
 
-func (sf searchFull) search(
+func (sf searchFull) Search(
 	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
 
 	return search([]searchItem(sf), opts, bow), nil
 }
 
-func newInvertedSearcher(db *DB) (searchInverted, error) {
+func (db *DB) NewInvertedSearcher() (Searcher, error) {
 	// We don't do anything here because we don't know what bows we're
 	// searching for yet.
 	return searchInverted{db}, nil
 }
 
-func (si searchInverted) search(
+func (si searchInverted) Search(
 	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
 
-	set := make(map[string]bool, 100)
-	allItems := make([]searchItem, 0, 100)
+	set := make(map[sequenceId]bool, 100)
+	added := false
 	for i := 0; i < bow.Len(); i++ {
 		// Only include search items with a bow fragment in common.
 		if bow.Frequency(i) == 0 {
 			continue
 		}
 
-		items, err := si.DB.files.readInvertedSearchItem(i)
+		seqs, err := si.DB.files.getInvertedList(i)
 		if err != nil {
 			return SearchResults{}, err
 		}
+		if len(seqs) == 0 {
+			continue
+		}
 
-		// Make sure we don't search duplicate search items.
-		for _, item := range items {
-			key := fmt.Sprintf("%s%c", item.IdCode, item.ChainIdent)
-			if set[key] {
-				continue
+		// Do set intersection.
+		// I'm being stupid, I know it. Brain cramp.
+		if !added {
+			for _, seqId := range seqs {
+				set[seqId] = true
 			}
-			allItems = append(allItems, item)
-			set[key] = true
+		} else {
+			for k := range set {
+				set[k] = false
+			}
+			for _, seqId := range seqs {
+				if _, ok := set[seqId]; ok {
+					set[seqId] = true
+				}
+			}
+			for k := range set {
+				if !set[k] {
+					delete(set, k)
+				}
+			}
 		}
 	}
-	return search(allItems, opts, bow), nil
+
+	items := make([]searchItem, 0, len(set))
+	for seqId := range set {
+		item, err := si.DB.files.readIndexed(seqId)
+		if err != nil {
+			return SearchResults{}, err
+		}
+		items = append(items, item)
+	}
+	fmt.Printf("Searching %d items\n", len(items))
+	return search(items, opts, bow), nil
 }
 
 func search(items []searchItem,

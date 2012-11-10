@@ -25,12 +25,11 @@ type DB struct {
 	Library *fragbag.Library
 	Config
 
-	path     string
-	files    files
-	searcher searcher
+	path  string
+	files files
 }
 
-func Open(path string, searchType int) (db *DB, err error) {
+func Open(path string) (db *DB, err error) {
 	if _, err = os.Open(path); err != nil {
 		return nil, fmt.Errorf("Cannot open '%d' directory: %s", path, err)
 	}
@@ -51,21 +50,6 @@ func Open(path string, searchType int) (db *DB, err error) {
 	db.files, err = openFiles(db)
 	if err != nil {
 		return
-	}
-
-	switch searchType {
-	case SearchFull:
-		db.searcher, err = newFullSearcher(db)
-		if err != nil {
-			return
-		}
-	case SearchInverted:
-		db.searcher, err = newInvertedSearcher(db)
-		if err != nil {
-			return
-		}
-	default:
-		panic(fmt.Sprintf("Unrecognized search type: %d.", searchType))
 	}
 	return
 }
@@ -105,18 +89,6 @@ func Create(lib *fragbag.Library, path string) (db *DB, err error) {
 	return
 }
 
-func (db *DB) Search(
-	opts SearchOptions, bow fragbag.BOW) (SearchResults, error) {
-
-	return db.searcher.search(opts, bow)
-}
-
-func (db *DB) SearchPDB(
-	opts SearchOptions, entry *pdb.Entry) (SearchResults, error) {
-
-	return db.searcher.search(opts, db.Library.NewBowPDBPar(entry))
-}
-
 func (db *DB) Write(chain *pdb.Chain, bow fragbag.BOW) error {
 	return db.files.write(chain, bow)
 }
@@ -129,10 +101,9 @@ func (db *DB) WriteClose() (err error) {
 }
 
 type Entry struct {
-	IdCode         string
-	ChainIdent     byte
-	Classification string
-	BOW            fragbag.BOW
+	IdCode     string
+	ChainIdent byte
+	BOW        fragbag.BOW
 }
 
 func (db *DB) ReadAll() ([]Entry, error) {
@@ -144,10 +115,9 @@ func (db *DB) ReadAll() ([]Entry, error) {
 	entries := make([]Entry, len(searchItems))
 	for i, si := range searchItems {
 		entries[i] = Entry{
-			IdCode:         si.IdCode,
-			ChainIdent:     si.ChainIdent,
-			Classification: si.Classification,
-			BOW:            si.BOW,
+			IdCode:     si.IdCode,
+			ChainIdent: si.ChainIdent,
+			BOW:        si.BOW,
 		}
 	}
 	return entries, nil

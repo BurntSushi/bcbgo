@@ -38,16 +38,16 @@ func outputResults(results results) {
 		csvWriter.UseCRLF = false
 		csvWriter.Write([]string{
 			"query_pdb", "query_chain",
-			"hit_pdb", "hit_chain", "hit_class",
-			"hit_euclid",
+			"hit_pdb", "hit_chain",
+			"hit_cosine", "hit_euclid",
 		})
 		for _, query := range results {
 			for _, result := range query.results.Results {
 				csvWriter.Write([]string{
 					query.entry, fmt.Sprintf("%c", query.chain),
 					result.IdCode, fmt.Sprintf("%c", result.ChainIdent),
-					result.Classification,
-					fmt.Sprintf("%0.6f", result.Euclid),
+					fmt.Sprintf("%f", result.Cosine),
+					fmt.Sprintf("%f", result.Euclid),
 				})
 			}
 		}
@@ -57,8 +57,8 @@ func outputResults(results results) {
 			fmt.Printf("Search query: %s (chain: %c)\n",
 				query.entry, query.chain)
 			for _, result := range query.results.Results {
-				fmt.Printf("%s\t%c\t%s\t%0.4f\n",
-					result.IdCode, result.ChainIdent, result.Classification,
+				fmt.Printf("%s\t%c\t%0.4f\n",
+					result.IdCode, result.ChainIdent,
 					result.Cosine)
 			}
 			fmt.Printf("\n")
@@ -73,17 +73,6 @@ func main() {
 	dbPath := flag.Arg(0)
 	pdbFiles := flag.Args()[1:]
 
-	var searchType int
-	if flagInverted {
-		searchType = bowdb.SearchInverted
-	} else {
-		searchType = bowdb.SearchFull
-	}
-	db, err := bowdb.Open(dbPath, searchType)
-	if err != nil {
-		fatalf("%s\n", err)
-	}
-
 	if len(flagCpuProfile) > 0 {
 		f, err := os.Create(flagCpuProfile)
 		if err != nil {
@@ -93,8 +82,26 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
+	db, err := bowdb.Open(dbPath)
+	if err != nil {
+		fatalf("%s\n", err)
+	}
+
 	opts := bowdb.DefaultSearchOptions
 	opts.Limit = flagLimit
+
+	var searcher bowdb.Searcher
+	if flagInverted {
+		searcher, err = db.NewInvertedSearcher()
+		if err != nil {
+			errorf("Could not initialize inverted searcher: %s\n", err)
+		}
+	} else {
+		searcher, err = db.NewFullSearcher()
+		if err != nil {
+			errorf("Could not initialize full searcher: %s\n", err)
+		}
+	}
 
 	allResults := make(results, 0, 100)
 	for _, pdbFile := range pdbFiles {
@@ -110,7 +117,7 @@ func main() {
 			}
 
 			bow := db.Library.NewBowChain(chain)
-			results, err := db.Search(opts, bow)
+			results, err := searcher.Search(opts, bow)
 			if err != nil {
 				errorf("Could not get search results for PDB entry %s "+
 					"(chain %c): %s\n", entry.IdCode, chain.Ident, err)

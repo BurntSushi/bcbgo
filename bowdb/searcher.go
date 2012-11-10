@@ -16,8 +16,8 @@ const (
 	OrderDesc
 )
 
-type searcher interface {
-	search(opts SearchOptions, bow fragbag.BOW) (SearchResults, error)
+type Searcher interface {
+	Search(opts SearchOptions, bow fragbag.BOW) (SearchResults, error)
 }
 
 type SearchOptions struct {
@@ -121,9 +121,8 @@ func (srs SearchResults) Swap(i, j int) {
 }
 
 type PDBItem struct {
-	IdCode         string
-	ChainIdent     byte
-	Classification string
+	IdCode     string
+	ChainIdent byte
 }
 
 type SearchResult struct {
@@ -148,8 +147,8 @@ func (sr1 SearchResult) better(opts SearchOptions, sr2 SearchResult) bool {
 }
 
 func (sr SearchResult) String() string {
-	return fmt.Sprintf("%s\t%s\t%0.4f",
-		sr.IdCode, sr.Classification, sr.Euclid)
+	return fmt.Sprintf("%s\t%c\t%0.4f\t%0.4f",
+		sr.IdCode, sr.ChainIdent, sr.Cosine, sr.Euclid)
 }
 
 type searchItem struct {

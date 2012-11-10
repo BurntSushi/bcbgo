@@ -7,9 +7,9 @@ import (
 	"github.com/BurntSushi/bcbgo/pdb"
 )
 
-// #cgo CFLAGS: -O3 -ffast-math 
-// #include "bridge.h" 
-// #include "qcprot.h" 
+// #cgo CFLAGS: -O3 -ffast-math
+// #include "bridge.h"
+// #include "qcprot.h"
 import "C"
 
 func CQCRMSD(struct1, struct2 pdb.Atoms) float64 {

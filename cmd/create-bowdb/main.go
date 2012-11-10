@@ -29,7 +29,7 @@ func writer(db *bowdb.DB,
 	done := make(chan struct{}, 0)
 	go func() {
 		for result := range pool.results {
-			pchan <- progressJob{result.chain.Entry.IdCode, nil}
+			pchan <- progressJob{result.chain.Entry.Path, nil}
 			if err := db.Write(result.chain, result.bow); err != nil {
 				fatalf("%s\n", err)
 			}
@@ -40,8 +40,8 @@ func writer(db *bowdb.DB,
 }
 
 type progressJob struct {
-	pdbFile string
-	err     error
+	path string
+	err  error
 }
 
 func progress(total int) (chan progressJob, chan struct{}) {
@@ -51,14 +51,14 @@ func progress(total int) (chan progressJob, chan struct{}) {
 	done := make(chan struct{}, 0)
 	go func() {
 		for pjob := range pchan {
-			if _, ok := counted[pjob.pdbFile]; ok {
+			if _, ok := counted[pjob.path]; ok {
 				continue
 			}
 
-			counted[pjob.pdbFile] = struct{}{}
+			counted[pjob.path] = struct{}{}
 			if pjob.err != nil {
 				errorf("\rCould not parse PDB file '%s' because: %s\n",
-					pjob.pdbFile, pjob.err)
+					pjob.path, pjob.err)
 				errCnt++
 			} else {
 				successCnt++
@@ -135,6 +135,7 @@ func main() {
 		}
 		if !hasProteinChains {
 			progressChan <- progressJob{pdbFile, nil}
+			continue
 		}
 		pool.enqueue(entry)
 	}

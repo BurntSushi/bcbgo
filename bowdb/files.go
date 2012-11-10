@@ -3,16 +3,13 @@ package bowdb
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
-	"strconv"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/pdb"
 )
-
-const csvExtras = 3
 
 type files struct {
 	db *DB
@@ -27,7 +24,6 @@ type files struct {
 	bowIndexOffset int64
 	sequenceId     sequenceId
 	bufBow         *bytes.Buffer
-	csvBow         *csv.Writer
 }
 
 func openFiles(db *DB) (fs files, err error) {
@@ -52,11 +48,7 @@ func createFiles(db *DB) (fs files, err error) {
 	fs.bowIndexOffset = 0
 	fs.sequenceId = 0
 	fs.bufBow = new(bytes.Buffer)
-	fs.csvBow = csv.NewWriter(fs.bufBow)
 	fs.invIndex = newInvertedIndex(db.Library.Size())
-
-	fs.csvBow.Comma = ','
-	fs.csvBow.UseCRLF = false
 
 	if fs.bow, err = db.fileCreate(fileBow); err != nil {
 		return
@@ -70,7 +62,7 @@ func createFiles(db *DB) (fs files, err error) {
 	return
 }
 
-func (fs *files) readInvertedSearchItem(fragNum int) ([]searchItem, error) {
+func (fs *files) getInvertedList(fragNum int) ([]sequenceId, error) {
 	var err error
 
 	// Read in the inverted index if we haven't yet.
@@ -87,38 +79,7 @@ func (fs *files) readInvertedSearchItem(fragNum int) ([]searchItem, error) {
 			"is [0, %d).", fragNum, len(fs.invIndex))
 	}
 
-	// Each fragment corresponds to zero or more pdb chain entries in the
-	// BOW database. return them all.
-	items := make([]searchItem, len(fs.invIndex[fragNum]))
-	for i, seqId := range fs.invIndex[fragNum] {
-		if items[i], err = fs.readIndexed(seqId); err != nil {
-			return nil, err
-		}
-	}
-	return items, nil
-}
-
-func (fs *files) newSearchItem(record []string) (searchItem, error) {
-	bowMap := make(map[int]int16, fs.db.Library.Size())
-	for j := 0; j < fs.db.Library.Size(); j++ {
-		n64, err := strconv.ParseInt(record[j+csvExtras], 10, 16)
-		if err != nil {
-			return searchItem{},
-				fmt.Errorf("Could not parse '%d' as a 16-bit integer "+
-					"in file '%s' because: %s",
-					record[j+csvExtras], fileBow, err)
-		}
-		bowMap[j] = int16(n64)
-	}
-
-	return searchItem{
-		PDBItem{
-			IdCode:         record[0],
-			ChainIdent:     byte(record[1][0]),
-			Classification: record[2],
-		},
-		fs.db.Library.NewBowMap(bowMap),
-	}, nil
+	return fs.invIndex[fragNum], nil
 }
 
 func (fs *files) readIndexed(seqId sequenceId) (searchItem, error) {
@@ -145,17 +106,7 @@ func (fs *files) readIndexed(seqId sequenceId) (searchItem, error) {
 	}
 
 	// Now read the BOW entry.
-	csvReader := csv.NewReader(fs.bow)
-	csvReader.Comma = ','
-	csvReader.FieldsPerRecord = -1
-	csvReader.TrimLeadingSpace = true
-
-	record, err := csvReader.Read()
-	if err != nil {
-		return searchItem{}, err
-	}
-
-	si, err := fs.newSearchItem(record)
+	si, err := fs.readNextBOW()
 	if err != nil {
 		return searchItem{}, err
 	}
@@ -181,56 +132,129 @@ func (fs *files) getBowOffset(seqId sequenceId) (bowOff int64, err error) {
 }
 
 func (fs *files) read() ([]searchItem, error) {
-	if _, err := fs.bow.Seek(0, os.SEEK_SET); err != nil {
+	var item searchItem
+	var err error
+
+	if _, err = fs.bow.Seek(0, os.SEEK_SET); err != nil {
 		return nil, err
 	}
 
-	reader := csv.NewReader(fs.bow)
-	reader.Comma = ','
-	reader.FieldsPerRecord = -1
-	reader.TrimLeadingSpace = true
-	records, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	items := make([]searchItem, len(records))
-	for i, record := range records {
-		if items[i], err = fs.newSearchItem(record); err != nil {
+	items := make([]searchItem, 0, 1000)
+	for {
+		item, err = fs.readNextBOW()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
 			return nil, err
 		}
+		items = append(items, item)
 	}
 	return items, nil
 }
 
-func (fs *files) write(chain *pdb.Chain, bow fragbag.BOW) error {
-	endian := binary.BigEndian
-	record := make([]string, csvExtras+fs.db.Library.Size())
-	record[0] = fmt.Sprintf("%s", chain.Entry.IdCode)
-	record[1] = fmt.Sprintf("%c", chain.Ident)
-	record[2] = chain.Entry.Classification
-	for i := 0; i < fs.db.Library.Size(); i++ {
-		record[i+csvExtras] = fmt.Sprintf("%d", bow.Frequency(i))
+// readNextBOW reads the next entry from the bow file.
+// If you're using an index, it is appropriate to call Seek before calling
+// readNextBOW.
+func (fs *files) readNextBOW() (searchItem, error) {
+	// It would be much nicer to use the binary package here (like we do for
+	// reading), but we need to be as fast here as possible. (It looks like
+	// there is a fair bit of allocation going on in the binary package.)
+	libSize := fs.db.Library.Size()
+	freqs := make([]int16, libSize)
+	entryLenBs := make([]byte, 4)
+
+	// Find the number of bytes that we need to read.
+	if n, err := fs.bow.Read(entryLenBs); err != nil {
+		if err == io.EOF {
+			return searchItem{}, err
+		}
+		return searchItem{}, fmt.Errorf("Error reading entry length: %s", err)
+	} else if n != len(entryLenBs) {
+		return searchItem{},
+			fmt.Errorf("Expected entry length with length %d, but got %d",
+				len(entryLenBs), n)
+	}
+	entryLen := getUint32(entryLenBs)
+
+	// Read in the full entry.
+	entry := make([]byte, entryLen)
+	if n, err := fs.bow.Read(entry); err != nil {
+		return searchItem{},
+			fmt.Errorf("Error reading entry: %s", err)
+	} else if n != len(entry) {
+		return searchItem{},
+			fmt.Errorf("Expected entry with length %d, but got %d",
+				len(entry), n)
 	}
 
-	fs.bufBow.Reset()
-	if err := fs.csvBow.Write(record); err != nil {
-		return fmt.Errorf("Something bad has happened when trying to write "+
-			"to the database: %s.", err)
+	// Now gobble up a null terminated id code, a single byte chain identifier,
+	// and the BOW vector.
+	// Normally we'd use a buffer and the binary package, but we want to be
+	// fast.
+	idCode := string(entry[0 : len(entry)-(1+1+libSize*2)])
+	chainIdent := entry[len(idCode)+1] // account for null terminator
+	vector := entry[len(idCode)+1+1:]  // length = libSize * 2
+	for i := 0; i < libSize; i++ {
+		freqs[i] = getInt16(vector[i*2:])
 	}
+
+	return searchItem{
+		PDBItem{
+			IdCode:     idCode,
+			ChainIdent: chainIdent,
+		},
+		fs.db.Library.NewBowSlice(freqs),
+	}, nil
+}
+
+func (fs *files) write(chain *pdb.Chain, bow fragbag.BOW) error {
+	endian := binary.BigEndian
+	idCode := fmt.Sprintf("%s%c", chain.Entry.IdCode, 0)
+	libSize := fs.db.Library.Size()
+	buf := fs.bufBow
+
+	// Write the id code, chain identifier and BOW vector to a buffer.
+	fs.bufBow.Reset()
+	if _, err := buf.WriteString(idCode); err != nil {
+		return fmt.Errorf("Something bad has happened when trying to write "+
+			"id: %s.", err)
+	}
+	if err := binary.Write(buf, endian, chain.Ident); err != nil {
+		return fmt.Errorf("Something bad has happened when trying to write "+
+			"chain id: %s.", err)
+	}
+	for i := 0; i < libSize; i++ {
+		if err := binary.Write(buf, endian, bow.Frequency(i)); err != nil {
+			return fmt.Errorf("Something bad has happened when trying to "+
+				"write BOW: %s.", err)
+		}
+	}
+
+	// Write the number of bytes in this entry.
+	// (To make reading easier.)
+	entryLen := uint32(buf.Len())
+	if err := binary.Write(fs.bow, endian, entryLen); err != nil {
+		return fmt.Errorf("Something bad has happened when trying to write "+
+			"entry size to (file '%s'): %s.", fs.db.filePath(fileBow), err)
+	}
+
+	// Write the buffer to disk.
+	if _, err := fs.bow.Write(buf.Bytes()); err != nil {
+		return fmt.Errorf("Something bad has happened when trying to write "+
+			"to the database (file '%s'): %s.", fs.db.filePath(fileBow), err)
+	}
+
+	// Now update the index.
 	if err := binary.Write(fs.bowIndex, endian, fs.bowIndexOffset); err != nil {
 		return fmt.Errorf("Something bad has happened when trying to write "+
 			"to the database (file '%s'): %s.",
 			fs.db.filePath(fileBowIndex), err)
 	}
+	fs.bowIndexOffset += int64(entryLen) + 4 // to account for size
 
-	fs.csvBow.Flush()
-	fs.bowIndexOffset += int64(fs.bufBow.Len())
-	if _, err := fs.bow.Write(fs.bufBow.Bytes()); err != nil {
-		return fmt.Errorf("Something bad has happened when trying to write "+
-			"to the database (file '%s'): %s.", fs.db.filePath(fileBow), err)
-	}
-
+	// Add this to the index.
+	// (The index isn't written until the end.)
 	fs.invIndex.add(fs.sequenceId, bow)
 	fs.sequenceId++
 	return nil
@@ -263,4 +287,17 @@ func (fs files) readClose() (err error) {
 		return
 	}
 	return nil
+}
+
+// big endian
+func getUint32(b []byte) uint32 {
+	return uint32(b[0])<<24 |
+		uint32(b[1])<<16 |
+		uint32(b[2])<<8 |
+		uint32(b[3])
+}
+
+// big endian
+func getInt16(b []byte) int16 {
+	return int16(b[0])<<8 | int16(b[1])
 }

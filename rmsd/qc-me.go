@@ -16,13 +16,13 @@ package rmsd
 // We don't use either.
 
 /*******************************************************************************
- *  -/_|:|_|_\- 
+ *  -/_|:|_|_\-
  *
  *  File:      qcprot.c
  *  Version:   1.4
  *
- *  Function:  Rapid calculation of the least-squares rotation using a 
- *             quaternion-based characteristic polynomial and 
+ *  Function:  Rapid calculation of the least-squares rotation using a
+ *             quaternion-based characteristic polynomial and
  *             a cofactor matrix
  *
  *  Author(s): Douglas L. Theobald
@@ -34,7 +34,7 @@ package rmsd
  *             USA
  *
  *             dtheobald@brandeis.edu
- *             
+ *
  *             Pu Liu
  *             Johnson & Johnson Pharmaceutical Research and Development, L.L.C.
  *             665 Stockton Drive
@@ -42,7 +42,7 @@ package rmsd
  *             USA
  *
  *             pliu24@its.jnj.com
- * 
+ *
  *
  *    If you use this QCP rotation calculation method in a publication, please
  *    reference:
@@ -53,24 +53,24 @@ package rmsd
  *      Acta Crystallographica A 61(4):478-480.
  *
  *      Pu Liu, Dmitris K. Agrafiotis, and Douglas L. Theobald (2009)
- *      "Fast determination of the optimal rotational matrix for macromolecular 
+ *      "Fast determination of the optimal rotational matrix for macromolecular
  *      superpositions."
- *      in press, Journal of Computational Chemistry 
+ *      in press, Journal of Computational Chemistry
  *
  *
  *  Copyright (c) 2009-2012 Pu Liu and Douglas L. Theobald
  *  All rights reserved.
  *
- *  Redistribution and use in source and binary forms, with or without 
+ *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, 
+ *  * Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright notice, 
- *    this list of conditions and the following disclaimer in the documentation 
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *  * Neither the name of the <ORGANIZATION> nor the names of its contributors 
- *    may be used to endorse or promote products derived from this software 
+ *  * Neither the name of the <ORGANIZATION> nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -83,7 +83,7 @@ package rmsd
  *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *  Source:         started anew.
  *
@@ -97,10 +97,10 @@ package rmsd
  *    2011/02/21      Made CenterCoords use weights
  *    2011/05/02      Finally changed CenterCoords declaration in qcprot.h
  *                    Also changed some functions to static
- *    2011/07/08      put in fabs() to fix taking sqrt of small neg numbers, fp 
+ *    2011/07/08      put in fabs() to fix taking sqrt of small neg numbers, fp
  *                    error
  *    2012/07/26      minor changes to comments and main.c, more info (v.1.4)
- *  
+ *
  ******************************************************************************/
 
 import (

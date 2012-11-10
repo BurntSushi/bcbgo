@@ -54,12 +54,12 @@ func (lib *Library) NewBowPDBOldStyle(entry *pdb.Entry) BOW {
 // with the output of the old Fragbag program.
 
 // StringOldStyle returns a bag-of-words vector formatted as a string that
-// matches the old Fragbag program's output. 
+// matches the old Fragbag program's output.
 //
 // The format works by assigning the first 26 fragment numbers
 // the letters 'a' ... 'z', the next 26 fragment numbers the letters
 // 'A' ... 'Z', and any additional fragment numbers to 52, 53, 54, ..., etc.
-// Moreover, the numbers are delimited by a '#' character, while the letters 
+// Moreover, the numbers are delimited by a '#' character, while the letters
 // aren't delimited by anything.
 //
 // Here is a grammar describing the output:
@@ -115,7 +115,7 @@ func (bow BOW) StringOldStyle() string {
 // The format works by assinging the first 26 fragment numbers
 // the letters 'a' ... 'z', the next 26 fragment numbers the letters
 // 'A' ... 'Z', and any additional fragment numbers to 52, 53, 54, ..., etc.
-// Moreover, the numbers are delimited by a '#' character, while the letters 
+// Moreover, the numbers are delimited by a '#' character, while the letters
 // aren't delimited by anything.
 //
 // Please see the documentation for (BOW).StringOldStyle for a production rule.
@@ -135,8 +135,8 @@ func (lib *Library) NewOldStyleBow(oldschool string) (BOW, error) {
 	//	is empty.
 	//
 	//	If the character is a letter in {'A', ..., 'Z'}, then
-	//	assign it the corresponding fragment number (ASCII Number - 'A' + 26) 
-	//	and increment that frequency in our BOW. Also, make sure the number 
+	//	assign it the corresponding fragment number (ASCII Number - 'A' + 26)
+	//	and increment that frequency in our BOW. Also, make sure the number
 	//	buffer is empty.
 	//
 	// Each time a sub-string is processed, the contents of the buffer is
