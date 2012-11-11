@@ -83,7 +83,7 @@ for f in "$pdb_dir"/*.pdb "$pdb_dir"/*.ent "$pdb_dir"/*.ent.gz; do
     msg "Unknown PDB extension: $f"
     exit 1
   fi
-  pdb2fasta "$f" "$transient/$fas_name" 2>&1
+  pdb2fasta --seqres "$f" "$transient/$fas_name" 2>&1
 done
 
 msg "Building a multiple-sequence alignment for each sequence."
