@@ -1,0 +1,116 @@
+#!/bin/sh
+
+set -u
+set -e
+
+function msg {
+  echo -e $* >&2
+}
+
+function usage {
+  msg "Usage: `basename $0` [flags] new-db-name hhsuite-db pdb-dir"
+  msg
+  msg "--help"
+  msg "\tShow this help message."
+  msg "--cpu num-cpus"
+  msg "\tThe number of CPUs for HHsuite to use."
+  exit 1
+}
+
+num_cpus=`num-processors`
+force=0
+
+while true; do
+  case "$1" in
+    -cpu|--cpu)
+      num_cpus=$2
+      shift 2
+      ;;
+    -force|--force)
+      force=1
+      shift
+      ;;
+    -h|-help|--help)
+      usage
+      ;;
+    -*|--*)
+      msg "Invalid flag $1."
+      msg
+      usage
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [ $# != 3 ]; then
+  usage
+fi
+
+new_db_name="$1" # The new DB we're creating.
+hhsuite_db="$2"  # The DB we're using to generate MSAs.
+pdb_dir="$3"     # The directory containing the PDB files.
+transient="$pdb_dir/transient" # A temp dir to store fasta/a3m/hhm files.
+
+if [ -d "$transient" ]; then
+  if [ $force = 1 ]; then
+    rm -rf "$transient"
+  else
+    msg "The '$pdb_dir' directory contains transient files from the last "
+    msg "time an HHblits database was made."
+
+    msg "To continue, please remove '$transient' and try again."
+    exit 1
+  fi
+fi
+mkdir "$transient"
+
+msg "Generating a FASTA file for each PDB file..."
+for f in "$pdb_dir"/*.pdb "$pdb_dir"/*.ent "$pdb_dir"/*.ent.gz; do
+  if [ ! -f "$f" ]; then
+    continue
+  fi
+
+  fas_name=""
+  if [[ "$f" = *.pdb ]]; then
+    fas_name="${f%*.pdb}.fasta"
+  elif [[ "$f" = *.ent ]]; then
+    fas_name="${f%*.ent}.fasta"
+  elif [[ "$f" = *.ent.gz ]]; then
+    fas_name="${f%*.ent.gz}.fasta"
+  else
+    msg "Unknown PDB extension: $f"
+    exit 1
+  fi
+  pdb2fasta "$f" "$transient/$fas_name" 2>&1
+done
+
+msg "Building a multiple-sequence alignment for each sequence."
+msg "This may take a while. Go grab a drink."
+glob="$transient"/'*.fasta'
+multithread.pl \
+  "$glob" \
+  'hhblits -i $file -d '"$hhsuite_db"' -oa3m $name.a3m' \
+  --cpu $num_cpus 2>&1
+
+msg "Performing secondary structure annotation on each MSA."
+glob="$transient"/'*.a3m'
+multithread.pl \
+  "$glob" \
+  'addss.pl $file' \
+  --cpu $num_cpus 2>&1
+
+msg "Generating an HMM for each MSA."
+glob="$transient"/'*.a3m'
+multithread.pl \
+  "$glob" \
+  'hhmake -i $file -pcm 4 -pca 2.5 -pcb 0.5 -pcc 1.0 -gapb 1.0 -gapd 0.15 -gape 1.0 -gapf 0.6 -gapg 0.6 -gapi 0.6' \
+  --cpu $num_cpus 2>&1
+
+msg "Building the HHblits database."
+hhblitsdb.pl \
+  -o "$new_db_name" \
+  -ia3m "$transient" \
+  -ihhm "$transient" \
+  -cpu $num_cpus
