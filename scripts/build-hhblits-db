@@ -71,13 +71,14 @@ for f in "$pdb_dir"/*.pdb "$pdb_dir"/*.ent "$pdb_dir"/*.ent.gz; do
     continue
   fi
 
+  basef=$(basename "$f")
   fas_name=""
   if [[ "$f" = *.pdb ]]; then
-    fas_name="${f%*.pdb}.fasta"
+    fas_name="${basef%*.pdb}.fasta"
   elif [[ "$f" = *.ent ]]; then
-    fas_name="${f%*.ent}.fasta"
+    fas_name="${basef%*.ent}.fasta"
   elif [[ "$f" = *.ent.gz ]]; then
-    fas_name="${f%*.ent.gz}.fasta"
+    fas_name="${basef%*.ent.gz}.fasta"
   else
     msg "Unknown PDB extension: $f"
     exit 1
