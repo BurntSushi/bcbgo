@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -u
 set -e
 
 function msg {
