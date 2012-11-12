@@ -10,6 +10,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/io/fasta"
 	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/BurntSushi/bcbgo/seq"
 )
 
 var (
@@ -38,24 +39,24 @@ func main() {
 		}
 	}
 
-	fasEntries := make([]fasta.Entry, 0, 5)
+	fasEntries := make([]seq.Sequence, 0, 5)
 	if !flagSeparateChains {
-		var fasEntry fasta.Entry
+		var fasEntry seq.Sequence
 		if len(pdbEntry.Chains) == 1 {
-			fasEntry.Header = chainHeader(pdbEntry.OneChain())
+			fasEntry.Name = chainHeader(pdbEntry.OneChain())
 		} else {
-			fasEntry.Header = fmt.Sprintf("%s", pdbEntry.IdCode)
+			fasEntry.Name = fmt.Sprintf("%s", pdbEntry.IdCode)
 		}
 
-		seq := make([]byte, 0, 100)
+		seq := make([]seq.Residue, 0, 100)
 		for _, chain := range pdbEntry.Chains {
 			if isChainUsable(chain) {
 				seq = append(seq, getChainSequence(chain)...)
 			}
 		}
-		fasEntry.Sequence = seq
+		fasEntry.Residues = seq
 
-		if len(fasEntry.Sequence) == 0 {
+		if len(fasEntry.Residues) == 0 {
 			fatalf("Could not find any amino acids.")
 		}
 		fasEntries = append(fasEntries, fasEntry)
@@ -65,9 +66,9 @@ func main() {
 				continue
 			}
 
-			fasEntry := fasta.Entry{
-				Header:   chainHeader(chain),
-				Sequence: getChainSequence(chain),
+			fasEntry := seq.Sequence{
+				Name:   chainHeader(chain),
+				Residues: getChainSequence(chain),
 			}
 			fasEntries = append(fasEntries, fasEntry)
 		}
@@ -85,7 +86,7 @@ func chainHeader(chain *pdb.Chain) string {
 	return fmt.Sprintf("%s%c", strings.ToLower(chain.Entry.IdCode), chain.Ident)
 }
 
-func getChainSequence(chain *pdb.Chain) []byte {
+func getChainSequence(chain *pdb.Chain) []seq.Residue {
 	if flagSeqRes {
 		return chain.Sequence
 	}
