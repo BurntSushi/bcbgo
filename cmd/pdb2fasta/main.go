@@ -67,7 +67,7 @@ func main() {
 			}
 
 			fasEntry := seq.Sequence{
-				Name:   chainHeader(chain),
+				Name:     chainHeader(chain),
 				Residues: getChainSequence(chain),
 			}
 			fasEntries = append(fasEntries, fasEntry)
