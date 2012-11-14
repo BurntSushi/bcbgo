@@ -29,6 +29,11 @@ func (s Sequence) Len() int {
 	return len(s.Residues)
 }
 
+// IsNull returns true if the name has zero length and the residues are nil.
+func (s Sequence) IsNull() bool {
+	return len(s.Name) == 0 && s.Residues == nil
+}
+
 // HMMState returns the HMMState of a particular residue in a sequence.
 // Residues in [A-Z] are match states. Residues matching '-' are deletion
 // states. Residues equal to '.' or in [a-z] are insertion states.

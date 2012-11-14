@@ -103,6 +103,19 @@ func (m *MSA) Add(adds Sequence) {
 	m.Entries = append(m.Entries, s)
 }
 
+func addInsert(rs *[]Residue, col int) {
+	*rs = append((*rs)[:col], append([]Residue{'.'}, (*rs)[col:]...)...)
+}
+
+func (m MSA) columnHasInsertion(col int) bool {
+	for _, s := range m.Entries {
+		if s.Residues[col].HMMState() == Insertion {
+			return true
+		}
+	}
+	return false
+}
+
 // Get gets a copy of the sequence at the provided row in the MSA.
 // The sequence is in the default format of the MSA representation. Currently,
 // this is A2M. ('-' for deletes, '.' and a-z for inserts, and A-Z for matches.)
@@ -153,17 +166,4 @@ func (m MSA) String() string {
 		entries[i] = fmt.Sprintf(">%s\n%s", s.Name, s.Residues)
 	}
 	return strings.Join(entries, "\n")
-}
-
-func addInsert(rs *[]Residue, col int) {
-	*rs = append((*rs)[:col], append([]Residue{'.'}, (*rs)[col:]...)...)
-}
-
-func (m MSA) columnHasInsertion(col int) bool {
-	for _, s := range m.Entries {
-		if s.Residues[col].HMMState() == Insertion {
-			return true
-		}
-	}
-	return false
 }
