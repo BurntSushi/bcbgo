@@ -25,10 +25,6 @@ type HMM struct {
 	// Indices in this slice correspond to indices in match/insertion emissions.
 	Alphabet []Residue
 
-	// alphaIndices is the reverse of Alphabet. It lets us access emissions
-	// for a given residue in constant time. Classic time/space trade off.
-	alphaIndices map[Residue]int
-
 	// NULL model. (Amino acid background frequencies.)
 	// HMMER hmm files don't have this, but HHsuite hhm files do.
 	// In the case of HHsuite, the NULL model is used for insertion emissions
@@ -46,10 +42,22 @@ type HMMNode struct {
 }
 
 // EProbs represents emission probabilities, as log-odds scores.
-type EProbs []Prob
+type EProbs map[Residue]Prob
 
-func (ep EProbs) EmitProb(hmm *HMM, r Residue) Prob {
-	return ep[hmm.alphaIndices[r]]
+// NewEProbs creates a new EProbs map from the given alphabet. Keys of the map
+// are residues defined in the alphabet, and values are defaulted to the
+// minimum probability.
+func NewEProbs(alphabet []Residue) EProbs {
+	ep := make(EProbs, len(alphabet))
+	for _, residue := range alphabet {
+		ep[residue] = MinProb
+	}
+	return ep
+}
+
+// Returns the emission probability for a particular residue.
+func (ep EProbs) EmitProb(r Residue) Prob {
+	return ep[r]
 }
 
 // TProbs represents transition probabilities, as log-odds scores.
@@ -63,11 +71,17 @@ type Prob float64
 
 var invalidProb = Prob(math.NaN())
 
-var minProb = Prob(math.MaxFloat64) // max in log space is minimum probability
+// The value representing a minimum emission/transition probability.
+// Remember, max in log space is minimum probability.
+var MinProb = Prob(math.MaxFloat64)
 
+// NewProb creates a new probability value from a string (usually read from
+// an hmm or hhm file). If the string is equivalent to the special value "*",
+// then the probability returned is guaranteed to be minimal. Otherwise, the
+// string is parsed as a float, and an error returned if parsing fails.
 func NewProb(fstr string) (Prob, error) {
 	if fstr == "*" {
-		return minProb, nil
+		return MinProb, nil
 	}
 
 	f, err := strconv.ParseFloat(fstr, 64)
@@ -79,27 +93,17 @@ func NewProb(fstr string) (Prob, error) {
 	return Prob(f), nil
 }
 
-func (p Prob) IsValid() bool {
-	return p != invalidProb
-}
-
+// IsMin returns true if the probability is minimal.
 func (p Prob) IsMin() bool {
-	return p == minProb
+	return p == MinProb
 }
 
+// NewHMM creates a new HMM from a list of nodes, an ordered alphabet and a
+// set of null probabilities (which may be nil).
 func NewHMM(nodes []HMMNode, alphabet []Residue, null EProbs) *HMM {
-	hmm := &HMM{
-		Nodes:        nodes,
-		Alphabet:     alphabet,
-		alphaIndices: make(map[Residue]int, len(alphabet)),
-		Null:         null,
+	return &HMM{
+		Nodes:    nodes,
+		Alphabet: alphabet,
+		Null:     null,
 	}
-	for index, residue := range alphabet {
-		hmm.alphaIndices[residue] = index
-	}
-	return hmm
-}
-
-func IsMaxFloat64(f float64) bool {
-	return f == math.MaxFloat64
 }
