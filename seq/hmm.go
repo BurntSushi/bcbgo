@@ -34,10 +34,11 @@ type HMM struct {
 
 type HMMNode struct {
 	HMM                 *HMM
+	Residue             Residue
 	NodeNum             int
-	Transitions         TProbs
 	InsEmit             EProbs
 	MatEmit             EProbs
+	Transitions         TProbs
 	NeffM, NeffI, NeffD Prob
 }
 
