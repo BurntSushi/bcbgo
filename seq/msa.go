@@ -23,6 +23,23 @@ func (m MSA) Len() int {
 	return m.length
 }
 
+// Slice returns a slice of the given MSA by slicing each sequence in the MSA.
+// Slicing an empty MSA will panic.
+func (m MSA) Slice(start, end int) MSA {
+	if len(m.Entries) == 0 {
+		panic("Cannot slice an empty MSA.")
+	}
+
+	entries := make([]Sequence, len(m.Entries))
+	for i, entry := range m.Entries {
+		entries[i] = entry.Slice(start, end)
+	}
+	return MSA{
+		Entries: entries,
+		length:  end - start,
+	}
+}
+
 // AddSlice calls "Add" for each sequence in the slice.
 func (m *MSA) AddSlice(seqs []Sequence) {
 	for _, s := range seqs {

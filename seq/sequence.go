@@ -24,6 +24,18 @@ func (s Sequence) Copy() Sequence {
 	}
 }
 
+// Slice returns a slice of the sequence. The name stays the same, and the
+// sequence of residues corresponds to a Go slice of the original.
+// (This does not copy data, so that if the original or sliced sequence is
+// changed, the other one will too. Use Sequence.Copy first if you need copy
+// semantics.)
+func (s Sequence) Slice(start, end int) Sequence {
+	return Sequence{
+		Name:     s.Name,
+		Residues: s.Residues[start:end],
+	}
+}
+
 // Len returns the number of residues in the sequence.
 func (s Sequence) Len() int {
 	return len(s.Residues)

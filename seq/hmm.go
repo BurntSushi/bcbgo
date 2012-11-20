@@ -108,3 +108,27 @@ func NewHMM(nodes []HMMNode, alphabet []Residue, null EProbs) *HMM {
 		Null:     null,
 	}
 }
+
+// Slice returns a slice of the HMM given. A slice of an HMM returns only the
+// HMM nodes (i.e., columns or match/delete states) in the region specified
+// by the slice. Also, the transition probabilities of the last state are
+// specially set: M->M = 0, M->I = *, M->D = *, I->M = 0, I->I = *, D->M = 0,
+// and D->D = *.
+// No other modifications are made.
+func (hmm *HMM) Slice(start, end int) *HMM {
+	nodes := hmm.Nodes[start:end]
+	last := len(nodes) - 1
+	nodes[last].Transitions.MM = 0
+	nodes[last].Transitions.MI = MinProb
+	nodes[last].Transitions.MD = MinProb
+	nodes[last].Transitions.IM = 0
+	nodes[last].Transitions.II = MinProb
+	nodes[last].Transitions.DM = 0
+	nodes[last].Transitions.DD = MinProb
+
+	return &HMM{
+		Nodes:    nodes,
+		Alphabet: hmm.Alphabet,
+		Null:     hmm.Null,
+	}
+}
