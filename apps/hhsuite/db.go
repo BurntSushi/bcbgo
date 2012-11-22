@@ -23,10 +23,16 @@ var DatabasePath = path.Join(os.Getenv("HHLIB"), "data")
 // database. Therefore, it cannot work with hhblits (an error will be thrown
 // if you try). Otherwise, the database is assumed to be an hhsuite database
 // that can be used with hhblits OR hhsearch.
+//
+// Finally, if the database is an absolute path (i.e., starts with '/'), then
+// the database name will be used unaltered.
 type Database string
 
 // Resolve will expand a Database value to its full path using DatabasePath.
 func (db Database) Resolve() string {
+	if path.IsAbs(string(db)) {
+		return string(db)
+	}
 	return path.Join(DatabasePath, string(db))
 }
 
