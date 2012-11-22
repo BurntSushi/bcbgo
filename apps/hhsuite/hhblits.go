@@ -1,6 +1,7 @@
 package hhsuite
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -40,14 +41,14 @@ func (conf HHBlitsConfig) Run(db Database, query string) (*hhr.HHR, error) {
 		"-cpu", fmt.Sprintf("%d", conf.CPUs),
 		"-i", query,
 		"-d", db.Resolve(),
-		"-n", conf.Iterations,
+		"-n", fmt.Sprintf("%d", conf.Iterations),
 		"-mact", fmt.Sprintf("%f", conf.MAct),
 		"-o", hhrFile.Name(),
 	}
 	if len(conf.OutA3M) > 0 {
 		args = append(args, []string{"-oa3m", conf.OutA3M}...)
 	}
-	err = cmd.New(conf.Path, args...).Run()
+	err = cmd.New(conf.Exec, args...).Run()
 	if err != nil {
 		return nil, err
 	}
