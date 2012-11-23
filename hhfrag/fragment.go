@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
+	"github.com/BurntSushi/bcbgo/io/fasta"
 	"github.com/BurntSushi/bcbgo/io/hhm"
 	"github.com/BurntSushi/bcbgo/io/hhr"
 	"github.com/BurntSushi/bcbgo/io/pdb"
@@ -30,8 +31,8 @@ func (db PDBDatabase) PDB() string {
 // An HHfrag FragmentMap maps each N-window (with starting positions separated
 // by K-residues) of a query sequence to a set of HMM/PDB fragments.
 type FragmentMap struct {
-	WindowSizeMin   int
-	WindowSizeMax   int
+	WindowMin       int
+	WindowMax       int
 	WindowIncrement int
 	Map             map[int]Fragments
 	Blits           bool
@@ -39,8 +40,8 @@ type FragmentMap struct {
 
 func NewFragmentMap(blits bool, increment, min, max int) FragmentMap {
 	return FragmentMap{
-		WindowSizeMin:   min,
-		WindowSizeMax:   max,
+		WindowMin:       min,
+		WindowMax:       max,
 		WindowIncrement: increment,
 		Map:             make(map[int]Fragments, 50),
 		Blits:           blits,
@@ -50,10 +51,49 @@ func NewFragmentMap(blits bool, increment, min, max int) FragmentMap {
 func (m FragmentMap) Fill(
 	pdbDb PDBDatabase, seqDb hhsuite.Database, query string) error {
 
+	fquery, err := os.Open(query)
+	if err != nil {
+		return err
+	}
+
+	seqs, err := fasta.NewReader(fquery).ReadAll()
+	if err != nil {
+		return err
+	} else if len(seqs) == 0 {
+		return fmt.Errorf("No sequences found in '%s'.", query)
+	} else if len(seqs) > 1 {
+		return fmt.Errorf("%d sequences found in '%s'. Expected only 1.",
+			len(seqs), query)
+	}
+	qseq := seqs[0]
+
+	queryHHM, err := hhsuite.BuildHHM(
+		hhsuite.HHBlitsDefault, hhsuite.HHMakePseudo, seqDb, query)
+
+	for i := 0; i <= qseq.Len()-m.WindowMin; i += 3 {
+		var best Fragments
+		for j := m.WindowMin; j < m.WindowMax && (i+j) <= qseq.Len(); j++ {
+			part := queryHHM.Slice(i, i+j)
+			frags, err := FindFragments(pdbDb, part, qseq, m.Blits)
+			if err != nil {
+				return err
+			}
+
+			if best == nil || frags.better(best) {
+				best = frags
+			}
+		}
+		m.Map[i] = best
+	}
 	return nil
 }
 
 type Fragments []Fragment
+
+// better returns true if f1 is 'better' than f2. Otherwise false.
+func (f1 Fragments) better(f2 Fragments) bool {
+	return len(f1) > len(f2)
+}
 
 func FindFragments(pdbDb PDBDatabase,
 	part *hhm.HHM, qs seq.Sequence, blits bool) (Fragments, error) {
@@ -101,6 +141,15 @@ type Fragment struct {
 	CaAtoms  pdb.Atoms
 }
 
+// IsCorrupt returns true when a particular fragment could not be paired
+// with alpha-carbon positions for every residue in the template strand.
+// (This problem stems from the fact that we use SEQRES records for sequence
+// information, but not all residues in SEQRES have alpha-carbon ATOM records
+// associated with them.)
+func (frag Fragment) IsCorrupt() bool {
+	return frag.CaAtoms == nil
+}
+
 // NewFragment constructs a new fragment from a full query sequence and the
 // hit from the HHR file.
 //
@@ -114,7 +163,8 @@ func NewFragment(
 	pdbDb PDBDatabase, qs seq.Sequence, hit hhr.Hit) (Fragment, error) {
 
 	pdbName := getTemplatePdbName(hit.Name)
-	pdbEntry, err := pdb.New(path.Join(pdbDb.PDB(), pdbName))
+	pdbEntry, err := pdb.New(path.Join(
+		pdbDb.PDB(), fmt.Sprintf("%s.pdb", pdbName)))
 	if err != nil {
 		return Fragment{}, err
 	}
@@ -130,29 +180,44 @@ func NewFragment(
 	// We copy here to avoid pinning pdb.Entry objects.
 	copy(tseq.Residues, chain.Sequence[ts-1:te])
 
-	// Things get tricky here. The alpha-carbon ATOM records don't necessarily
-	// correspond to SEQRES residues. So we need to use the AtomResidueStart
-	// and AtomResidueEnd to make sure we're looking at the right Ca atoms.
-	if ts < chain.AtomResidueStart || te > chain.AtomResidueEnd {
-		return Fragment{},
-			fmt.Errorf("The template sequence (%d, %d) is not in the ATOM "+
-				"residue range (%d, %d)",
-				ts, te, chain.AtomResidueStart, chain.AtomResidueEnd)
-	}
-	atoms := make(pdb.Atoms, te-ts+1)
-
-	// One again, we copy to avoid pinning memory.
-	as, ae := ts-chain.AtomResidueStart, te-chain.AtomResidueStart+1
-	copy(atoms, chain.CaAtoms[as:ae])
-
-	return Fragment{
+	frag := Fragment{
 		Query:    qs.Slice(hit.QueryStart-1, hit.QueryEnd),
 		Template: tseq,
 		Hit:      hit,
-		CaAtoms:  atoms,
-	}, nil
+		CaAtoms:  nil,
+	}
+
+	// Things get tricky here. The alpha-carbon ATOM records don't necessarily
+	// correspond to SEQRES residues. So we need to use the AtomResidueStart
+	// and AtomResidueEnd to make sure we're looking at the right Ca atoms.
+	// Note that we might still want to look at this hit, so we simply set
+	// the CaAtoms field to nil, which gives it a "corrupt" label.
+	if ts < chain.AtomResidueStart || te > chain.AtomResidueEnd {
+		return frag, nil
+	}
+
+	// One again, we copy to avoid pinning memory.
+	frag.CaAtoms = make(pdb.Atoms, te-ts+1)
+	as, ae := ts-chain.AtomResidueStart, te-chain.AtomResidueStart+1
+	copy(frag.CaAtoms, chain.CaAtoms[as:ae])
+
+	return frag, nil
 }
 
 func getTemplatePdbName(hitName string) string {
 	return strings.SplitN(strings.TrimSpace(hitName), " ", 2)[0]
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

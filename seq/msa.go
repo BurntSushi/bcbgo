@@ -25,9 +25,35 @@ func (m MSA) Len() int {
 
 // Slice returns a slice of the given MSA by slicing each sequence in the MSA.
 // Slicing an empty MSA will panic.
+//
+// Note that slicing works in terms of *match states* of the first sequence
+// in the MSA.
 func (m MSA) Slice(start, end int) MSA {
 	if len(m.Entries) == 0 {
 		panic("Cannot slice an empty MSA.")
+	}
+
+	// We need to find the real start and end based on match states
+	// in the first sequence.
+	// Remember, entries are stored in A2M format.
+	colStart, colEnd := 0, -1
+	for i, residue := range m.Entries[0].Residues {
+		if colStart == start {
+			start = i
+			break
+		}
+		if residue.HMMState() != Insertion {
+			colStart += 1
+		}
+	}
+	for i, residue := range m.Entries[0].Residues {
+		if residue.HMMState() != Insertion {
+			colEnd += 1
+		}
+		if colEnd == end {
+			end = i
+			break
+		}
 	}
 
 	entries := make([]Sequence, len(m.Entries))

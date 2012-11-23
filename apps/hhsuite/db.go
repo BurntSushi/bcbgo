@@ -1,6 +1,7 @@
 package hhsuite
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -34,6 +35,20 @@ func (db Database) Resolve() string {
 		return string(db)
 	}
 	return path.Join(DatabasePath, string(db))
+}
+
+// ResolveHHSearch will exapnd a Database value to its full path using
+// DatabasePath, but specially for HHsearch databases.
+// Namely, if it's old style, then no modification is made after normal
+// resolving.
+// If it's new style, though, then "_hhm_db" is appended to the end of the
+// resolved name.
+func (db Database) ResolveHHSearch() string {
+	resolved := db.Resolve()
+	if db.isOldStyle() {
+		return resolved
+	}
+	return fmt.Sprintf("%s_hhm_db", resolved)
 }
 
 // isOldStyle returns whether this is a database from before hhsuite 2.0.
