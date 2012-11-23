@@ -1,7 +1,7 @@
 all: install gofmt data/fraglibs/centers400_11
 
 install:
-	go install -p 6 ./apps/* ./bowdb ./fragbag ./io/* ./rmsd
+	go install -p 6 ./apps/* ./bowdb ./fragbag ./hhfrag ./io/* ./rmsd
 	go install -p 6 ./cmd/*
 
 gofmt:
