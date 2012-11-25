@@ -116,7 +116,8 @@ func NewHMM(nodes []HMMNode, alphabet []Residue, null EProbs) *HMM {
 // and D->D = *.
 // No other modifications are made.
 func (hmm *HMM) Slice(start, end int) *HMM {
-	nodes := hmm.Nodes[start:end]
+	nodes := make([]HMMNode, end-start)
+	copy(nodes, hmm.Nodes[start:end])
 	last := len(nodes) - 1
 	nodes[last].Transitions.MM = 0
 	nodes[last].Transitions.MI = MinProb

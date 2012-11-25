@@ -2,13 +2,14 @@ package hhfrag
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
-	"github.com/BurntSushi/bcbgo/io/fasta"
 	"github.com/BurntSushi/bcbgo/io/hhm"
 	"github.com/BurntSushi/bcbgo/io/hhr"
 	"github.com/BurntSushi/bcbgo/io/pdb"
@@ -28,84 +29,46 @@ func (db PDBDatabase) PDB() string {
 	return path.Join(resolved, "pdb")
 }
 
-// An HHfrag FragmentMap maps each N-window (with starting positions separated
-// by K-residues) of a query sequence to a set of HMM/PDB fragments.
-type FragmentMap struct {
-	WindowMin       int
-	WindowMax       int
-	WindowIncrement int
-	Map             map[int]Fragments
-	Blits           bool
+type Fragments struct {
+	Frags      []Fragment
+	Start, End int
 }
-
-func NewFragmentMap(blits bool, increment, min, max int) FragmentMap {
-	return FragmentMap{
-		WindowMin:       min,
-		WindowMax:       max,
-		WindowIncrement: increment,
-		Map:             make(map[int]Fragments, 50),
-		Blits:           blits,
-	}
-}
-
-func (m FragmentMap) Fill(
-	pdbDb PDBDatabase, seqDb hhsuite.Database, query string) error {
-
-	fquery, err := os.Open(query)
-	if err != nil {
-		return err
-	}
-
-	seqs, err := fasta.NewReader(fquery).ReadAll()
-	if err != nil {
-		return err
-	} else if len(seqs) == 0 {
-		return fmt.Errorf("No sequences found in '%s'.", query)
-	} else if len(seqs) > 1 {
-		return fmt.Errorf("%d sequences found in '%s'. Expected only 1.",
-			len(seqs), query)
-	}
-	qseq := seqs[0]
-
-	queryHHM, err := hhsuite.BuildHHM(
-		hhsuite.HHBlitsDefault, hhsuite.HHMakePseudo, seqDb, query)
-
-	for i := 0; i <= qseq.Len()-m.WindowMin; i += 3 {
-		var best Fragments
-		for j := m.WindowMin; j < m.WindowMax && (i+j) <= qseq.Len(); j++ {
-			part := queryHHM.Slice(i, i+j)
-			frags, err := FindFragments(pdbDb, part, qseq, m.Blits)
-			if err != nil {
-				return err
-			}
-
-			if best == nil || frags.better(best) {
-				best = frags
-			}
-		}
-		m.Map[i] = best
-	}
-	return nil
-}
-
-type Fragments []Fragment
 
 // better returns true if f1 is 'better' than f2. Otherwise false.
 func (f1 Fragments) better(f2 Fragments) bool {
-	return len(f1) > len(f2)
+	return len(f1.Frags) >= len(f2.Frags)
 }
 
-func FindFragments(pdbDb PDBDatabase,
-	part *hhm.HHM, qs seq.Sequence, blits bool) (Fragments, error) {
+func (frags Fragments) Write(w io.Writer) {
+	tabw := tabwriter.NewWriter(w, 0, 4, 4, ' ', 0)
+	fmt.Fprintln(tabw, "Hit\tQuery\tTemplate\tProb\tCorrupt")
+	for _, frag := range frags.Frags {
+		var corruptStr string
+		if frag.IsCorrupt() {
+			corruptStr = "\tcorrupt"
+		}
+		fmt.Fprintf(tabw, "%s\t(%d-%d)\t(%d-%d)\t%f%s\n",
+			frag.Template.Name,
+			frag.Hit.QueryStart, frag.Hit.QueryEnd,
+			frag.Hit.TemplateStart, frag.Hit.TemplateEnd,
+			frag.Hit.Prob,
+			corruptStr)
+	}
+	tabw.Flush()
+}
 
-	hhmFile, err := ioutil.TempFile("", "bcbgo-hhfrag-hhm")
+func FindFragments(pdbDb PDBDatabase, blits bool,
+	queryHHM *hhm.HHM, qs seq.Sequence, start, end int) (*Fragments, error) {
+
+	pre := fmt.Sprintf("bcbgo-hhfrag-hhm-%d-%d_", start, end)
+	hhmFile, err := ioutil.TempFile("", pre)
 	if err != nil {
 		return nil, err
 	}
 	defer os.Remove(hhmFile.Name())
 	hhmName := hhmFile.Name()
 
-	if err := hhm.Write(hhmFile, part); err != nil {
+	if err := hhm.Write(hhmFile, queryHHM.Slice(start, end)); err != nil {
 		return nil, err
 	}
 
@@ -119,15 +82,21 @@ func FindFragments(pdbDb PDBDatabase,
 		return nil, err
 	}
 
-	frags := make(Fragments, len(results.Hits))
+	frags := make([]Fragment, len(results.Hits))
 	for i, hit := range results.Hits {
+		hit.QueryStart += start
+		hit.QueryEnd += start
 		frag, err := NewFragment(pdbDb, qs, hit)
 		if err != nil {
 			return nil, err
 		}
 		frags[i] = frag
 	}
-	return frags, nil
+	return &Fragments{
+		Frags: frags,
+		Start: start,
+		End:   end,
+	}, nil
 }
 
 // An HHfrag Fragment corresponds to a match between a portion of a query
@@ -187,19 +156,24 @@ func NewFragment(
 		CaAtoms:  nil,
 	}
 
-	// Things get tricky here. The alpha-carbon ATOM records don't necessarily
-	// correspond to SEQRES residues. So we need to use the AtomResidueStart
-	// and AtomResidueEnd to make sure we're looking at the right Ca atoms.
-	// Note that we might still want to look at this hit, so we simply set
-	// the CaAtoms field to nil, which gives it a "corrupt" label.
-	if ts < chain.AtomResidueStart || te > chain.AtomResidueEnd {
+	atoms := make(pdb.Atoms, te-ts+1)
+	for i, cai := 0, ts-1; cai < te; i, cai = i+1, cai+1 {
+		if chain.CaSeqRes[cai] == nil {
+			atoms = nil
+			break
+		}
+		atoms[i] = *chain.CaSeqRes[cai]
+	}
+
+	// We designate "corrupt" if there are any gaps in our alpha-carbon
+	// atom list.
+	if atoms == nil {
 		return frag, nil
 	}
 
 	// One again, we copy to avoid pinning memory.
-	frag.CaAtoms = make(pdb.Atoms, te-ts+1)
-	as, ae := ts-chain.AtomResidueStart, te-chain.AtomResidueStart+1
-	copy(frag.CaAtoms, chain.CaAtoms[as:ae])
+	frag.CaAtoms = make(pdb.Atoms, len(atoms))
+	copy(frag.CaAtoms, atoms)
 
 	return frag, nil
 }

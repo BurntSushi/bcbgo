@@ -54,6 +54,9 @@ func (m MSA) Slice(start, end int) MSA {
 			end = i
 			break
 		}
+		if i == len(m.Entries[0].Residues)-1 {
+			end = len(m.Entries[0].Residues)
+		}
 	}
 
 	entries := make([]Sequence, len(m.Entries))

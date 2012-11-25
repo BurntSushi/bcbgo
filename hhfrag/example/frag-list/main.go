@@ -2,10 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
-	"text/tabwriter"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
 	"github.com/BurntSushi/bcbgo/hhfrag"
@@ -52,26 +50,10 @@ func main() {
 	fs, fe := getFragmentWindow()
 	qseq, qhhm := getQueryHHM()
 
-	part := qhhm.Slice(fs, fe)
-
-	frags, err := hhfrag.FindFragments(pdbDB, part, qseq, false)
+	frags, err := hhfrag.FindFragments(pdbDB, false, qhhm, qseq, fs, fe)
 	assert(err)
 
-	tabw := tabwriter.NewWriter(os.Stderr, 0, 4, 4, ' ', 0)
-	fmt.Fprintln(tabw, "Hit\tQuery\tTemplate\tProb\tCorrupt")
-	for _, frag := range frags {
-		var corruptStr string
-		if frag.IsCorrupt() {
-			corruptStr = "\tcorrupt"
-		}
-		fmt.Fprintf(tabw, "%s\t(%d-%d)\t(%d-%d)\t%f%s\n",
-			frag.Template.Name,
-			frag.Hit.QueryStart, frag.Hit.QueryEnd,
-			frag.Hit.TemplateStart, frag.Hit.TemplateEnd,
-			frag.Hit.Prob,
-			corruptStr)
-	}
-	tabw.Flush()
+	frags.Write(os.Stderr)
 }
 
 func getFragmentWindow() (int, int) {
