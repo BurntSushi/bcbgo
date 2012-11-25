@@ -156,17 +156,9 @@ func NewFragment(
 		CaAtoms:  nil,
 	}
 
-	atoms := make(pdb.Atoms, te-ts+1)
-	for i, cai := 0, ts-1; cai < te; i, cai = i+1, cai+1 {
-		if chain.CaSeqRes[cai] == nil {
-			atoms = nil
-			break
-		}
-		atoms[i] = *chain.CaSeqRes[cai]
-	}
-
 	// We designate "corrupt" if there are any gaps in our alpha-carbon
 	// atom list.
+	atoms := chain.CaAtomSlice(ts-1, te)
 	if atoms == nil {
 		return frag, nil
 	}

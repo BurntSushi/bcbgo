@@ -17,6 +17,7 @@ var (
 	flagChain          = ""
 	flagSeparateChains = false
 	flagSeqRes         = false
+	flagSplit          = ""
 )
 
 func main() {
@@ -33,6 +34,10 @@ func main() {
 	if flag.NArg() == 1 {
 		fasOut = os.Stdout
 	} else {
+		if len(flagSplit) > 0 {
+			fatalf("The '--split' option is incompatible with a single " +
+				"output file.")
+		}
 		fasOut, err = os.Create(flag.Arg(1))
 		if err != nil {
 			fatalf("Could not create FASTA file '%s': %s", flag.Arg(1), err)
@@ -77,8 +82,26 @@ func main() {
 	if len(fasEntries) == 0 {
 		fatalf("Could not find any chains with amino acids.")
 	}
-	if err := fasta.NewWriter(fasOut).WriteAll(fasEntries); err != nil {
-		fatalf("Could not write FASTA: %s", err)
+	if len(flagSplit) == 0 {
+		if err := fasta.NewWriter(fasOut).WriteAll(fasEntries); err != nil {
+			fatalf("Could not write FASTA: %s", err)
+		}
+	} else {
+		for _, entry := range fasEntries {
+			fp := path.Join(flagSplit, fmt.Sprintf("%s.fasta", entry.Name))
+			out, err := os.Create(fp)
+			if err != nil {
+				fatalf("Could not create FASTA file: %s", err)
+			}
+
+			w := fasta.NewWriter(out)
+			if err := w.Write(entry); err != nil {
+				fatalf("Could not write to FASTA file: %s", err)
+			}
+			if err := w.Flush(); err != nil {
+				fatalf("Could not write to FASTA file: %s", err)
+			}
+		}
 	}
 }
 
@@ -120,6 +143,10 @@ func init() {
 	flag.BoolVar(&flagSeqRes, "seqres", flagSeqRes,
 		"When set, sequences will be read from the SEQRES records. Otherwise, "+
 			"sequences are read from residues in Ca ATOM records.")
+	flag.StringVar(&flagSplit, "split", flagSplit,
+		"When set, each FASTA entry produced will be written to a file in the "+
+			"specified directory with the PDB id code and chain identifier as "+
+			"the name.")
 	flag.Usage = usage
 	flag.Parse()
 }

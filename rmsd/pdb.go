@@ -35,26 +35,16 @@ func PDB(entry1 *pdb.Entry, chainId1 byte, start1, end1 int,
 	// In order to fetch the appropriate carbon-alpha atoms, we need to
 	// traverse each chain's carbon-alpha atom slice and pick only the carbon
 	// alpha atoms with residue indices in the range specified.
-	struct1 := make(pdb.Atoms, 0, max(0, end1-start1+1))
-	struct2 := make(pdb.Atoms, 0, max(0, end2-start2+1))
-	for _, atom := range chain1.CaAtoms {
-		if atom.ResidueInd >= start1 && atom.ResidueInd <= end1 {
-			struct1 = append(struct1, atom)
-		}
-	}
-	for _, atom := range chain2.CaAtoms {
-		if atom.ResidueInd >= start2 && atom.ResidueInd <= end2 {
-			struct2 = append(struct2, atom)
-		}
-	}
+	struct1 := chain1.CaAtomSlice(start1-1, end1)
+	struct2 := chain2.CaAtomSlice(start2-1, end2)
 
 	// Verify that neither of the atom sets is 0.
-	if len(struct1) == 0 {
+	if struct1 == nil || len(struct1) == 0 {
 		return 0.0, fmt.Errorf("The range '%d-%d' (for chain %c in %s) does "+
 			"not correspond to any carbon-alpha ATOM records.",
 			start1, end1, chainId1, entry1.Name())
 	}
-	if len(struct2) == 0 {
+	if struct2 == nil || len(struct2) == 0 {
 		return 0.0, fmt.Errorf("The range '%d-%d' (for chain %c in %s) does "+
 			"not correspond to any carbon-alpha ATOM records.",
 			start2, end2, chainId2, entry2.Name())

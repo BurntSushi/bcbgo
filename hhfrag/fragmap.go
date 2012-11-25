@@ -3,6 +3,7 @@ package hhfrag
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"sync"
 
@@ -92,37 +93,51 @@ func (m MapConfig) computeMap(
 	}
 
 	wg := new(sync.WaitGroup)
-	fragsChan := make(chan maybeFrag, 1)
-	fmap := make(FragmentMap, 0, 25)
-	for i := 0; i <= qseq.Len()-m.WindowMin; i += 3 {
-		i := i
+	jobs := make(chan int, 10)
+	fragsChan := make(chan maybeFrag, 10)
+	workers := runtime.GOMAXPROCS(0)
+	if workers < 1 {
+		workers = 1
+	}
+
+	for i := 0; i < workers; i++ {
 		go func() {
 			wg.Add(1)
 			defer wg.Done()
 
-			var best *Fragments
-			for j := m.WindowMin; j <= m.WindowMax && (i+j) <= qseq.Len(); j++ {
-				frags, err := FindFragments(pdbDb, m.Blits, qhhm, qseq, i, i+j)
-				if err != nil {
-					fragsChan <- maybeFrag{
-						err: err,
+			min, max := m.WindowMin, m.WindowMax
+		CHANNEL:
+			for start := range jobs {
+				var best *Fragments
+				for end := min; end <= max && (start+end) <= qseq.Len(); end++ {
+					frags, err := FindFragments(
+						pdbDb, m.Blits, qhhm, qseq, start, start+end)
+					if err != nil {
+						fragsChan <- maybeFrag{
+							err: err,
+						}
+						continue CHANNEL
 					}
-					return
+					if best == nil || frags.better(*best) {
+						best = frags
+					}
 				}
-				if best == nil || frags.better(*best) {
-					best = frags
+				fragsChan <- maybeFrag{
+					frags: *best,
 				}
-			}
-			fragsChan <- maybeFrag{
-				frags: *best,
 			}
 		}()
 	}
-
 	go func() {
+		for s := 0; s <= qseq.Len()-m.WindowMin; s += m.WindowIncrement {
+			jobs <- s
+		}
+		close(jobs)
 		wg.Wait()
 		close(fragsChan)
 	}()
+
+	fmap := make(FragmentMap, 0, 50)
 	for maybeFrag := range fragsChan {
 		if maybeFrag.err != nil {
 			return nil, maybeFrag.err

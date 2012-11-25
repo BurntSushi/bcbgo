@@ -37,9 +37,16 @@ bench-rmsd:
 	go test ./rmsd -run 'nomatch' -bench '.*'
 
 # Experiments with default parameters
+exp-hhfrag-stats:
+	sh experiments/hhfrag-stats/run.sh \
+		/data/bio/pdb \
+		kalev \
+		nr20 \
+		data/experiments/hhfrag-stats/casp9one
+
 exp-fragbag-pride: data/fraglibs/centers400_11
 	sh experiments/fragbag-pride/run.sh \
-		/media/Nightjar/pdb \
+		/data/bio/pdb \
 		data/fraglibs/centers400_11 \
 		data/experiments/fragbag-pride
 
@@ -58,7 +65,7 @@ exp-bow-vs-matt-cath: data/fraglibs/centers400_11
 
 exp-bow-vs-matt-za: data/fraglibs/centers400_11
 	sh experiments/bow-vs-matt/run.sh \
-		/media/Nightjar/pdb/za \
+		/data/bit/pdb/za \
 		data/fraglibs/centers400_11 \
 		data/experiments/bow-vs-matt/za-bowdb
 
