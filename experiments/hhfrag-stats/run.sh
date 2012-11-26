@@ -86,7 +86,7 @@ mkdir -p "$map_dir"
 mkdir -p "$log_path/$prefix"
 mkdir -p "$map_dir/$prefix"
 
-rm "$tmp_dir"/*.fasta
+rm -f "$tmp_dir"/*.fasta
 for target in $(cat "$targets"); do
   case ${#target} in
     4)
@@ -128,5 +128,5 @@ for target in "$tmp_dir"/*.fasta; do
 done
 
 msg "Cleanup"
-rm $calc_stats
+rm -f $calc_stats
 
