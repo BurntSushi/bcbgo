@@ -52,7 +52,6 @@ exp_dir="experiments/hhfrag-stats"
 data_dir="data/experiments/hhfrag-stats"
 tmp_dir="data/experiments/hhfrag-stats/tmp"
 calc_stats=experiments/cmd/hhfrag-stats/hhfrag-stats
-calc_map=experiments/cmd/hhfrag-map/hhfrag-map
 
 pdb_dir="$1"
 pdb_hhm_db="$2"
@@ -69,9 +68,9 @@ fi
 # Make sure all our binaries are up to date
 msg "Installing binaries"
 make install
+make install-tools
 
 msg "Building test executables"
-go build -o $calc_map ./experiments/cmd/hhfrag-map
 go build -o $calc_stats ./experiments/cmd/hhfrag-stats
 
 if [ -z "$blits" ]; then
@@ -88,31 +87,45 @@ if [ -f "$log_path/$prefix" ]; then
   echo "$log_path already exists; skipping experiment"
 else
   mkdir -p "$log_path/$prefix"
+  mkdir -p "$map_dir/$prefix"
 
-  if [ -d "$map_dir/$prefix" ]; then
-    msg "Skipping map generation since $map_dir/$prefix exists."
-  else
-    mkdir -p "$map_dir/$prefix"
-
-    rm "$tmp_dir"/*.fasta
-    for target in $(cat "$targets"); do
-      pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
-      pdb2fasta --seqres --separate-chains --split "$tmp_dir" "$pdb_file"
-    done
-    for target in "$tmp_dir"/*.fasta; do
-      name=$(basename "${target%*.fasta}")
+  rm "$tmp_dir"/*.fasta
+  for target in $(cat "$targets"); do
+    case ${#target} in
+      4)
+        pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
+        pdb2fasta --seqres --separate-chains --split "$tmp_dir" "$pdb_file"
+        ;;
+      5)
+        pdbid=${target:0:4}
+        chain=${target:4}
+        pdb_file="$pdb_dir"/${pdbid:1:2}/pdb$pdbid.ent.gz
+        pdb2fasta --chain $chain --seqres "$pdb_file" "$tmp_dir"/$target.fasta
+        ;;
+      *)
+        msg "Unrecognized PDB identifier: $target"
+        exit 1
+        ;;
+    esac
+  done
+  for target in "$tmp_dir"/*.fasta; do
+    name=$(basename "${target%*.fasta}")
+    fmap_file="$map_dir/$prefix/$name.fmap"
+    if [ -f "$fmap_file" ]; then
+      msg "Skipping $name map generation since $fmap_file exists."
+    else
       msg "Computing map for $name..."
-      $calc_map \
+      hhfrag-map \
         --cpu $num_cpus \
         --seqdb "$seq_hhm_db" \
         --pdbdb "$pdb_hhm_db" \
         $blits \
         "$target" > "$map_dir/$prefix/$name.fmap"
-    done
-  fi
+    fi
+  done
 
-  for fmap in "$map_dir/$prefix/*.fmap"; do
-    name=$(basename "${target%*.fmap}")
+  for fmap in "$map_dir/$prefix"/*.fmap; do
+    name=$(basename "${fmap%*.fmap}")
     $calc_stats "$fmap" > "$log_path/$prefix/$name.log"
   done
 fi

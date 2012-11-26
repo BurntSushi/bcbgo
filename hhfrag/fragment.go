@@ -156,7 +156,14 @@ func NewFragment(
 		CaAtoms:  nil,
 	}
 
-	// We designate "corrupt" if there are any gaps in our alpha-carbon
+	// We designate "corrupt" if the query/template hit regions are of
+	// different length. i.e., we don't allow gaps (yet).
+	// BUG(burntsushi): Fragments with gaps are marked as corrupt.
+	if hit.QueryEnd-hit.QueryStart != hit.TemplateEnd-hit.TemplateStart {
+		return frag, nil
+	}
+
+	// We also designate "corrupt" if there are any gaps in our alpha-carbon
 	// atom list.
 	atoms := chain.CaAtomSlice(ts-1, te)
 	if atoms == nil {

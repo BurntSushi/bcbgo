@@ -15,7 +15,7 @@ var (
 	flagBlits = false
 	flagSeqDB = "nr20"
 	flagPdbDB = "pdb-select25"
-	flagCpu   = runtime.GOMAXPROCS(0)
+	flagCpu   = runtime.NumCPU()
 
 	seqDB hhsuite.Database
 	pdbDB hhfrag.PDBDatabase
