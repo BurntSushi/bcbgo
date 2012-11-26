@@ -121,9 +121,10 @@ for target in "$tmp_dir"/*.fasta; do
   fi
 done
 
-for fmap in "$map_dir/$prefix"/*.fmap; do
-  name=$(basename "${fmap%*.fmap}")
-  $calc_stats "$fmap" > "$log_path/$prefix/$name.log"
+for target in "$tmp_dir"/*.fasta; do
+  name=$(basename "${target%*.fasta}")
+  fmap_file="$map_dir/$prefix/$name.fmap"
+  $calc_stats "$fmap_file" > "$log_path/$prefix/$name.log"
 done
 
 msg "Cleanup"
