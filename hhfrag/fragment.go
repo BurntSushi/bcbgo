@@ -74,9 +74,13 @@ func FindFragments(pdbDb PDBDatabase, blits bool,
 
 	var results *hhr.HHR
 	if blits {
-		results, err = hhsuite.HHBlitsDefault.Run(pdbDb.HHsuite(), hhmName)
+		conf := hhsuite.HHBlitsDefault
+		conf.CPUs = 1
+		results, err = conf.Run(pdbDb.HHsuite(), hhmName)
 	} else {
-		results, err = hhsuite.HHSearchDefault.Run(pdbDb.HHsuite(), hhmName)
+		conf := hhsuite.HHSearchDefault
+		conf.CPUs = 1
+		results, err = conf.Run(pdbDb.HHsuite(), hhmName)
 	}
 	if err != nil {
 		return nil, err
