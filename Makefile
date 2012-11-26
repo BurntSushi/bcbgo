@@ -1,8 +1,16 @@
-all: install gofmt data/fraglibs/centers400_11
+all: install install-tools gofmt data/fraglibs/centers400_11
 
 install:
-	go install -p 6 ./apps/* ./bowdb ./fragbag ./hhfrag ./io/* ./rmsd
-	go install -p 6 ./cmd/*
+	go install ./apps/* ./bowdb ./fragbag ./hhfrag ./io/* ./rmsd
+	go install ./cmd/...
+
+install-tools:
+	go install ./tools/...
+
+clean:
+	rm -f $(HOME)/go/bin/{create-bowdb,search-bowdb}
+	rm -f $(HOME)/go/bin/{buildhhm,hhfrag-map,pdb2fasta,pdb-rmsd}
+	rm -f $(HOME)/go/bin/{slicehhm,viewmap}
 
 gofmt:
 	gofmt -w */*.go */*/*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go

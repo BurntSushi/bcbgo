@@ -13,7 +13,7 @@ import (
 
 var (
 	flagDatabase = "nr20"
-	flagQuiet = false
+	flagQuiet    = false
 )
 
 func init() {
