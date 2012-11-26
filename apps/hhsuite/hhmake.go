@@ -50,7 +50,7 @@ var HHMakePseudo = HHMakeConfig{
 // If you need to build an HHM from a single sequence, use the convenience
 // function BuildHHM.
 func (conf HHMakeConfig) Run(query string) (*hhm.HHM, error) {
-	hhmFile, err := ioutil.TempFile("", "bcbgo-hhm")
+	hhmFile, err := ioutil.TempFile("", "bad-bcbgo-hhm")
 	if err != nil {
 		return nil, err
 	}

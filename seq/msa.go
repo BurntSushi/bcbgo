@@ -70,6 +70,13 @@ func (m MSA) Slice(start, end int) MSA {
 	}
 }
 
+// AddFastaSlice calls "AddFasta" for each sequence in the slice.
+func (m *MSA) AddFastaSlice(seqs []Sequence) {
+	for _, s := range seqs {
+		m.AddFasta(s)
+	}
+}
+
 // AddSlice calls "Add" for each sequence in the slice.
 func (m *MSA) AddSlice(seqs []Sequence) {
 	for _, s := range seqs {
@@ -77,8 +84,53 @@ func (m *MSA) AddSlice(seqs []Sequence) {
 	}
 }
 
+// AddFasta adds a FASTA formatted sequence to the MSA. If your sequences are
+// in A2M or A3M format, use Add.
+//
+// Empty sequences are ignored.
+func (m *MSA) AddFasta(adds Sequence) {
+	if adds.Len() == 0 {
+		return
+	}
+
+	// We will, in all likelihood, modify the sequence.
+	// So we copy it to prevent weird effects to the caller.
+	s := adds.Copy()
+
+	// The first sequence is easy.
+	if m.length == 0 {
+		m.Entries = append(m.Entries, s)
+		m.length = s.Len()
+		return
+	}
+
+	if m.length != s.Len() {
+		panic(fmt.Sprintf("FASTA aligned sequences must all be the same "+
+			"length, but %d != %d.", m.length, s.Len()))
+	}
+
+	// Things are much easier when the sequence we're adding already has the
+	// same length as the alignment. All we need to do is check FASTA formats
+	// and replace '-' with '.' in insertion columns.
+	for col := 0; col < m.length; col++ {
+		seqHasInsert := s.Residues[col].HMMState() == Insertion
+		if m.columnHasInsertion(col) || seqHasInsert {
+			for _, other := range m.Entries {
+				if other.Residues[col] == '-' {
+					other.Residues[col] = '.'
+				}
+			}
+			if s.Residues[col] == '-' {
+				s.Residues[col] = '.'
+			}
+		}
+	}
+	m.Entries = append(m.Entries, s)
+}
+
 // Add adds a new entry to the multiple sequence alignment. Sequences must be in
-// FASTA, A2M or A3M format.
+// A2M or A3M format. If your sequence is from a FASTA aligned format, use
+// AddFasta.
 //
 // Empty sequences are ignored.
 func (m *MSA) Add(adds Sequence) {
@@ -95,25 +147,6 @@ func (m *MSA) Add(adds Sequence) {
 		m.Entries = append(m.Entries, s)
 		m.length = s.Len()
 		return
-	}
-
-	// Things are much easier when the sequence we're adding already has the
-	// same length as the alignment. All we need to do is check FASTA formats
-	// and replace '-' with '.' in insertion columns.
-	if m.length == s.Len() {
-		for col := 0; col < m.length; col++ {
-			seqHasInsert := s.Residues[col].HMMState() == Insertion
-			if m.columnHasInsertion(col) || seqHasInsert {
-				for _, other := range m.Entries {
-					if other.Residues[col] == '-' {
-						other.Residues[col] = '.'
-					}
-				}
-				if s.Residues[col] == '-' {
-					s.Residues[col] = '.'
-				}
-			}
-		}
 	}
 
 	// This should be an A3M formatted sequence (no way to do a sanity check

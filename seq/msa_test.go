@@ -57,7 +57,7 @@ func TestMSAFasta(t *testing.T) {
 		answer := makeMSA(makeSeqs(answers[i]))
 
 		computed := NewMSA()
-		computed.AddSlice(test)
+		computed.AddFastaSlice(test)
 
 		testEqualAlign(t, computed, answer)
 	}
