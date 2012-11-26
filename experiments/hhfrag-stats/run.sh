@@ -83,52 +83,48 @@ mkdir -p "$log_path"
 mkdir -p "$tmp_dir"
 mkdir -p "$map_dir"
 
-if [ -f "$log_path/$prefix" ]; then
-  echo "$log_path already exists; skipping experiment"
-else
-  mkdir -p "$log_path/$prefix"
-  mkdir -p "$map_dir/$prefix"
+mkdir -p "$log_path/$prefix"
+mkdir -p "$map_dir/$prefix"
 
-  rm "$tmp_dir"/*.fasta
-  for target in $(cat "$targets"); do
-    case ${#target} in
-      4)
-        pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
-        pdb2fasta --seqres --separate-chains --split "$tmp_dir" "$pdb_file"
-        ;;
-      5)
-        pdbid=${target:0:4}
-        chain=${target:4}
-        pdb_file="$pdb_dir"/${pdbid:1:2}/pdb$pdbid.ent.gz
-        pdb2fasta --chain $chain --seqres "$pdb_file" "$tmp_dir"/$target.fasta
-        ;;
-      *)
-        msg "Unrecognized PDB identifier: $target"
-        exit 1
-        ;;
-    esac
-  done
-  for target in "$tmp_dir"/*.fasta; do
-    name=$(basename "${target%*.fasta}")
-    fmap_file="$map_dir/$prefix/$name.fmap"
-    if [ -f "$fmap_file" ]; then
-      msg "Skipping $name map generation since $fmap_file exists."
-    else
-      msg "Computing map for $name..."
-      hhfrag-map \
-        --cpu $num_cpus \
-        --seqdb "$seq_hhm_db" \
-        --pdbdb "$pdb_hhm_db" \
-        $blits \
-        "$target" > "$map_dir/$prefix/$name.fmap"
-    fi
-  done
+rm "$tmp_dir"/*.fasta
+for target in $(cat "$targets"); do
+  case ${#target} in
+    4)
+      pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
+      pdb2fasta --seqres --separate-chains --split "$tmp_dir" "$pdb_file"
+      ;;
+    5)
+      pdbid=${target:0:4}
+      chain=${target:4}
+      pdb_file="$pdb_dir"/${pdbid:1:2}/pdb$pdbid.ent.gz
+      pdb2fasta --chain $chain --seqres "$pdb_file" "$tmp_dir"/$target.fasta
+      ;;
+    *)
+      msg "Unrecognized PDB identifier: $target"
+      exit 1
+      ;;
+  esac
+done
+for target in "$tmp_dir"/*.fasta; do
+  name=$(basename "${target%*.fasta}")
+  fmap_file="$map_dir/$prefix/$name.fmap"
+  if [ -f "$fmap_file" ]; then
+    msg "Skipping $name map generation since $fmap_file exists."
+  else
+    msg "Computing map for $name..."
+    hhfrag-map \
+      --cpu $num_cpus \
+      --seqdb "$seq_hhm_db" \
+      --pdbdb "$pdb_hhm_db" \
+      $blits \
+      "$target" "$map_dir/$prefix/$name.fmap"
+  fi
+done
 
-  for fmap in "$map_dir/$prefix"/*.fmap; do
-    name=$(basename "${fmap%*.fmap}")
-    $calc_stats "$fmap" > "$log_path/$prefix/$name.log"
-  done
-fi
+for fmap in "$map_dir/$prefix"/*.fmap; do
+  name=$(basename "${fmap%*.fmap}")
+  $calc_stats "$fmap" > "$log_path/$prefix/$name.log"
+done
 
 msg "Cleanup"
 rm $calc_stats

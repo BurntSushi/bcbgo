@@ -36,7 +36,8 @@ func (m MSA) Slice(start, end int) MSA {
 	// We need to find the real start and end based on match states
 	// in the first sequence.
 	// Remember, entries are stored in A2M format.
-	colStart, colEnd := 0, -1
+	// XXX: Simplify.
+	colStart := 0
 	for i, residue := range m.Entries[0].Residues {
 		if colStart == start {
 			start = i
@@ -46,18 +47,18 @@ func (m MSA) Slice(start, end int) MSA {
 			colStart += 1
 		}
 	}
+	inserts := 0
 	for i, residue := range m.Entries[0].Residues {
-		if residue.HMMState() != Insertion {
-			colEnd += 1
+		if residue.HMMState() == Insertion {
+			inserts++
+			continue
 		}
-		if colEnd == end {
+		if i-inserts == end-1 {
 			end = i
 			break
 		}
-		if i == len(m.Entries[0].Residues)-1 {
-			end = len(m.Entries[0].Residues)
-		}
 	}
+	end++
 
 	entries := make([]Sequence, len(m.Entries))
 	for i, entry := range m.Entries {
@@ -100,17 +101,19 @@ func (m *MSA) Add(adds Sequence) {
 	// same length as the alignment. All we need to do is check FASTA formats
 	// and replace '-' with '.' in insertion columns.
 	if m.length == s.Len() {
-		m.Entries = append(m.Entries, s)
 		for col := 0; col < m.length; col++ {
-			if m.columnHasInsertion(col) {
+			seqHasInsert := s.Residues[col].HMMState() == Insertion
+			if m.columnHasInsertion(col) || seqHasInsert {
 				for _, other := range m.Entries {
 					if other.Residues[col] == '-' {
 						other.Residues[col] = '.'
 					}
 				}
+				if s.Residues[col] == '-' {
+					s.Residues[col] = '.'
+				}
 			}
 		}
-		return
 	}
 
 	// This should be an A3M formatted sequence (no way to do a sanity check

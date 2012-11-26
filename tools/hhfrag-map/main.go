@@ -43,23 +43,26 @@ func init() {
 }
 
 func usage() {
-	log.Printf("Usage: hhfrag-stats [flags] target-fasta\n")
+	log.Printf("Usage: hhfrag-stats [flags] target-fasta out-fmap\n")
 	flag.PrintDefaults()
 }
 
 func main() {
-	if flag.NArg() != 1 {
-		log.Println("One input file required.\n")
+	if flag.NArg() != 2 {
 		usage()
 	}
 
 	fasInp := flag.Arg(0)
+	fmapOut := flag.Arg(1)
+
 	conf := hhfrag.DefaultConfig
 	conf.Blits = flagBlits
 	fmap, err := conf.MapFromFasta(pdbDB, seqDB, fasInp)
 	assert(err)
 
-	w := gob.NewEncoder(os.Stdout)
+	out, err := os.Create(fmapOut)
+	assert(err)
+	w := gob.NewEncoder(out)
 	err = w.Encode(fmap)
 	assert(err)
 }

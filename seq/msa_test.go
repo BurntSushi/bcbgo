@@ -8,9 +8,13 @@ import (
 func TestMSAA3M(t *testing.T) {
 	tests := [][]string{
 		alignA3M,
+		trickyA3M,
+		trickyA3MShort,
 	}
 	answers := [][]string{
 		alignA2M,
+		trickyA2M,
+		trickyA2MShort,
 	}
 	for i := 0; i < len(tests); i++ {
 		test := makeSeqs(tests[i])
