@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BurntSushi/bcbgo/pdb"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 
 	matrix "github.com/skelterjohn/go.matrix"
 )
@@ -18,7 +18,7 @@ func init() {
 func ExampleRmsd() {
 	// If you add a test, make sure you add a corresponding "RMSD: ..."
 	// to the output test at the end of this function.
-	tests := [][2]pdb.Atoms{
+	tests := [][2][]pdb.Coords{
 		{
 			{
 				atom(-2.803, -15.373, 24.556),
@@ -41,11 +41,11 @@ func ExampleRmsd() {
 		},
 	}
 	for _, test := range tests {
-		rmsd := CQCRMSD(test[0], test[1])
-		fmt.Printf("RMSD: %f\n", rmsd)
+		rms := QCRMSD(test[0], test[1])
+		fmt.Printf("RMSD: %f\n", rms)
 
-		rmsd = QCRMSD(test[0], test[1])
-		fmt.Printf("RMSD: %f\n", rmsd)
+		rms = rmsd(test[0], test[1])
+		fmt.Printf("RMSD: %f\n", rms)
 	}
 	// Output:
 	// RMSD: 0.719106
@@ -149,7 +149,7 @@ func BenchmarkMyRmsd(b *testing.B) {
 		atoms1 := randomAtoms(11)
 		atoms2 := randomAtoms(11)
 		b.StartTimer()
-		RMSD(atoms1, atoms2)
+		rmsd(atoms1, atoms2)
 	}
 }
 
@@ -163,13 +163,14 @@ func BenchmarkQCRmsd(b *testing.B) {
 	}
 }
 
-func BenchmarkCQCRmsd(b *testing.B) {
+func BenchmarkQCRmsdMemory(b *testing.B) {
+	mem := NewQcMemory(11)
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		atoms1 := randomAtoms(11)
 		atoms2 := randomAtoms(11)
 		b.StartTimer()
-		CQCRMSD(atoms1, atoms2)
+		QCRMSDMem(mem, atoms1, atoms2)
 	}
 }
 
@@ -225,23 +226,21 @@ func randomMatrix(rows, cols int) (m []float64) {
 	return
 }
 
-func randomAtoms(cnt int) pdb.Atoms {
-	atoms := make(pdb.Atoms, cnt)
+func randomAtoms(cnt int) []pdb.Coords {
+	atoms := make([]pdb.Coords, cnt)
 	for i := 0; i < cnt; i++ {
 		atoms[i] = randomAtom()
 	}
 	return atoms
 }
 
-func randomAtom() pdb.Atom {
+func randomAtom() pdb.Coords {
 	return atom(
 		rand.Float64()*float64(rand.Intn(500)),
 		rand.Float64()*float64(rand.Intn(500)),
 		rand.Float64()*float64(rand.Intn(500)))
 }
 
-func atom(x, y, z float64) pdb.Atom {
-	return pdb.Atom{
-		Coords: [3]float64{x, y, z},
-	}
+func atom(x, y, z float64) pdb.Coords {
+	return pdb.Coords{x, y, z}
 }

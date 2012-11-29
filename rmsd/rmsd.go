@@ -5,8 +5,6 @@ import (
 	"math"
 
 	"github.com/BurntSushi/bcbgo/io/pdb"
-
-	matrix "github.com/skelterjohn/go.matrix"
 )
 
 // RMSD implements a version of the Kabsch alogrithm that is described here:
@@ -32,7 +30,7 @@ import (
 // Note that RMSD will panic if the lengths of struct1 and struct2 differ.
 // RMSD will also panic if the calculation of the SVD returns an error. (It's
 // possible that will change, though.)
-func RMSD(struct1, struct2 []pdb.Coords) float64 {
+func rmsd(struct1, struct2 []pdb.Coords) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -113,12 +111,4 @@ func centroid(atoms []pdb.Coords) (float64, float64, float64) {
 	}
 	n := float64(len(atoms))
 	return xs / n, ys / n, zs / n
-}
-
-// must panics if the result of a dense matrix operation returns an error.
-func must(A *matrix.DenseMatrix, err error) *matrix.DenseMatrix {
-	if err != nil {
-		panic(err)
-	}
-	return A
 }
