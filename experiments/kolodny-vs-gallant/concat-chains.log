@@ -1,336 +1,448 @@
-Testing pdb1f40.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f40.pdb
+Old: 1070, New: 1070
 PASSED.
 ----------------------------------------------------
-Testing pdb1f41.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f41.pdb
+Old: 245, New: 245
 PASSED.
 ----------------------------------------------------
-Testing pdb1f42.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f42.pdb
+Old: 297, New: 297
 PASSED.
 ----------------------------------------------------
-Testing pdb1f43.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f43.pdb
+Old: 1220, New: 1220
 PASSED.
 ----------------------------------------------------
-Testing pdb1f44.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f44.pdb
+Old: 316, New: 316
 PASSED.
 ----------------------------------------------------
-Testing pdb1f45.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f45.pdb
+Old: 415, New: 415
 PASSED.
 ----------------------------------------------------
-Testing pdb1f46.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f46.pdb
+Old: 279, New: 279
 PASSED.
 ----------------------------------------------------
-Testing pdb1f47.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f47.pdb
+Old: 161, New: 161
 PASSED.
 ----------------------------------------------------
-Testing pdb1f48.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f48.pdb
+Old: 548, New: 548
 PASSED.
 ----------------------------------------------------
-Testing pdb1f49.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f49.pdb
+Old: 8144, New: 8144
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4a.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4a.pdb
+Old: 4084, New: 4084
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4b.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4b.pdb
+Old: 263, New: 263
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4c.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4c.pdb
+Old: 521, New: 521
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4d.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4d.pdb
+Old: 526, New: 526
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4e.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4e.pdb
+Old: 263, New: 263
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4f.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4f.pdb
+Old: 521, New: 521
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4g.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4g.pdb
+Old: 519, New: 519
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4h.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4h.pdb
+Old: 4084, New: 4084
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4i.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4i.pdb
+Old: 945, New: 945
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4j.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4j.pdb
+Old: 1918, New: 1918
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4k.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4k.pdb
+Old: 230, New: 230
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4l.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4l.pdb
+Old: 545, New: 545
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4m.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4m.pdb
+Old: 330, New: 330
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4n.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4n.pdb
+Old: 109, New: 109
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4o.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4o.pdb
+Old: 330, New: 330
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4p.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4p.pdb
+Old: 147, New: 147
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4q.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4q.pdb
+Old: 326, New: 326
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4r.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4r.pdb
+Old: 199, New: 199
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4s.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4s.pdb
+Old: 650, New: 650
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4t.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4t.pdb
+Old: 734, New: 734
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4u.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4u.pdb
+Old: 732, New: 732
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4v.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4v.pdb
+Old: 426, New: 426
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4w.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4w.pdb
+Old: 426, New: 426
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4x.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4x.pdb
+Old: 426, New: 426
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4y.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4y.pdb
+Old: 426, New: 426
 PASSED.
 ----------------------------------------------------
-Testing pdb1f4z.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb1f4z.pdb
+Old: 222, New: 222
 PASSED.
 ----------------------------------------------------
-Testing pdb2f40.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f40.pdb
+Old: 740, New: 740
 PASSED.
 ----------------------------------------------------
-Testing pdb2f41.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f41.pdb
+Old: 428, New: 428
 PASSED.
 ----------------------------------------------------
-Testing pdb2f42.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f42.pdb
+Old: 138, New: 138
 PASSED.
 ----------------------------------------------------
-Testing pdb2f43.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f43.pdb
+Old: 1075, New: 1075
 PASSED.
 ----------------------------------------------------
-Testing pdb2f44.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f44.pdb
+Old: 191, New: 191
 PASSED.
 ----------------------------------------------------
-Testing pdb2f46.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f46.pdb
+Old: 304, New: 304
 PASSED.
 ----------------------------------------------------
-Testing pdb2f47.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f47.pdb
+Old: 175, New: 175
 PASSED.
 ----------------------------------------------------
-Testing pdb2f48.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f48.pdb
+Old: 1103, New: 1103
 PASSED.
 ----------------------------------------------------
-Testing pdb2f49.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f49.pdb
+Old: 691, New: 691
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4a.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4a.pdb
+Old: 129, New: 129
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4b.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4b.pdb
+Old: 542, New: 542
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4e.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4e.pdb
+Old: 258, New: 258
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4f.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4f.pdb
+Old: 260, New: 260
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4g.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4g.pdb
+Old: 129, New: 129
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4i.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4i.pdb
+Old: 639, New: 639
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4j.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4j.pdb
+Old: 287, New: 287
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4k.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4k.pdb
+Old: 33, New: 33
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4l.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4l.pdb
+Old: 1075, New: 1075
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4m.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4m.pdb
+Old: 356, New: 356
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4n.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4n.pdb
+Old: 703, New: 703
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4o.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4o.pdb
+Old: 354, New: 354
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4p.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4p.pdb
+Old: 549, New: 549
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4q.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4q.pdb
+Old: 305, New: 305
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4s.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4s.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4t.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4t.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4u.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4u.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4v.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4v.pdb
+Old: 2380, New: 2380
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4w.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4w.pdb
+Old: 299, New: 299
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4x.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4x.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4y.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4y.pdb
+Old: 324, New: 324
 PASSED.
 ----------------------------------------------------
-Testing pdb2f4z.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb2f4z.pdb
+Old: 288, New: 288
 PASSED.
 ----------------------------------------------------
-Testing pdb3f40.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f40.pdb
+Old: 120, New: 120
 PASSED.
 ----------------------------------------------------
-Testing pdb3f41.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f41.pdb
+Old: 1182, New: 1182
 PASSED.
 ----------------------------------------------------
-Testing pdb3f42.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f42.pdb
+Old: 174, New: 174
 PASSED.
 ----------------------------------------------------
-Testing pdb3f43.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f43.pdb
+Old: 119, New: 119
 PASSED.
 ----------------------------------------------------
-Testing pdb3f44.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f44.pdb
+Old: 218, New: 218
 PASSED.
 ----------------------------------------------------
-Testing pdb3f45.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f45.pdb
+Old: 109, New: 109
 PASSED.
 ----------------------------------------------------
-Testing pdb3f46.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f46.pdb
+Old: 354, New: 354
 PASSED.
 ----------------------------------------------------
-Testing pdb3f47.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f47.pdb
+Old: 358, New: 358
 PASSED.
 ----------------------------------------------------
-Testing pdb3f48.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f48.pdb
+Old: 513, New: 513
 PASSED.
 ----------------------------------------------------
-Testing pdb3f49.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f49.pdb
+Old: 266, New: 266
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4a.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4a.pdb
+Old: 292, New: 292
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4b.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4b.pdb
+Old: 1144, New: 1144
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4c.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4c.pdb
+Old: 646, New: 646
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4d.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4d.pdb
+Old: 646, New: 646
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4e.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4e.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4f.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4f.pdb
+Old: 427, New: 427
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4g.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4g.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4h.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4h.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4i.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4i.pdb
+Old: 509, New: 509
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4j.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4j.pdb
+Old: 509, New: 509
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4k.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4k.pdb
+Old: 254, New: 254
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4l.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4l.pdb
+Old: 2040, New: 2040
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4m.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4m.pdb
+Old: 156, New: 156
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4n.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4n.pdb
+Old: 1948, New: 1948
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4r.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4r.pdb
+Old: 220, New: 220
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4s.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4s.pdb
+Old: 214, New: 214
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4t.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4t.pdb
+Old: 207, New: 207
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4v.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4v.pdb
+Old: 944, New: 944
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4w.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4w.pdb
+Old: 422, New: 422
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4x.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4x.pdb
+Old: 260, New: 260
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4y.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4y.pdb
+Old: 228, New: 228
 PASSED.
 ----------------------------------------------------
-Testing pdb3f4z.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb3f4z.pdb
+Old: 79, New: 79
 PASSED.
 ----------------------------------------------------
-Testing pdb4f40.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f40.pdb
+Old: 573, New: 573
 PASSED.
 ----------------------------------------------------
-Testing pdb4f41.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f41.pdb
+Old: 320, New: 320
 PASSED.
 ----------------------------------------------------
-Testing pdb4f43.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f43.pdb
+Old: 327, New: 327
 PASSED.
 ----------------------------------------------------
-Testing pdb4f47.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f47.pdb
+Old: 242, New: 242
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4a.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4a.pdb
+Old: 454, New: 454
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4e.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4e.pdb
+Old: 811, New: 811
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4f.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4f.pdb
+Old: 928, New: 928
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4i.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4i.pdb
+Old: 391, New: 391
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4j.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4j.pdb
+Old: 375, New: 375
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4m.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4m.pdb
+Old: 588, New: 588
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4n.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4n.pdb
+Old: 0, New: 0
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4r.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4r.pdb
+Old: 415, New: 415
 PASSED.
 ----------------------------------------------------
-Testing pdb4f4u.pdb
+Testing data/experiments/kolodny-vs-gallant/pdbs/pdb4f4u.pdb
+Old: 541, New: 541
 PASSED.
 ----------------------------------------------------
