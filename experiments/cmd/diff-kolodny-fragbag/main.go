@@ -31,7 +31,7 @@ func main() {
 	errorf("Loading PDB files into memory...\n")
 	entries := make([]*pdb.Entry, flag.NArg()-2)
 	for i, pdbfile := range flag.Args()[2:] {
-		entries[i], err = pdb.New(pdbfile)
+		entries[i], err = pdb.ReadPDB(pdbfile)
 		if err != nil {
 			fatalf("%s\n", err)
 		}
@@ -40,8 +40,8 @@ func main() {
 	errorf("Comparing the results of old fragbag and new fragbag on each " +
 		"PDB file...\n")
 	for _, entry := range entries {
-		errorf("Testing %s...\n", entry.Name())
-		fmt.Printf("Testing %s\n", entry.Name())
+		errorf("Testing %s...\n", entry.Path)
+		fmt.Printf("Testing %s\n", entry.Path)
 
 		// Try to run old fragbag first. The output is an old-style BOW.
 		oldBowStr, err := runOldFragbag(oldLibFile, entry.Path, lib.Size(),

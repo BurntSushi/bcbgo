@@ -27,7 +27,7 @@ func newBowWorkers(lib *fragbag.Library, numWorkers int) pool {
 			wg.Add(1)
 			for entry := range entries {
 				for _, chain := range entry.Chains {
-					if chain.ValidProtein() {
+					if chain.IsProtein() {
 						results <- result{chain, lib.NewBowChain(chain)}
 					}
 				}

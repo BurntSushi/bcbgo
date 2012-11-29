@@ -16,7 +16,6 @@ import (
 var (
 	flagChain          = ""
 	flagSeparateChains = false
-	flagSeqRes         = false
 	flagSplit          = ""
 )
 
@@ -25,7 +24,7 @@ func main() {
 		usage()
 	}
 
-	pdbEntry, err := pdb.New(flag.Arg(0))
+	pdbEntry, err := pdb.ReadPDB(flag.Arg(0))
 	if err != nil {
 		fatalf("Could not read PDB file '%s': %s", flag.Arg(0), err)
 	}
@@ -56,7 +55,7 @@ func main() {
 		seq := make([]seq.Residue, 0, 100)
 		for _, chain := range pdbEntry.Chains {
 			if isChainUsable(chain) {
-				seq = append(seq, getChainSequence(chain)...)
+				seq = append(seq, chain.Sequence...)
 			}
 		}
 		fasEntry.Residues = seq
@@ -73,7 +72,7 @@ func main() {
 
 			fasEntry := seq.Sequence{
 				Name:     chainHeader(chain),
-				Residues: getChainSequence(chain),
+				Residues: chain.Sequence,
 			}
 			fasEntries = append(fasEntries, fasEntry)
 		}
@@ -109,13 +108,6 @@ func chainHeader(chain *pdb.Chain) string {
 	return fmt.Sprintf("%s%c", strings.ToLower(chain.Entry.IdCode), chain.Ident)
 }
 
-func getChainSequence(chain *pdb.Chain) []seq.Residue {
-	if flagSeqRes {
-		return chain.Sequence
-	}
-	return chain.CaSequence
-}
-
 func isChainUsable(chain *pdb.Chain) bool {
 	if len(flagChain) == 0 {
 		return true
@@ -140,9 +132,6 @@ func init() {
 	flag.StringVar(&flagChain, "chain", flagChain,
 		"This may be set to one or more chain identifiers. Only amino acids "+
 			"belonging to a chain specified will be included.")
-	flag.BoolVar(&flagSeqRes, "seqres", flagSeqRes,
-		"When set, sequences will be read from the SEQRES records. Otherwise, "+
-			"sequences are read from residues in Ca ATOM records.")
 	flag.StringVar(&flagSplit, "split", flagSplit,
 		"When set, each FASTA entry produced will be written to a file in the "+
 			"specified directory with the PDB id code and chain identifier as "+

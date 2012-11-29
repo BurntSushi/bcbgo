@@ -110,7 +110,7 @@ func main() {
 				continue
 			}
 
-			qatoms := qchain.CaAtomSlice(hit.QueryStart-1, hit.QueryEnd)
+			qatoms := qchain.SequenceCaAtomSlice(hit.QueryStart-1, hit.QueryEnd)
 			if qatoms == nil {
 				qcorrupt += 1
 				stats.incQCorrupt(hit)
@@ -172,7 +172,7 @@ func getPdbChain(fp string) *pdb.Chain {
 
 	pdbPath := path.Join(flagPdbDir, pdbCat, pdbFile)
 
-	entry, err := pdb.New(pdbPath)
+	entry, err := pdb.ReadPDB(pdbPath)
 	assert(err)
 
 	chain := entry.Chain(chainId)

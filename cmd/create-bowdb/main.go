@@ -118,7 +118,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 	for _, pdbFile := range pdbFiles {
-		entry, err := pdb.New(pdbFile)
+		entry, err := pdb.ReadPDB(pdbFile)
 		if err != nil {
 			progressChan <- progressJob{pdbFile, err}
 			continue
@@ -128,7 +128,7 @@ func main() {
 		// the progress bar.
 		hasProteinChains := false
 		for _, chain := range entry.Chains {
-			if chain.ValidProtein() {
+			if chain.IsProtein() {
 				hasProteinChains = true
 				break
 			}

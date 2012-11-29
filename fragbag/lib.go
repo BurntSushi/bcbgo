@@ -104,7 +104,7 @@ func NewLibrary(path string) (*Library, error) {
 	// Set the fragment size of this library to the size of one of the
 	// fragments. Then make sure every other fragment has the same size.
 	for _, frag := range lib.fragments {
-		size := len(frag.OneChain().CaAtoms)
+		size := len(frag.CaAtoms)
 		if lib.fragmentSize == 0 {
 			lib.fragmentSize = size
 		} else {
@@ -145,7 +145,7 @@ func (lib *Library) Fragment(fragNum int) *LibFragment {
 // BestFragment panics if the length of atoms is not equivalent to the
 // fragment size of the library.
 func (lib *Library) BestFragment(
-	atoms pdb.Atoms, mem rmsd.QcMemory) (int, float64) {
+	atoms []pdb.Coords, mem rmsd.QcMemory) (int, float64) {
 
 	if len(atoms) != lib.FragmentSize() {
 		panic(fmt.Sprintf("BestFragment can only be called with a list of "+
@@ -156,7 +156,7 @@ func (lib *Library) BestFragment(
 
 	bestRmsd, bestFragNum := 0.0, -1
 	for _, frag := range lib.fragments {
-		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.OneChain().CaAtoms)
+		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.OneChain().CaAtoms())
 		if bestFragNum == -1 || testRmsd < bestRmsd {
 			bestRmsd, bestFragNum = testRmsd, frag.Ident
 		}
@@ -166,7 +166,7 @@ func (lib *Library) BestFragment(
 
 type rmsdPoolJob struct {
 	fragNum int
-	atoms   pdb.Atoms
+	atoms   []pdb.Coords
 }
 
 type rmsdPoolResult struct {
@@ -178,7 +178,7 @@ type rmsdPoolResult struct {
 // for *each* set of atoms provided. The best fragment for each atom set
 // is returned in a slice of integers whose indices correspond exactly to
 // the indices of 'atomSets'.
-func (lib *Library) BestFragments(atomSets []pdb.Atoms) []int {
+func (lib *Library) BestFragments(atomSets [][]pdb.Coords) []int {
 	// Create the worker pool.
 	jobs, results := lib.rmsdWorkers(0, 0)
 	bestFrags := make([]int, len(atomSets))
@@ -250,7 +250,7 @@ func (lib *Library) rmsdWorkers(
 					fragNum: job.fragNum,
 					rmsd: rmsd.QCRMSD(
 						job.atoms,
-						lib.Fragment(job.fragNum).OneChain().CaAtoms),
+						lib.Fragment(job.fragNum).CaAtoms),
 				}
 			}
 		}()
@@ -280,6 +280,7 @@ type LibFragment struct {
 	library *Library
 	Ident   int
 	*pdb.Entry
+	CaAtoms []pdb.Coords
 }
 
 // newLibFragment creates a new LibFragment with a particular fragment number
@@ -288,7 +289,7 @@ type LibFragment struct {
 // and the fragment number.
 func (lib *Library) newLibFragment(fragNum int) (*LibFragment, error) {
 	path := path.Join(lib.Path, fmt.Sprintf("%d", fragNum))
-	entry, err := pdb.New(path)
+	entry, err := pdb.ReadPDB(path)
 	if err != nil {
 		return nil, err
 	}
@@ -296,14 +297,14 @@ func (lib *Library) newLibFragment(fragNum int) (*LibFragment, error) {
 		library: lib,
 		Ident:   fragNum,
 		Entry:   entry,
+		CaAtoms: entry.OneChain().CaAtoms(),
 	}, nil
 }
 
 // String returns the fragment number, library and its corresponding atoms.
 func (frag *LibFragment) String() string {
-	chain := frag.OneChain()
-	atoms := make([]string, len(chain.CaAtoms))
-	for i, atom := range chain.CaAtoms {
+	atoms := make([]string, len(frag.CaAtoms))
+	for i, atom := range frag.CaAtoms {
 		atoms[i] = fmt.Sprintf("\t%s", atom)
 	}
 	return fmt.Sprintf("> %d (%s)\n%s",

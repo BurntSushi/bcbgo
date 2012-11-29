@@ -105,14 +105,14 @@ func main() {
 
 	allResults := make(results, 0, 100)
 	for _, pdbFile := range pdbFiles {
-		entry, err := pdb.New(pdbFile)
+		entry, err := pdb.ReadPDB(pdbFile)
 		if err != nil {
 			errorf("Could not parse PDB file '%s' because: %s\n", pdbFile, err)
 			continue
 		}
 
 		for _, chain := range entry.Chains {
-			if !chain.ValidProtein() {
+			if !chain.IsProtein() {
 				continue
 			}
 

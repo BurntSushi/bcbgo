@@ -12,7 +12,7 @@ import (
 // #include "qcprot.h"
 import "C"
 
-func CQCRMSD(struct1, struct2 pdb.Atoms) float64 {
+func CQCRMSD(struct1, struct2 []pdb.Coords) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -23,10 +23,10 @@ func CQCRMSD(struct1, struct2 pdb.Atoms) float64 {
 	X := C.MatInit(3, C.int(cols))
 	Y := C.MatInit(3, C.int(cols))
 	for i := 0; i < cols; i++ {
-		xc, yc := struct1[i].Coords, struct2[i].Coords
+		xc, yc := struct1[i], struct2[i]
 
-		C.MatSet(X, C.int(i), C.double(xc[0]), C.double(xc[1]), C.double(xc[2]))
-		C.MatSet(Y, C.int(i), C.double(yc[0]), C.double(yc[1]), C.double(yc[2]))
+		C.MatSet(X, C.int(i), C.double(xc.X), C.double(xc.Y), C.double(xc.Z))
+		C.MatSet(Y, C.int(i), C.double(yc.X), C.double(yc.Y), C.double(yc.Z))
 	}
 
 	rot := make([]C.double, 9)

@@ -21,19 +21,21 @@ func (lib *Library) NewBowPDBOldStyle(entry *pdb.Entry) BOW {
 	bow := lib.NewBow()
 
 	// Flatten the atoms into one big slice first.
-	atoms := make(pdb.Atoms, 0, 500)
+	atoms := make([]pdb.Coords, 0, 500)
 	for _, chain := range entry.Chains {
-		if !chain.ValidProtein() {
+		if !chain.IsProtein() {
 			continue
 		}
-		atoms = append(atoms, chain.CaAtoms...)
+		for _, model := range chain.Models {
+			atoms = append(atoms, model.CaAtoms()...)
+		}
 	}
 
 	// Create a list of atom sets for all K-mer windows of all protein chains
 	// in the PDB entry, where K is the fragment size of the library.
 	// The list of atom sets can then have the best fragment for each atom
 	// set computed concurrently with BestFragments.
-	atomSets := make([]pdb.Atoms, 0, 100)
+	atomSets := make([][]pdb.Coords, 0, 100)
 	for i := 0; i <= len(atoms)-lib.FragmentSize(); i++ {
 		atomSets = append(atomSets, atoms[i:i+lib.FragmentSize()])
 	}

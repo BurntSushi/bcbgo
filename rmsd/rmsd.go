@@ -32,7 +32,7 @@ import (
 // Note that RMSD will panic if the lengths of struct1 and struct2 differ.
 // RMSD will also panic if the calculation of the SVD returns an error. (It's
 // possible that will change, though.)
-func RMSD(struct1, struct2 pdb.Atoms) float64 {
+func RMSD(struct1, struct2 []pdb.Coords) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -51,14 +51,13 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 	X := make([]float64, 3*cols)
 	Y := make([]float64, 3*cols)
 	for i := 0; i < len(struct1); i++ {
-		a1, a2 := struct1[i].Coords, struct2[i].Coords
-		X[0*cols+i] = a1[0] - cx1
-		X[1*cols+i] = a1[1] - cy1
-		X[2*cols+i] = a1[2] - cz1
+		X[0*cols+i] = struct1[i].X - cx1
+		X[1*cols+i] = struct1[i].Y - cy1
+		X[2*cols+i] = struct1[i].Z - cz1
 
-		Y[0*cols+i] = a2[0] - cx2
-		Y[1*cols+i] = a2[1] - cy2
-		Y[2*cols+i] = a2[2] - cz2
+		Y[0*cols+i] = struct2[i].X - cx2
+		Y[1*cols+i] = struct2[i].Y - cy2
+		Y[2*cols+i] = struct2[i].Z - cz2
 	}
 
 	// Compute the covariance matrix C = X(Y^T)
@@ -105,12 +104,12 @@ func RMSD(struct1, struct2 pdb.Atoms) float64 {
 }
 
 // centroid calculates the average position of a set of atoms.
-func centroid(atoms pdb.Atoms) (float64, float64, float64) {
+func centroid(atoms []pdb.Coords) (float64, float64, float64) {
 	var xs, ys, zs float64
 	for _, atom := range atoms {
-		xs += atom.Coords[0]
-		ys += atom.Coords[1]
-		zs += atom.Coords[2]
+		xs += atom.X
+		ys += atom.Y
+		zs += atom.Z
 	}
 	n := float64(len(atoms))
 	return xs / n, ys / n, zs / n

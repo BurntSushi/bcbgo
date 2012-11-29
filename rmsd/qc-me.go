@@ -123,11 +123,11 @@ func NewQcMemory(cols int) QcMemory {
 	return mem
 }
 
-func QCRMSD(struct1, struct2 pdb.Atoms) float64 {
+func QCRMSD(struct1, struct2 []pdb.Coords) float64 {
 	return QCRMSDMem(NewQcMemory(len(struct1)), struct1, struct2)
 }
 
-func QCRMSDMem(mem QcMemory, struct1, struct2 pdb.Atoms) float64 {
+func QCRMSDMem(mem QcMemory, struct1, struct2 []pdb.Coords) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -136,13 +136,13 @@ func QCRMSDMem(mem QcMemory, struct1, struct2 pdb.Atoms) float64 {
 
 	cols := len(struct1)
 	for i := 0; i < cols; i++ {
-		mem.coords1[0][i] = struct1[i].Coords[0]
-		mem.coords1[1][i] = struct1[i].Coords[1]
-		mem.coords1[2][i] = struct1[i].Coords[2]
+		mem.coords1[0][i] = struct1[i].X
+		mem.coords1[1][i] = struct1[i].Y
+		mem.coords1[2][i] = struct1[i].Z
 
-		mem.coords2[0][i] = struct2[i].Coords[0]
-		mem.coords2[1][i] = struct2[i].Coords[1]
-		mem.coords2[2][i] = struct2[i].Coords[2]
+		mem.coords2[0][i] = struct2[i].X
+		mem.coords2[1][i] = struct2[i].Y
+		mem.coords2[2][i] = struct2[i].Z
 	}
 	return calcRMSD(mem.coords1, mem.coords2)
 }

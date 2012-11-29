@@ -60,13 +60,14 @@ func (lib *Library) NewBowMap(freqMap map[int]int16) BOW {
 // NewBowChain returns a bag-of-words describing a chain in a PDB entry.
 func (lib *Library) NewBowChain(chain *pdb.Chain) BOW {
 	bow := lib.NewBow()
-	if len(chain.CaAtoms) < lib.FragmentSize() {
+	cas := chain.CaAtoms()
+	if len(cas) < lib.FragmentSize() {
 		return bow
 	}
 
 	mem := rmsd.NewQcMemory(lib.FragmentSize())
-	for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
-		atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
+	for i := 0; i <= len(cas)-lib.FragmentSize(); i++ {
+		atoms := cas[i : i+lib.FragmentSize()]
 		bestFragNum, _ := lib.BestFragment(atoms, mem)
 		bow.fragfreqs[bestFragNum]++
 	}
@@ -81,14 +82,16 @@ func (lib *Library) NewBowPDB(entry *pdb.Entry) BOW {
 	bow := lib.NewBow()
 	mem := rmsd.NewQcMemory(lib.FragmentSize())
 	for _, chain := range entry.Chains {
-		if !chain.ValidProtein() {
+		if !chain.IsProtein() {
 			continue
 		}
-		if len(chain.CaAtoms) < lib.FragmentSize() {
+
+		cas := chain.CaAtoms()
+		if len(cas) < lib.FragmentSize() {
 			continue
 		}
-		for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
-			atoms := chain.CaAtoms[i : i+lib.FragmentSize()]
+		for i := 0; i <= len(cas)-lib.FragmentSize(); i++ {
+			atoms := cas[i : i+lib.FragmentSize()]
 			bestFragNum, _ := lib.BestFragment(atoms, mem)
 			bow.fragfreqs[bestFragNum]++
 		}
@@ -109,22 +112,24 @@ func (lib *Library) NewBowPDBPar(entry *pdb.Entry) BOW {
 	// in the PDB entry, where K is the fragment size of the library.
 	// The list of atom sets can then have the best fragment for each atom
 	// set computed concurrently with BestFragments.
-	atomSets := make([]pdb.Atoms, 0, 100)
+	atomSets := make([][]pdb.Coords, 0, 100)
 
 	for _, chain := range entry.Chains {
-		if !chain.ValidProtein() {
+		if !chain.IsProtein() {
 			continue
 		}
 
+		cas := chain.CaAtoms()
+
 		// If this chain is smaller than the fragment size, then we skip it.
-		if len(chain.CaAtoms) < lib.FragmentSize() {
+		if len(cas) < lib.FragmentSize() {
 			continue
 		}
 
 		// Otherwise, the chain is bigger than the fragment size. So add each
 		// of its K-mer windows to the atom set.
-		for i := 0; i <= len(chain.CaAtoms)-lib.FragmentSize(); i++ {
-			atomSets = append(atomSets, chain.CaAtoms[i:i+lib.FragmentSize()])
+		for i := 0; i <= len(cas)-lib.FragmentSize(); i++ {
+			atomSets = append(atomSets, cas[i:i+lib.FragmentSize()])
 		}
 	}
 

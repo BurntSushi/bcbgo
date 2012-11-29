@@ -114,14 +114,14 @@ func createMattArgs(chains []*pdb.Chain) []matt.PDBArg {
 func createChains(pdbFiles []string) []*pdb.Chain {
 	chains := make([]*pdb.Chain, 0, len(pdbFiles))
 	for _, pdbFile := range pdbFiles {
-		entry, err := pdb.New(pdbFile)
+		entry, err := pdb.ReadPDB(pdbFile)
 		if err != nil {
 			errorf("Could not parse PDB file '%s' because: %s\n", pdbFile, err)
 			continue
 		}
 
 		for _, chain := range entry.Chains {
-			if !chain.ValidProtein() {
+			if !chain.IsProtein() {
 				continue
 			}
 			chains = append(chains, chain)

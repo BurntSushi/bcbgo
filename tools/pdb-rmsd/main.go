@@ -21,11 +21,11 @@ func main() {
 	pdbf2, chain2, s2, e2 := flag.Arg(4), flag.Arg(5), flag.Arg(6), flag.Arg(7)
 
 	// Build pdb.Entry values. If anything goes wrong, quit!
-	entry1, err := pdb.New(pdbf1)
+	entry1, err := pdb.ReadPDB(pdbf1)
 	if err != nil {
 		fatalf("%s", err)
 	}
-	entry2, err := pdb.New(pdbf2)
+	entry2, err := pdb.ReadPDB(pdbf2)
 	if err != nil {
 		fatalf("%s", err)
 	}

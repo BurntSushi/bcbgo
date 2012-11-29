@@ -10,10 +10,10 @@ parser = argparse.ArgumentParser(
     description='Gathering data for the Carugo & Pongor (2002) PRIDE study',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 aa = parser.add_argument
-aa('--pdb-dir', dest='pdb_dir', type=str, default='/media/Nightjar/pdb',
+aa('--pdb-dir', dest='pdb_dir', type=str, default='/data/bio/pdb',
    metavar='PDB_DIR', help='The location of the PDB directory.')
 aa('--output-dir', dest='output_dir', type=str,
-   default='./data/experiments/pride/pdb',
+   default='./data/experiments/fragbag-pride/pdb',
    metavar='OUTPUT_DIR', help='The location to write the data set.')
 conf = parser.parse_args()
 

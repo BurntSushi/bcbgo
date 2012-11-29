@@ -111,7 +111,7 @@ type Fragment struct {
 	Query    seq.Sequence
 	Template seq.Sequence
 	Hit      hhr.Hit
-	CaAtoms  pdb.Atoms
+	CaAtoms  []pdb.Coords
 }
 
 // IsCorrupt returns true when a particular fragment could not be paired
@@ -136,7 +136,7 @@ func NewFragment(
 	pdbDb PDBDatabase, qs seq.Sequence, hit hhr.Hit) (Fragment, error) {
 
 	pdbName := getTemplatePdbName(hit.Name)
-	pdbEntry, err := pdb.New(path.Join(
+	pdbEntry, err := pdb.ReadPDB(path.Join(
 		pdbDb.PDB(), fmt.Sprintf("%s.pdb", pdbName)))
 	if err != nil {
 		return Fragment{}, err
@@ -169,13 +169,13 @@ func NewFragment(
 
 	// We also designate "corrupt" if there are any gaps in our alpha-carbon
 	// atom list.
-	atoms := chain.CaAtomSlice(ts-1, te)
+	atoms := chain.SequenceCaAtomSlice(ts-1, te)
 	if atoms == nil {
 		return frag, nil
 	}
 
 	// One again, we copy to avoid pinning memory.
-	frag.CaAtoms = make(pdb.Atoms, len(atoms))
+	frag.CaAtoms = make([]pdb.Coords, len(atoms))
 	copy(frag.CaAtoms, atoms)
 
 	return frag, nil

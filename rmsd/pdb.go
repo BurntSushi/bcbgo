@@ -24,12 +24,12 @@ func PDB(entry1 *pdb.Entry, chainId1 byte, start1, end1 int,
 	chain1 := entry1.Chain(chainId1)
 	if chain1 == nil {
 		return 0.0, fmt.Errorf("The chain '%c' could not be found in '%s'.",
-			chainId1, entry1.Name())
+			chainId1, entry1.Path)
 	}
 	chain2 := entry2.Chain(chainId2)
 	if chain2 == nil {
 		return 0.0, fmt.Errorf("The chain '%c' could not be found in '%s'.",
-			chainId2, entry2.Name())
+			chainId2, entry2.Path)
 	}
 	return Chains(chain1, start1, end1, chain2, start2, end2)
 }
@@ -41,19 +41,19 @@ func Chains(chain1 *pdb.Chain, start1, end1 int,
 	// In order to fetch the appropriate carbon-alpha atoms, we need to
 	// traverse each chain's carbon-alpha atom slice and pick only the carbon
 	// alpha atoms with residue indices in the range specified.
-	struct1 := chain1.CaAtomSlice(start1-1, end1)
-	struct2 := chain2.CaAtomSlice(start2-1, end2)
+	struct1 := chain1.SequenceCaAtomSlice(start1-1, end1)
+	struct2 := chain2.SequenceCaAtomSlice(start2-1, end2)
 
 	// Verify that neither of the atom sets is 0.
 	if struct1 == nil || len(struct1) == 0 {
 		return 0.0, fmt.Errorf("The range '%d-%d' (for chain %c in %s) does "+
 			"not correspond to any carbon-alpha ATOM records.",
-			start1, end1, chain1.Ident, chain1.Entry.Name())
+			start1, end1, chain1.Ident, chain1.Entry.Path)
 	}
 	if struct2 == nil || len(struct2) == 0 {
 		return 0.0, fmt.Errorf("The range '%d-%d' (for chain %c in %s) does "+
 			"not correspond to any carbon-alpha ATOM records.",
-			start2, end2, chain2.Ident, chain2.Entry.Name())
+			start2, end2, chain2.Ident, chain2.Entry.Path)
 	}
 
 	// If we don't have the same number of atoms from each chain, we can't
@@ -64,8 +64,8 @@ func Chains(chain1 *pdb.Chain, start1, end1 int,
 			"atoms as the range '%d-%d' (%d ATOM records for chain %c in %s). "+
 			"It is possible that the PDB file does not contain a carbon-alpha "+
 			"atom for every residue index in the ranges.",
-			start1, end1, len(struct1), chain1.Ident, chain1.Entry.Name(),
-			start2, end2, len(struct2), chain2.Ident, chain2.Entry.Name())
+			start1, end1, len(struct1), chain1.Ident, chain1.Entry.Path,
+			start2, end2, len(struct2), chain2.Ident, chain2.Entry.Path)
 	}
 
 	// We're good to go...
