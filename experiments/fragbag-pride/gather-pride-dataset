@@ -281,9 +281,17 @@ for entry, chain, expected in chains:
         elif line.startswith('ENDMDL'):
             model.append(line)
 
+            modelHeader = header[:]
+            for i, line in enumerate(modelHeader):
+                if line.startswith('SEQRES'):
+                    if line[11] == chain or (line[11] == 'A' and chain == ' '):
+                        line = list(line)
+                        line[11] = chr(ord('A') - 1 + model_num)
+                        modelHeader[i] = ''.join(line)
+
             fpath = os.path.join(conf.output_dir, entry, '%d.pdb' % model_num)
             f = open(fpath, 'w+')
-            print >> f, ''.join(header),
+            print >> f, ''.join(modelHeader),
             print >> f, ''.join(model),
             print >> f, 'END'
         elif line.startswith('ATOM') and model_num > 0:
