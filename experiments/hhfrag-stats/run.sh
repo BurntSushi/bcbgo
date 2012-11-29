@@ -91,13 +91,13 @@ for target in $(cat "$targets"); do
   case ${#target} in
     4)
       pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
-      pdb2fasta --seqres --separate-chains --split "$tmp_dir" "$pdb_file"
+      pdb2fasta --separate-chains --split "$tmp_dir" "$pdb_file"
       ;;
     5)
       pdbid=${target:0:4}
       chain=${target:4}
       pdb_file="$pdb_dir"/${pdbid:1:2}/pdb$pdbid.ent.gz
-      pdb2fasta --chain $chain --seqres "$pdb_file" "$tmp_dir"/$target.fasta
+      pdb2fasta --chain $chain "$pdb_file" "$tmp_dir"/$target.fasta
       ;;
     *)
       msg "Unrecognized PDB identifier: $target"
