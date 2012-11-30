@@ -86,21 +86,86 @@ func FindFragments(pdbDb PDBDatabase, blits bool,
 		return nil, err
 	}
 
-	frags := make([]Fragment, len(results.Hits))
-	for i, hit := range results.Hits {
+	frags := make([]Fragment, 0, len(results.Hits))
+	for _, hit := range results.Hits {
 		hit.QueryStart += start
 		hit.QueryEnd += start
-		frag, err := NewFragment(pdbDb, qs, hit)
-		if err != nil {
-			return nil, err
+		for _, splitted := range splitHit(hit) {
+			frag, err := NewFragment(pdbDb, qs, splitted)
+			if err != nil {
+				return nil, err
+			}
+			frags = append(frags, frag)
 		}
-		frags[i] = frag
 	}
 	return &Fragments{
 		Frags: frags,
 		Start: start,
 		End:   end,
 	}, nil
+}
+
+func splitHit(hit hhr.Hit) []hhr.Hit {
+	splitted := make([]hhr.Hit, 0)
+	chunks := 0
+	start := 0
+	for i, r := range hit.Aligned.TSeq {
+		if r == '-' {
+			// Skip if this is the first residue or last residue was '-',
+			// since we haven't accumulated anything.
+			if i == 0 || hit.Aligned.TSeq[i-1] == '-' {
+				start++
+				continue
+			}
+
+			splitted = append(splitted, splitAt(hit, chunks, start, i))
+			chunks++
+			start = i + 1
+		}
+	}
+	if start < len(hit.Aligned.TSeq) {
+		piece := splitAt(hit, chunks, start, len(hit.Aligned.TSeq))
+		splitted = append(splitted, piece)
+	}
+	return splitted
+}
+
+func splitAt(hit hhr.Hit, chunkNum, start, end int) hhr.Hit {
+	cpy := hit
+
+	cpy.Chunk = chunkNum
+	cpy.NumAlignedCols = end - start
+	cpy.QueryStart = cpy.QueryStart + start
+	cpy.QueryEnd = cpy.QueryStart + cpy.NumAlignedCols - 1
+	cpy.TemplateStart = cpy.TemplateStart + start
+	cpy.TemplateEnd = cpy.TemplateStart + cpy.NumAlignedCols - 1
+	cpy.NumTemplateCols = cpy.NumAlignedCols
+
+	cpy.Aligned.QSeq = cpy.Aligned.QSeq[start:end]
+	cpy.Aligned.QConsensus = cpy.Aligned.QConsensus[start:end]
+	if len(cpy.Aligned.QDssp) > 0 {
+		cpy.Aligned.QDssp = cpy.Aligned.QDssp[start:end]
+	}
+	if len(cpy.Aligned.QPred) > 0 {
+		cpy.Aligned.QPred = cpy.Aligned.QPred[start:end]
+	}
+	if len(cpy.Aligned.QConf) > 0 {
+		cpy.Aligned.QConf = cpy.Aligned.QConf[start:end]
+	}
+
+	cpy.Aligned.TSeq = cpy.Aligned.TSeq[start:end]
+	cpy.Aligned.TConsensus = cpy.Aligned.TConsensus[start:end]
+	if len(cpy.Aligned.TDssp) > 0 {
+		cpy.Aligned.TDssp = cpy.Aligned.TDssp[start:end]
+	}
+	if len(cpy.Aligned.TPred) > 0 {
+		cpy.Aligned.TPred = cpy.Aligned.TPred[start:end]
+	}
+	if len(cpy.Aligned.TConf) > 0 {
+		cpy.Aligned.TConf = cpy.Aligned.TConf[start:end]
+	}
+
+	return cpy
 }
 
 // An HHfrag Fragment corresponds to a match between a portion of a query
