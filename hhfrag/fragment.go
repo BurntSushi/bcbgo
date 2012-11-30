@@ -109,37 +109,55 @@ func splitHit(hit hhr.Hit) []hhr.Hit {
 	splitted := make([]hhr.Hit, 0)
 	chunks := 0
 	start := 0
-	for i, r := range hit.Aligned.TSeq {
-		if r == '-' {
+	alignLen := len(hit.Aligned.TSeq)
+
+	qgaps, tgaps := 0, 0
+	for i := 0; i < alignLen; i++ {
+		qr, tr := hit.Aligned.QSeq[i], hit.Aligned.TSeq[i]
+		if qr == '-' || tr == '-' {
 			// Skip if this is the first residue or last residue was '-',
 			// since we haven't accumulated anything.
-			if i == 0 || hit.Aligned.TSeq[i-1] == '-' {
-				start++
+			if i == 0 ||
+				hit.Aligned.TSeq[i-1] == '-' || hit.Aligned.QSeq[i-1] == '-' {
+
+				start = i + 1
+				if qr == '-' {
+					qgaps++
+				}
+				if tr == '-' {
+					tgaps++
+				}
 				continue
 			}
 
-			splitted = append(splitted, splitAt(hit, chunks, start, i))
+			piece := splitAt(hit, chunks, start, i, qgaps, tgaps)
+			splitted = append(splitted, piece)
 			chunks++
 			start = i + 1
+			if qr == '-' {
+				qgaps++
+			}
+			if tr == '-' {
+				tgaps++
+			}
 		}
 	}
-	if start < len(hit.Aligned.TSeq) {
-		piece := splitAt(hit, chunks, start, len(hit.Aligned.TSeq))
+	if start < alignLen {
+		piece := splitAt(hit, chunks, start, alignLen, qgaps, tgaps)
 		splitted = append(splitted, piece)
 	}
 	return splitted
 }
 
-func splitAt(hit hhr.Hit, chunkNum, start, end int) hhr.Hit {
+func splitAt(hit hhr.Hit, chunkNum, start, end, qgaps, tgaps int) hhr.Hit {
 	cpy := hit
 
 	cpy.Chunk = chunkNum
 	cpy.NumAlignedCols = end - start
-	cpy.QueryStart = cpy.QueryStart + start
+	cpy.QueryStart = cpy.QueryStart + start - qgaps
 	cpy.QueryEnd = cpy.QueryStart + cpy.NumAlignedCols - 1
-	cpy.TemplateStart = cpy.TemplateStart + start
+	cpy.TemplateStart = cpy.TemplateStart + start - tgaps
 	cpy.TemplateEnd = cpy.TemplateStart + cpy.NumAlignedCols - 1
-	cpy.NumTemplateCols = cpy.NumAlignedCols
 
 	cpy.Aligned.QSeq = cpy.Aligned.QSeq[start:end]
 	cpy.Aligned.QConsensus = cpy.Aligned.QConsensus[start:end]
