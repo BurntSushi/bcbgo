@@ -57,7 +57,7 @@ pdb_dir="$1"
 pdb_hhm_db="$2"
 seq_hhm_db="$3"
 targets="$4"
-log_path=$exp_dir/"$(basename "$4")"
+log_path=$exp_dir/"$(basename "$targets")"
 map_dir=$tmp_dir/map
 
 if [ ! -f "$targets" ]; then
@@ -126,6 +126,8 @@ for target in "$tmp_dir"/*.fasta; do
   fmap_file="$map_dir/$prefix/$name.fmap"
   $calc_stats "$fmap_file" > "$log_path/$prefix/$name.log"
 done
+
+$exp_dir/tally-stats $log_path/$prefix/*.log > $log_path/$prefix/results
 
 msg "Cleanup"
 rm -f $calc_stats
