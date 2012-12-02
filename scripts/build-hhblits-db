@@ -99,7 +99,7 @@ msg "This may take a while. Go grab a drink."
 glob="$transient"/'*.fasta'
 multithread.pl \
   "$glob" \
-  'hhblits -i $file -d '"$hhsuite_db"' -n 2 -mact 0.99 -oa3m $name.a3m' \
+  'hhblits -i $file -d '"$hhsuite_db"' -n 2 -mact 0.35 -oa3m $name.a3m' \
   --cpu $num_cpus 2>&1
 
 msg "Performing secondary structure annotation on each MSA."
