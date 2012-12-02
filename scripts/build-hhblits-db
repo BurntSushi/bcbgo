@@ -26,17 +26,12 @@ function usage {
 }
 
 num_cpus=`num_cpus`
-force=0
 
 while true; do
   case "$1" in
     -cpu|--cpu)
       num_cpus=$2
       shift 2
-      ;;
-    -force|--force)
-      force=1
-      shift
       ;;
     -h|-help|--help)
       usage
@@ -56,22 +51,18 @@ if [ $# != 3 ]; then
   usage
 fi
 
-new_db_name="$1" # The new DB we're creating.
+pdb_hhm_db="$1" # The new DB we're creating.
 hhsuite_db="$2"  # The DB we're using to generate MSAs.
 pdb_dir="$3"     # The directory containing the PDB files.
 transient="$pdb_dir/transient" # A temp dir to store fasta/a3m/hhm files.
 
-if [ -d "$transient" ]; then
-  if [ $force = 1 ]; then
-    rm -rf "$transient"
-  else
-    msg "The '$pdb_dir' directory contains transient files from the last "
-    msg "time an HHblits database was made."
-
-    msg "To continue, please remove '$transient' and try again."
-    exit 1
-  fi
+if [ -d "$pdb_hhm_db" ]; then
+  msg "$pdb_hhm_db already exists. Quitting..."
+  exit 1
 fi
+mkdir -p $pdb_hhm_db/pdb
+
+rm -rf "$transient"
 mkdir "$transient"
 
 msg "Generating a FASTA file for each PDB file..."
@@ -81,18 +72,26 @@ for f in "$pdb_dir"/*.pdb "$pdb_dir"/*.ent "$pdb_dir"/*.ent.gz; do
   fi
 
   basef=$(basename "$f")
-  fas_name=""
+  name=""
   if [[ "$f" = *.pdb ]]; then
-    fas_name="${basef%*.pdb}.fasta"
+    name="${basef%*.pdb}"
   elif [[ "$f" = *.ent ]]; then
-    fas_name="${basef%*.ent}.fasta"
+    name="${basef%*.ent}"
   elif [[ "$f" = *.ent.gz ]]; then
-    fas_name="${basef%*.ent.gz}.fasta"
+    name="${basef%*.ent.gz}"
   else
     msg "Unknown PDB extension: $f"
     exit 1
   fi
-  pdb2fasta "$f" "$transient/$fas_name" 2>&1
+  pdb2fasta --chain ${name:4} "$f" "$transient/$name.fasta" 2>&1
+done
+
+msg "Copying PDB files..."
+for f in "$pdb_dir"/*.{pdb,ent,ent.gz}; do
+  if [ ! -f "$f" ]; then
+    continue
+  fi
+  cp -a "$f" "$pdb_hhm_db"/pdb/
 done
 
 msg "Building a multiple-sequence alignment for each sequence."
@@ -119,7 +118,7 @@ multithread.pl \
 
 msg "Building the HHblits database."
 hhblitsdb.pl \
-  -o "$new_db_name" \
+  -o "$pdb_hhm_db/$pdb_hhm_db" \
   -ia3m "$transient" \
   -ihhm "$transient" \
   -cpu $num_cpus

@@ -5,7 +5,17 @@ install:
 	go install ./cmd/...
 
 install-tools:
-	go install ./tools/...
+	# I don't know WTF is going on. Sometimes the go tool just sits and burns
+	# my CPU when I run `go install ./tools/...`. That's what I get for living
+	# on the edge...
+	go install ./tools/buildhhm
+	go install ./tools/gather-pdb-chains
+	go install ./tools/hhfrag-map
+	go install ./tools/pdb2fasta
+	go install ./tools/pdb-rmsd
+	go install ./tools/pdb-test
+	go install ./tools/slicehhm
+	go install ./tools/viewmap
 
 clean:
 	rm -f $(HOME)/go/bin/{create-bowdb,search-bowdb}
