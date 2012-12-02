@@ -118,7 +118,7 @@ multithread.pl \
 
 msg "Building the HHblits database."
 hhblitsdb.pl \
-  -o "$pdb_hhm_db/$pdb_hhm_db" \
+  -o "$pdb_hhm_db/$(basename "$pdb_hhm_db")" \
   -ia3m "$transient" \
   -ihhm "$transient" \
   -cpu $num_cpus
