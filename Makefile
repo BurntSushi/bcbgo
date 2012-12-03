@@ -9,6 +9,7 @@ install-tools:
 	# my CPU when I run `go install ./tools/...`. That's what I get for living
 	# on the edge...
 	go install ./tools/buildhhm
+	go install ./tools/clean-a3m
 	go install ./tools/gather-pdb-chains
 	go install ./tools/hhfrag-map
 	go install ./tools/pdb2fasta

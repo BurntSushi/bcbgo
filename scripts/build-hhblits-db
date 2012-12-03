@@ -109,6 +109,11 @@ multithread.pl \
   'addss.pl $file' \
   --cpu $num_cpus 2>&1
 
+msg "Cleaning up messes made by hhsuite's 'addss.pl' script."
+for f in "$transient"/*.a3m; do
+  clean-a3m "$f"
+done
+
 msg "Generating an HMM for each MSA."
 glob="$transient"/'*.a3m'
 multithread.pl \
