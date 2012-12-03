@@ -231,7 +231,11 @@ func NewFragment(
 
 	// Load in the sequence from the PDB file using the SEQRES residues.
 	ts, te := hit.TemplateStart, hit.TemplateEnd
-	chain := pdbEntry.OneChain()
+	chain := pdbEntry.Chain(pdbName[4])
+	if chain == nil {
+		return Fragment{}, fmt.Errorf("Could not find chain '%c' in PDB "+
+			"entry '%s'.", pdbName[4], pdbEntry.Path)
+	}
 	tseq := seq.Sequence{
 		Name:     pdbName,
 		Residues: make([]seq.Residue, te-ts+1),
