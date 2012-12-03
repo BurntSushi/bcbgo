@@ -49,7 +49,7 @@ func main() {
 		if len(pdbEntry.Chains) == 1 {
 			fasEntry.Name = chainHeader(pdbEntry.OneChain())
 		} else {
-			fasEntry.Name = fmt.Sprintf("%s", pdbEntry.IdCode)
+			fasEntry.Name = fmt.Sprintf("%s", strings.ToLower(pdbEntry.IdCode))
 		}
 
 		seq := make([]seq.Residue, 0, 100)
@@ -138,6 +138,10 @@ func init() {
 			"the name.")
 	flag.Usage = usage
 	flag.Parse()
+
+	if len(flagChain) > 0 {
+		flagSeparateChains = true
+	}
 }
 
 func usage() {
