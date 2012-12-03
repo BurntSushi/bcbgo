@@ -222,7 +222,11 @@ func NewFragment(
 	pdbEntry, err := pdb.ReadPDB(path.Join(
 		pdbDb.PDB(), fmt.Sprintf("%s.pdb", pdbName)))
 	if err != nil {
-		return Fragment{}, err
+		pdbEntry, err = pdb.ReadPDB(path.Join(
+			pdbDb.PDB(), fmt.Sprintf("%s.ent.gz", pdbName)))
+		if err != nil {
+			return Fragment{}, err
+		}
 	}
 
 	// Load in the sequence from the PDB file using the SEQRES residues.
