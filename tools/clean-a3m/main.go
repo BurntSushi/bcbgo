@@ -27,6 +27,10 @@ func usage() {
 }
 
 func main() {
+	if flag.NArg() != 1 {
+		usage()
+	}
+
 	a3mPath := flag.Arg(0)
 	fra3m, err := os.Open(a3mPath)
 	assert(err)
@@ -52,6 +56,6 @@ func main() {
 
 func assert(err error) {
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("[%s]: %s", flag.Arg(0), err)
 	}
 }
