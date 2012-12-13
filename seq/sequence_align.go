@@ -48,7 +48,7 @@ func NeedlemanWunsch(A, B []Residue) Alignment {
 	for i > 0 && j > 0 {
 		s := matrix[i][j]
 		sdiag := matrix[i-1][j-1]
-		// sup := matrix[i][j-1] 
+		// sup := matrix[i][j-1]
 		sleft := matrix[i-1][j]
 		switch {
 		case s == sdiag+getSim62(A[i], B[j]):
