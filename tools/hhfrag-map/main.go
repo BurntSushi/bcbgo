@@ -29,7 +29,7 @@ func init() {
 	flag.StringVar(&flagSeqDB, "seqdb", flagSeqDB,
 		"The sequence database used to generate the query HHM.")
 	flag.StringVar(&flagPdbDB, "pdbdb", flagPdbDB,
-		"The PDB/HHM database used to assignment fragments.")
+		"The PDB/HHM database used to assign fragments.")
 	flag.IntVar(&flagCpu, "cpu", flagCpu,
 		"The max number of CPUs to use.")
 

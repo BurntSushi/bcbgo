@@ -266,14 +266,6 @@ func (lib *Library) String() string {
 		path.Base(lib.Path), len(lib.fragments), lib.fragmentSize)
 }
 
-// mustExist will panic if the given fragment number does not exist.
-func (lib *Library) mustExist(fragNum int) {
-	if fragNum < 0 || fragNum >= len(lib.fragments) {
-		panic(fmt.Sprintf("Fragment number %d does not exist in library '%s'.",
-			fragNum, lib))
-	}
-}
-
 // LibFragment corresponds to a single fragment file in a fragment library.
 // It holds the fragment number identifier and embeds a PDB entry.
 type LibFragment struct {

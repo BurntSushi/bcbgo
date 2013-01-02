@@ -8,8 +8,10 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
+	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/fasta"
 	"github.com/BurntSushi/bcbgo/io/hhm"
+	"github.com/BurntSushi/bcbgo/rmsd"
 	"github.com/BurntSushi/bcbgo/seq"
 )
 
@@ -32,6 +34,7 @@ func getOneFastaSequence(queryFasta string) (s seq.Sequence, err error) {
 	if err != nil {
 		return
 	}
+	defer fquery.Close()
 
 	seqs, err := fasta.NewReader(fquery).ReadAll()
 	if err != nil {
@@ -76,6 +79,7 @@ func (m MapConfig) MapFromHHM(pdbDb PDBDatabase, seqDb hhsuite.Database,
 	if err != nil {
 		return nil, err
 	}
+	defer fquery.Close()
 
 	qhhm, err := hhm.Read(fquery)
 	if err != nil {
@@ -160,4 +164,22 @@ func (fmap FragmentMap) Less(i, j int) bool {
 
 func (fmap FragmentMap) Swap(i, j int) {
 	fmap[i], fmap[j] = fmap[j], fmap[i]
+}
+
+func (fmap FragmentMap) BOW(lib *fragbag.Library) fragbag.BOW {
+	bow := lib.NewBow()
+	mem := rmsd.NewQcMemory(lib.FragmentSize())
+	for _, fragGroup := range fmap {
+		for _, frag := range fragGroup.Frags {
+			if len(frag.CaAtoms) < lib.FragmentSize() {
+				continue
+			}
+			for i := 0; i <= len(frag.CaAtoms)-lib.FragmentSize(); i++ {
+				atoms := frag.CaAtoms[i : i+lib.FragmentSize()]
+				bestFragNum, _ := lib.BestFragment(atoms, mem)
+				bow.Increment(bestFragNum)
+			}
+		}
+	}
+	return bow
 }

@@ -66,6 +66,7 @@ func FindFragments(pdbDb PDBDatabase, blits bool,
 		return nil, err
 	}
 	defer os.Remove(hhmFile.Name())
+	defer hhmFile.Close()
 	hhmName := hhmFile.Name()
 
 	if err := hhm.Write(hhmFile, queryHHM.Slice(start, end)); err != nil {

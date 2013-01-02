@@ -48,6 +48,7 @@ func (conf HHBlitsConfig) Run(db Database, query string) (*hhr.HHR, error) {
 		return nil, err
 	}
 	defer os.Remove(hhrFile.Name())
+	defer hhrFile.Close()
 
 	args := []string{
 		"-cpu", fmt.Sprintf("%d", conf.CPUs),
@@ -94,6 +95,7 @@ func BuildHHM(hhblits HHBlitsConfig, hhmake HHMakeConfig,
 		return nil, err
 	}
 	defer os.Remove(a3mFile.Name())
+	defer a3mFile.Close()
 
 	hhblits.OutA3M = a3mFile.Name()
 	_, err = hhblits.Run(db, query)

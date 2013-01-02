@@ -55,6 +55,7 @@ func (conf HHMakeConfig) Run(query string) (*hhm.HHM, error) {
 		return nil, err
 	}
 	defer os.Remove(hhmFile.Name())
+	defer hhmFile.Close()
 
 	emission := strings.Fields(fmt.Sprintf(
 		"-pcm %d -pca %f -pcb %f -pcc %f",

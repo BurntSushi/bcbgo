@@ -150,16 +150,13 @@ func (bow BOW) Set(fragNum int, cnt int16) {
 }
 
 // Increment will increment the frequency of the given fragment number by 1.
-// If a fragment of fragNum does not exist, Increment will panic.
 func (bow BOW) Increment(fragNum int) {
-	bow.library.mustExist(fragNum)
 	bow.fragfreqs[fragNum] += 1
 }
 
 // Frequency returns the number of times the fragment numbered fragNum appears
 // in the BOW vector.
 func (bow BOW) Frequency(fragNum int) int16 {
-	bow.library.mustExist(fragNum)
 	return bow.fragfreqs[fragNum]
 }
 

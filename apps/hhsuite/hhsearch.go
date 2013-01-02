@@ -35,6 +35,7 @@ func (conf HHSearchConfig) Run(db Database, query string) (*hhr.HHR, error) {
 		return nil, err
 	}
 	defer os.Remove(hhrFile.Name())
+	defer hhrFile.Close()
 
 	args := []string{
 		"-cpu", fmt.Sprintf("%d", conf.CPUs),
