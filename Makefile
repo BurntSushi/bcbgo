@@ -56,6 +56,17 @@ bench-rmsd:
 	go test ./rmsd -run 'nomatch' -bench '.*'
 
 # Experiments with default parameters
+exp-hhfrag-bow:
+	sh experiments/hhfrag-bow/run.sh \
+		/data/bio/bowdbs/pdb \
+		/data/bio/pdb \
+		pdb-select25 \
+		nr20 \
+		data/experiments/hhfrag-bow/2djb
+
+exp-hhfrag-bow-clean:
+	rm -rf data/experiments/hhfrag-bow/tmp/*
+
 exp-hhfrag-stats:
 	sh experiments/hhfrag-stats/run.sh \
 		/data/bio/pdb \

@@ -31,7 +31,7 @@ type DB struct {
 
 func Open(path string) (db *DB, err error) {
 	if _, err = os.Open(path); err != nil {
-		return nil, fmt.Errorf("Cannot open '%d' directory: %s", path, err)
+		return nil, fmt.Errorf("Cannot open '%s' directory: %s", path, err)
 	}
 
 	db = &DB{
