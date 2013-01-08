@@ -135,5 +135,10 @@ for target in "$tmp_dir"/*.fasta; do
     "$bowdb" "$fmap_file" >> "$results_bowdb_hhfrag"
 done
 
+"$exp_dir/calc-jaccard" \
+  "$results_bowdb_pdb" \
+  "$results_bowdb_hhfrag" \
+  > "$log_path/$prefix/jaccard.csv"
+
 msg "Done."
 

@@ -1,0 +1,52 @@
+#!/usr/bin/env python2
+
+import argparse
+from collections import defaultdict
+import csv
+import sys
+
+parser = argparse.ArgumentParser(
+    description='Compute the Jaccard Index between two BOW db search results.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+aa = parser.add_argument
+aa(dest='by_pdb', type=str, metavar='BY_PDB',
+   help='The results from searching by PDB entry.')
+aa(dest='by_bow', type=str, metavar='BY_BOW',
+   help='The results from searching by a BOW.')
+conf = parser.parse_args()
+
+def jaccard(s1, s2):
+    len1 = len(s1.intersection(s2))
+    len2 = len(s1.union(s2))
+    return float(len1) / float(len2)
+
+by_pdb, by_bow = defaultdict(set), defaultdict(set)
+for row in csv.DictReader(open(conf.by_pdb), delimiter='\t'):
+    if row['query_pdb'] == 'query_pdb':
+        continue
+    query = (row['query_pdb'].upper(), row['query_chain'].upper())
+    hit = (row['hit_pdb'].upper(), row['hit_chain'].upper())
+    by_pdb[query].add(hit)
+for row in csv.DictReader(open(conf.by_bow), delimiter='\t'):
+    if row['query'] == 'query':
+        continue
+    noext = row['query'][:-5]
+    query = (noext[-5:-1].upper(), noext[-1:].upper())
+    hit = (row['hit_pdb'].upper(), row['hit_chain'].upper())
+    by_bow[query].add(hit)
+
+jaccards = {}
+common = {}
+for query in sorted(by_pdb):
+    assert query in by_bow, \
+        'Could not find %s in BOW results.' % str(query)
+    jaccards[query] = jaccard(by_pdb[query], by_bow[query])
+    common[query] = list(sorted(by_pdb[query].intersection(by_bow[query])))
+
+print 'query_pdb\tquery_chain\tjaccard\tincludes_self\tintersection'
+for query in sorted(jaccards, key=lambda q: jaccards[q], reverse=True):
+    overlap = map(lambda (p, c): '%s%s' % (p, c), common[query])
+    self_str = 'yes' if query in common[query] else 'no'
+    print '%s\t%s\t%0.4f\t%s\t%s' \
+        % (query[0], query[1], jaccards[query], self_str, ', '.join(overlap))
+

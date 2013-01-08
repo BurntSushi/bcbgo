@@ -62,7 +62,7 @@ exp-hhfrag-bow:
 		/data/bio/pdb \
 		pdb-select25 \
 		nr20 \
-		data/experiments/hhfrag-bow/2djb
+		data/experiments/hhfrag-bow/small20
 
 exp-hhfrag-bow-clean:
 	rm -rf data/experiments/hhfrag-bow/tmp/*
