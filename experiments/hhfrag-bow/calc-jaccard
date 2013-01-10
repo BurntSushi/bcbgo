@@ -38,8 +38,8 @@ for row in csv.DictReader(open(conf.by_bow), delimiter='\t'):
 jaccards = {}
 common = {}
 for query in sorted(by_pdb):
-    assert query in by_bow, \
-        'Could not find %s in BOW results.' % str(query)
+    if query not in by_bow:
+        print >> sys.stderr, 'Could not find %s in BOW results.' % str(query)
     jaccards[query] = jaccard(by_pdb[query], by_bow[query])
     common[query] = list(sorted(by_pdb[query].intersection(by_bow[query])))
 
