@@ -58,6 +58,7 @@ bench-rmsd:
 # Experiments with default parameters
 exp-hhfrag-bow:
 	sh experiments/hhfrag-bow/run.sh \
+		--win-min 6 --win-max 22 --win-inc 3 \
 		/data/bio/bowdbs/pdb \
 		/data/bio/pdb \
 		pdb-select25 \
