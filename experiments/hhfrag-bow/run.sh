@@ -14,7 +14,7 @@ function num_cpus {
 }
 
 function usage {
-  msg "Usage: `basename $0` [--blits | --cpu n | --win-min n | --win-max n | --win-inc 3] bowdb pdb-dir pdb-hhm-db seq-hhm-db targets"
+  msg "Usage: `basename $0` [--skip-startup | --blits | --cpu n | --win-min n | --win-max n | --win-inc 3] bowdb pdb-dir pdb-hhm-db seq-hhm-db targets"
   exit 1
 }
 
@@ -23,6 +23,7 @@ num_cpus=`num_cpus`
 win_min=6
 win_max=22
 win_inc=3
+skip_startup=
 while true; do
   case "$1" in
     -blits|--blits)
@@ -44,6 +45,10 @@ while true; do
     -win-inc|--win-inc)
       win_inc=$2
       shift 2
+      ;;
+    -skip-startup|--skip-startup)
+      skip_startup="yes"
+      shift
       ;;
     -h|-help|--help)
       usage
@@ -74,6 +79,7 @@ seq_hhm_db="$4"
 targets="$5"
 log_path=$exp_dir/"$(basename "$targets")"
 map_dir=$tmp_dir/map
+fasta_dir=$tmp_dir/fasta
 
 if [ ! -r "$targets" ]; then
   msg "Could not read $targets"
@@ -97,21 +103,23 @@ results_bowdb_hhfrag="$log_path/$prefix/bowdb-hhfrag.csv"
 mkdir -p "$log_path"
 mkdir -p "$tmp_dir"
 mkdir -p "$map_dir"
+mkdir -p "$fasta_dir"
 
 mkdir -p "$log_path/$prefix"
 mkdir -p "$map_dir/$prefix"
+mkdir -p "$fasta_dir/$prefix"
 
 rm -rf "$results_bowdb_pdb" "$results_bowdb_hhfrag"
 touch "$results_bowdb_pdb" "$results_bowdb_hhfrag"
 
-rm -f "$tmp_dir"/*.fasta
+rm -f "$fasta_dir/$prefix"/*.fasta
 for target in $(cat "$targets"); do
   case ${#target} in
     4)
       pdb_file="$pdb_dir"/${target:1:2}/pdb$target.ent.gz
       bowpdb --csv --limit 100 --quiet \
         "$bowdb" "$pdb_file" >> "$results_bowdb_pdb"
-      pdb2fasta --separate-chains --split "$tmp_dir" "$pdb_file"
+      pdb2fasta --separate-chains --split "$fasta_dir/$prefix" "$pdb_file"
       ;;
     5)
       pdbid=${target:0:4}
@@ -119,7 +127,7 @@ for target in $(cat "$targets"); do
       pdb_file="$pdb_dir"/${pdbid:1:2}/pdb$pdbid.ent.gz
       bowpdb --csv --limit 100 --quiet --chain $chain \
         "$bowdb" "$pdb_file" >> "$results_bowdb_pdb"
-      pdb2fasta --chain $chain "$pdb_file" "$tmp_dir"/$target.fasta
+      pdb2fasta --chain $chain "$pdb_file" "$fasta_dir/$prefix/$target.fasta"
       ;;
     *)
       msg "Unrecognized PDB identifier: $target"
@@ -127,7 +135,7 @@ for target in $(cat "$targets"); do
       ;;
   esac
 done
-for target in "$tmp_dir"/*.fasta; do
+for target in "$fasta_dir/$prefix"/*.fasta; do
   name=$(basename "${target%*.fasta}")
   fmap_file="$map_dir/$prefix/$name.fmap"
   if [ -f "$fmap_file" ]; then
@@ -144,7 +152,7 @@ for target in "$tmp_dir"/*.fasta; do
   fi
 done
 
-for target in "$tmp_dir"/*.fasta; do
+for target in "$fasta_dir/$prefix"/*.fasta; do
   name=$(basename "${target%*.fasta}")
   fmap_file="$map_dir/$prefix/$name.fmap"
   bowseq --csv --limit 100 --quiet \
