@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	flagBlits = false
-	flagSeqDB = "nr20"
-	flagPdbDB = "pdb-select25"
-	flagCpu   = runtime.NumCPU()
+	hhfragConf = hhfrag.DefaultConfig
+	flagSeqDB  = "nr20"
+	flagPdbDB  = "pdb-select25"
+	flagCpu    = runtime.NumCPU()
 
 	seqDB hhsuite.Database
 	pdbDB hhfrag.PDBDatabase
@@ -24,8 +24,15 @@ var (
 func init() {
 	log.SetFlags(0)
 
-	flag.BoolVar(&flagBlits, "blits", flagBlits,
+	flag.BoolVar(&hhfragConf.Blits, "blits", hhfragConf.Blits,
 		"When set, hhblits will be used in lieu of hhsearch.")
+	flag.IntVar(&hhfragConf.WindowMin, "win-min", hhfragConf.WindowMin,
+		"The minimum HMM window size for HHfrag.")
+	flag.IntVar(&hhfragConf.WindowMax, "win-max", hhfragConf.WindowMax,
+		"The maximum HMM window size for HHfrag.")
+	flag.IntVar(&hhfragConf.WindowIncrement, "win-inc",
+		hhfragConf.WindowIncrement,
+		"The sliding window increment for HHfrag.")
 	flag.StringVar(&flagSeqDB, "seqdb", flagSeqDB,
 		"The sequence database used to generate the query HHM.")
 	flag.StringVar(&flagPdbDB, "pdbdb", flagPdbDB,
@@ -55,9 +62,7 @@ func main() {
 	fasInp := flag.Arg(0)
 	fmapOut := flag.Arg(1)
 
-	conf := hhfrag.DefaultConfig
-	conf.Blits = flagBlits
-	fmap, err := conf.MapFromFasta(pdbDB, seqDB, fasInp)
+	fmap, err := hhfragConf.MapFromFasta(pdbDB, seqDB, fasInp)
 	assert(err)
 
 	out, err := os.Create(fmapOut)
