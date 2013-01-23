@@ -52,6 +52,7 @@ func init() {
 func usage() {
 	log.Printf("Usage: hhfrag-map [flags] target-fasta out-fmap\n")
 	flag.PrintDefaults()
+	os.Exit(1)
 }
 
 func main() {
