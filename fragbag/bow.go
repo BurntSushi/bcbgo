@@ -199,12 +199,12 @@ func (bow1 BOW) Add(bow2 BOW) BOW {
 // Euclid returns the euclidean distance between bow1 and bow2.
 func (bow1 BOW) Euclid(bow2 BOW) float64 {
 	f1, f2 := bow1.fragfreqs, bow2.fragfreqs
-	squareSum := float64(0)
+	squareSum := int32(0)
 	libsize := bow1.library.Size()
 	for i := 0; i < libsize; i++ {
-		squareSum += float64(int32(f2[i]-f1[i]) * int32(f2[i]-f1[i]))
+		squareSum += int32(f2[i]-f1[i]) * int32(f2[i]-f1[i])
 	}
-	return math.Sqrt(squareSum)
+	return math.Sqrt(float64(squareSum))
 }
 
 // Cosine returns the cosine distance between bow1 and bow2.
@@ -218,22 +218,22 @@ func (bow1 BOW) Cosine(bow2 BOW) float64 {
 
 // Dot returns the dot product of bow1 and bow2.
 func (bow1 BOW) Dot(bow2 BOW) float64 {
-	dot := float64(0)
+	dot := int32(0)
 	libsize := bow1.library.Size()
 	for i := 0; i < libsize; i++ {
-		dot += float64(int32(bow1.fragfreqs[i]) * int32(bow2.fragfreqs[i]))
+		dot += int32(bow1.fragfreqs[i]) * int32(bow2.fragfreqs[i])
 	}
-	return dot
+	return float64(dot)
 }
 
 // magnitude returns the vector length of the bow.
 func (bow BOW) Magnitude() float64 {
-	mag := float64(0)
+	mag := int32(0)
 	libsize := bow.library.Size()
 	for i := 0; i < libsize; i++ {
-		mag += float64(int32(bow.fragfreqs[i]) * int32(bow.fragfreqs[i]))
+		mag += int32(bow.fragfreqs[i]) * int32(bow.fragfreqs[i])
 	}
-	return math.Sqrt(mag)
+	return math.Sqrt(float64(mag))
 }
 
 // String returns a string representation of the BOW vector. Only fragments
