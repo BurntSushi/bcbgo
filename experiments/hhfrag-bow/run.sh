@@ -14,7 +14,7 @@ function num_cpus {
 }
 
 function usage {
-  msg "Usage: `basename $0` [--skip-startup | --blits | --cpu n | --win-min n | --win-max n | --win-inc 3] bowdb pdb-dir pdb-hhm-db seq-hhm-db targets"
+  msg "Usage: `basename $0` [--blits | --cpu n | --win-min n | --win-max n | --win-inc 3] bowdb pdb-dir pdb-hhm-db seq-hhm-db targets"
   exit 1
 }
 
@@ -23,7 +23,6 @@ num_cpus=`num_cpus`
 win_min=6
 win_max=22
 win_inc=3
-skip_startup=
 while true; do
   case "$1" in
     -blits|--blits)
@@ -45,10 +44,6 @@ while true; do
     -win-inc|--win-inc)
       win_inc=$2
       shift 2
-      ;;
-    -skip-startup|--skip-startup)
-      skip_startup="yes"
-      shift
       ;;
     -h|-help|--help)
       usage
