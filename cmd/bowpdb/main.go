@@ -22,6 +22,7 @@ type result struct {
 }
 
 var (
+	flagChain      = ""
 	flagCpuProfile = ""
 	flagGoMaxProcs = runtime.NumCPU()
 	flagQuiet      = false
@@ -112,7 +113,7 @@ func main() {
 		}
 
 		for _, chain := range entry.Chains {
-			if !chain.IsProtein() {
+			if !chain.IsProtein() || !isChainUsable(chain) {
 				continue
 			}
 
@@ -140,6 +141,9 @@ func main() {
 }
 
 func init() {
+	flag.StringVar(&flagChain, "chain", flagChain,
+		"This may be set to one or more chain identifiers. Only chains "+
+			"belonging to a chain specified will be used as a query.")
 	flag.BoolVar(&flagCsv, "csv", flagCsv,
 		"When set, the search results will be printed in a CSV file format\n"+
 			"\twith a tab delimiter.")
@@ -165,6 +169,18 @@ func usage() {
 		path.Base(os.Args[0]))
 	flag.PrintDefaults()
 	os.Exit(1)
+}
+
+func isChainUsable(chain *pdb.Chain) bool {
+	if len(flagChain) == 0 {
+		return true
+	}
+	for i := 0; i < len(flagChain); i++ {
+		if chain.Ident == flagChain[i] {
+			return true
+		}
+	}
+	return false
 }
 
 func verbosef(format string, v ...interface{}) {
