@@ -30,7 +30,7 @@ func newInvertedIndexJson(r io.Reader) (inverted, error) {
 
 func (index inverted) add(sequenceId sequenceId, bow fragbag.BOW) {
 	for i := 0; i < bow.Len(); i++ {
-		if bow.Frequency(i) == 0 {
+		if bow.Freqs[i] == 0 {
 			continue
 		}
 		index[i] = append(index[i], sequenceId)

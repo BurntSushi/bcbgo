@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"path"
 	"runtime"
@@ -47,8 +48,8 @@ func outputResults(results results) {
 				csvWriter.Write([]string{
 					query.entry, fmt.Sprintf("%c", query.chain),
 					result.IdCode, fmt.Sprintf("%c", result.ChainIdent),
-					fmt.Sprintf("%f", result.Cosine),
-					fmt.Sprintf("%f", result.Euclid),
+					fmt.Sprintf("%f", math.Abs(result.Cosine)),
+					fmt.Sprintf("%f", math.Abs(result.Euclid)),
 				})
 			}
 		}
@@ -60,7 +61,7 @@ func outputResults(results results) {
 			for _, result := range query.results.Results {
 				fmt.Printf("%s\t%c\t%0.4f\n",
 					result.IdCode, result.ChainIdent,
-					result.Cosine)
+					math.Abs(result.Cosine))
 			}
 			fmt.Printf("\n")
 		}

@@ -12,8 +12,8 @@ import (
 // The BOW difference is simply the pairwise differences of fragment
 // frequencies.
 type BOWDiff struct {
-	library   *Library
-	diffFreqs []int16
+	LibraryName string
+	Freqs       []int16
 }
 
 // NewBowDiff creates a new BOWDiff by subtracting the 'old' frequencies from
@@ -22,25 +22,26 @@ type BOWDiff struct {
 // NewBowDiff will panic if 'oldbow' and 'newbow' weren't generated from the
 // same library.
 func NewBowDiff(oldbow, newbow BOW) BOWDiff {
-	mustHaveSameLibrary(oldbow, newbow)
-	mustHaveSameLength(oldbow, newbow)
+	if len(oldbow.Freqs) != len(newbow.Freqs) {
+		panic("Cannot diff two BOWs with differing lengths")
+	}
 
-	dfreqs := make([]int16, len(oldbow.fragfreqs))
-	for i := range oldbow.fragfreqs {
-		oldfreq := oldbow.fragfreqs[i]
-		newfreq := newbow.fragfreqs[i]
+	dfreqs := make([]int16, len(oldbow.Freqs))
+	for i := range oldbow.Freqs {
+		oldfreq := oldbow.Freqs[i]
+		newfreq := newbow.Freqs[i]
 		dfreqs[i] = newfreq - oldfreq
 	}
 	return BOWDiff{
-		library:   oldbow.library,
-		diffFreqs: dfreqs,
+		LibraryName: oldbow.LibraryName,
+		Freqs:       dfreqs,
 	}
 }
 
 // IsSame returns true if there are no differences. (i.e., all diff frequencies
 // are zero.)
 func (bdiff BOWDiff) IsSame() bool {
-	for _, dfreq := range bdiff.diffFreqs {
+	for _, dfreq := range bdiff.Freqs {
 		if dfreq != 0 {
 			return false
 		}
@@ -57,8 +58,8 @@ func (bdiff BOWDiff) IsSame() bool {
 // a difference frequency of zero.
 func (bdiff BOWDiff) String() string {
 	pieces := make([]string, 0, 10)
-	for i := 0; i < bdiff.library.Size(); i++ {
-		freq := bdiff.diffFreqs[i]
+	for i := 0; i < len(bdiff.Freqs); i++ {
+		freq := bdiff.Freqs[i]
 		if freq != 0 {
 			pieces = append(pieces, fmt.Sprintf("%d: %d", i, freq))
 		}

@@ -266,6 +266,10 @@ func (lib *Library) String() string {
 		path.Base(lib.Path), len(lib.fragments), lib.fragmentSize)
 }
 
+func (lib *Library) Name() string {
+	return path.Base(lib.Path)
+}
+
 // LibFragment corresponds to a single fragment file in a fragment library.
 // It holds the fragment number identifier and embeds a PDB entry.
 type LibFragment struct {

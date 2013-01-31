@@ -167,7 +167,7 @@ func (fmap FragmentMap) Swap(i, j int) {
 }
 
 func (fmap FragmentMap) BOW(lib *fragbag.Library) fragbag.BOW {
-	bow := lib.NewBow()
+	bow := fragbag.NewBow(lib.Name(), lib.Size())
 	mem := rmsd.NewQcMemory(lib.FragmentSize())
 	for _, fragGroup := range fmap {
 		for _, frag := range fragGroup.Frags {
@@ -177,7 +177,7 @@ func (fmap FragmentMap) BOW(lib *fragbag.Library) fragbag.BOW {
 			for i := 0; i <= len(frag.CaAtoms)-lib.FragmentSize(); i++ {
 				atoms := frag.CaAtoms[i : i+lib.FragmentSize()]
 				bestFragNum, _ := lib.BestFragment(atoms, mem)
-				bow.Increment(bestFragNum)
+				bow.Freqs[bestFragNum] += 1
 			}
 		}
 	}

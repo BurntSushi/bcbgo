@@ -27,11 +27,11 @@ func init() {
 		"abcdefYZ#52#53#54#abcdef",
 	}
 	newstyle = []BOW{
-		library.NewBowMap(map[int]int16{0: 5}),
-		library.NewBowMap(map[int]int16{
+		NewBowMap(library.Name(), library.Size(), map[int]int16{0: 5}),
+		NewBowMap(library.Name(), library.Size(), map[int]int16{
 			126: 1, 258: 1, 386: 1,
 		}),
-		library.NewBowMap(map[int]int16{
+		NewBowMap(library.Name(), library.Size(), map[int]int16{
 			0: 2, 1: 2, 2: 2, 3: 2, 4: 2, 5: 2,
 			50: 1, 51: 1, 52: 1, 53: 1, 54: 1,
 		}),

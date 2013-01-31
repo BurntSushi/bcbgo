@@ -40,7 +40,7 @@ func (si searchInverted) Search(
 	added := false
 	for i := 0; i < bow.Len(); i++ {
 		// Only include search items with a bow fragment in common.
-		if bow.Frequency(i) == 0 {
+		if bow.Freqs[i] == 0 {
 			continue
 		}
 

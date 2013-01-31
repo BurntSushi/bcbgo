@@ -16,9 +16,7 @@ import (
 // information is thrown out, and RMSD computations are performed across chain
 // boundaries. The regular NewBowPDB method does *not* do this.
 func (lib *Library) NewBowPDBOldStyle(entry *pdb.Entry) BOW {
-	// We don't use the public 'Increment' or 'Add' methods to avoid
-	// excessive allocations.
-	bow := lib.NewBow()
+	bow := NewBow(lib.Name(), lib.Size())
 
 	// Flatten the atoms into one big slice first.
 	atoms := make([]pdb.Coords, 0, 500)
@@ -44,7 +42,7 @@ func (lib *Library) NewBowPDBOldStyle(entry *pdb.Entry) BOW {
 	// of each fragment number returned.
 	for _, bestFragNum := range lib.BestFragments(atomSets) {
 		if bestFragNum >= 0 {
-			bow.fragfreqs[bestFragNum] += 1
+			bow.Freqs[bestFragNum] += 1
 		}
 	}
 	return bow
@@ -92,7 +90,7 @@ func (bow BOW) StringOldStyle() string {
 	buf := new(bytes.Buffer)
 	a, z := int('a'-'a'), int('z'-'a')
 	A, Z := int('A'-'A'+26), int('Z'-'A'+26)
-	for i, freq := range bow.fragfreqs {
+	for i, freq := range bow.Freqs {
 		switch {
 		case i >= a && i <= z:
 			fragLetter := string('a' + byte(i))
@@ -152,7 +150,7 @@ func (lib *Library) NewOldStyleBow(oldschool string) (BOW, error) {
 	// found, an error is returned. If a valid character is found that doesn't
 	// correspond to a valid fragment number in this library, an error is
 	// returned.
-	bow := lib.NewBow()
+	bow := NewBow(lib.Name(), lib.Size())
 	if len(oldschool) == 0 {
 		return bow, nil
 	}
@@ -169,7 +167,7 @@ func (lib *Library) NewOldStyleBow(oldschool string) (BOW, error) {
 			return fmt.Errorf("The fragment number '%d' does not correspond "+
 				"to any fragments in library %s.", fragNum, lib)
 		}
-		bow.Increment(fragNum)
+		bow.Freqs[fragNum] += 1
 		return nil
 	}
 

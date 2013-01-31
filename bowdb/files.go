@@ -204,7 +204,7 @@ func (fs *files) readNextBOW() (searchItem, error) {
 			IdCode:     idCode,
 			ChainIdent: chainIdent,
 		},
-		fs.db.Library.NewBowSlice(freqs),
+		fragbag.BOW{fs.db.Library.Name(), freqs},
 	}, nil
 }
 
@@ -225,7 +225,7 @@ func (fs *files) write(chain *pdb.Chain, bow fragbag.BOW) error {
 			"chain id: %s.", err)
 	}
 	for i := 0; i < libSize; i++ {
-		if err := binary.Write(buf, endian, bow.Frequency(i)); err != nil {
+		if err := binary.Write(buf, endian, bow.Freqs[i]); err != nil {
 			return fmt.Errorf("Something bad has happened when trying to "+
 				"write BOW: %s.", err)
 		}
