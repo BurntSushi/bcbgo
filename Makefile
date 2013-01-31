@@ -1,27 +1,19 @@
-all: install install-tools gofmt data/fraglibs/centers400_11
+export GOBIN=./bin
+
+all: gofmt install install-tools data/fraglibs/centers400_11
 
 install:
 	go install ./apps/* ./bowdb ./fragbag ./hhfrag ./io/* ./rmsd
 	go install ./cmd/...
 
 install-tools:
-	# I don't know WTF is going on. Sometimes the go tool just sits and burns
-	# my CPU when I run `go install ./tools/...`. That's what I get for living
-	# on the edge...
-	go install ./tools/buildhhm
-	go install ./tools/clean-a3m
-	go install ./tools/gather-pdb-chains
-	go install ./tools/hhfrag-map
-	go install ./tools/pdb2fasta
-	go install ./tools/pdb-rmsd
-	go install ./tools/pdb-test
-	go install ./tools/slicehhm
-	go install ./tools/viewmap
+	go install ./tools/...
+
+install-exp:
+	go install ./experiments/cmd/...
 
 clean:
-	rm -f $(HOME)/go/bin/{create-bowdb,search-bowdb}
-	rm -f $(HOME)/go/bin/{buildhhm,hhfrag-map,pdb2fasta,pdb-rmsd}
-	rm -f $(HOME)/go/bin/{slicehhm,viewmap}
+	rm -f bin/*
 
 gofmt:
 	gofmt -w */*.go */*/*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go

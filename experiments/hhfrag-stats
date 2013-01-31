@@ -1,0 +1,74 @@
+#!/usr/bin/env python2
+
+import os
+import sys
+
+import numpy as np
+
+import pybcbgo as bcb
+import pybcbgo.flags as flags
+
+flags.use_all('pdb-dir', 'pdb-hhm-db', 'seq-hhm-db',
+              'hhfrag-inc', 'hhfrag-min', 'hhfrag-max',
+              'blits', 'cpu', 'tmp-dir', 'results-dir',
+              'ignore-cache', 'no-cache')
+flags.use('pdbids', (
+    lambda: flags.add(dest='pdbids', type=str,
+                      help='A file containing PDB ids, one per line.'),
+    flags.verify_path,
+))
+flags.use('rmsd', (
+    lambda: flags.add('--rmsd', dest='rmsd', type=float,
+                      default=1.5,
+                      help='The RMSD threshold for true positives.'),
+    None,
+))
+flags.init()
+
+exp_dirname = '%s_%s_%s_%s_%d_%d_%d' % \
+    (os.path.basename(flags.config.pdbids),
+     flags.config.seq_hhm_db, flags.config.pdb_hhm_db,
+     'hhblits' if flags.config.blits else 'hhsearch',
+     flags.config.hhfrag_inc, flags.config.hhfrag_min, flags.config.hhfrag_max)
+results_dirname = '%s_rmsd-%0.4f' % (exp_dirname, flags.config.rmsd)
+
+exp_dir = os.path.join(flags.config.tmp_dir, exp_dirname)
+results_dir = os.path.join(flags.config.results_dir, results_dirname)
+
+bcb.make()
+bcb.set_exp_dir(exp_dir)
+bcb.set_results_dir(results_dir)
+
+bcb.pdbids_to_fasta(map(str.strip, open(flags.config.pdbids)))
+bcb.fastas_to_fmap(bcb.eglob('*.fasta'))
+
+# Compute stats for every fragment map (i.e., precision and coverage).
+for fmap in bcb.eglob('*.fmap'):
+    log_file = bcb.rjoin(bcb.base_ext(fmap, 'log'))
+    def calc_stats():
+        out = bcb.cmd('hhfrag-stats', '--rmsd', str(flags.config.rmsd), fmap)
+        print >> open(log_file, 'w+'), out,
+    bcb.cached([log_file], calc_stats)
+
+# Now summarize stats.
+summary_file = bcb.rjoin('summary')
+def summarize():
+    def fval(line):
+        return float(line.split(':')[1])
+
+    precision, coverage = [], []
+    for f in bcb.rglob('*.log'):
+        for line in open(f): 
+            if line.startswith('Precision'):
+                precision.append(fval(line))
+            elif line.startswith('Coverage'):
+                coverage.append(fval(line))
+
+    w = open(summary_file, 'w+')
+    print >> w, 'Precision: %0.6f +/- %0.6f' \
+                % (np.mean(precision), np.std(precision))
+    print >> w, 'Coverage: %0.6f +/- %0.6f' \
+                % (np.mean(coverage), np.std(coverage))
+    w.close()
+bcb.cached([summary_file], summarize)
+
