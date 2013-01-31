@@ -1,0 +1,86 @@
+#!/usr/bin/env python2
+
+'''
+1. Start with a random selection of PDB entries.
+
+2. Search the PDB BOW database for top 2 hits and bottom 2 hits of 100 best.
+
+3. Compute FragBag BOWs and HHfrag BOWs for each PDB entry.
+
+4. Output distance of each with original query for both FragBag and HHfrag BOWs.
+'''
+
+import csv
+import os
+import sys
+
+import numpy as np
+
+import pybcbgo as bcb
+import pybcbgo.flags as flags
+
+flags.use_all('frag-lib', 'bow-db', 'pdb-dir', 'pdb-hhm-db', 'seq-hhm-db',
+              'hhfrag-inc', 'hhfrag-min', 'hhfrag-max',
+              'blits', 'cpu', 'tmp-dir', 'results-dir',
+              'ignore-cache', 'no-cache')
+flags.use('pdbids', (
+    lambda: flags.add(dest='pdbids', type=str,
+                      help='A file containing PDB ids, one per line.'),
+    flags.verify_path,
+))
+flags.init()
+
+exp_dirname = '%s_%s_%s_%s_%d_%d_%d' % \
+    (os.path.basename(flags.config.pdbids),
+     flags.config.seq_hhm_db, flags.config.pdb_hhm_db,
+     'hhblits' if flags.config.blits else 'hhsearch',
+     flags.config.hhfrag_inc, flags.config.hhfrag_min, flags.config.hhfrag_max)
+results_dirname = exp_dirname
+
+exp_dir = os.path.join(flags.config.tmp_dir, exp_dirname)
+results_dir = os.path.join(flags.config.results_dir, results_dirname)
+
+bcb.make()
+bcb.set_exp_dir(exp_dir)
+bcb.set_results_dir(results_dir)
+
+comparing = {}
+for pdbid in map(str.strip, open(flags.config.pdbids)):
+    hits = bcb.search_bowdb_pdb(bcb.pdb_path(pdbid))
+    hits = filter(lambda row: row['hit_pdb'].lower() != pdbid.lower(), hits)
+    comparing[pdbid] = [hits[0], hits[1], hits[-2], hits[-1]]
+
+for pdbid, relatives in comparing.iteritems():
+    chains = map(lambda r: '%s%s' % (r['hit_pdb'].lower(), r['hit_chain']),
+                 relatives)
+    chains.append('%s%s' % (pdbid.lower(), 'A'))
+    bcb.pdbids_to_fasta(chains)
+
+bcb.fastas_to_fmap(bcb.eglob('*.fasta'))
+
+for fmap in bcb.eglob('*.fmap'):
+    bow_file = bcb.ejoin(bcb.base_ext(fmap, 'hhfrag.bow'))
+    bcb.cached_cmd([bow_file],
+                   'fmap2bow', flags.config.frag_lib, fmap, bow_file)
+
+summary = bcb.rjoin('summary')
+def summarize():
+    fields = ['Query PDB', 'Target PDB', 'FragBag', 'HHfrag']
+    w = csv.DictWriter(open(summary, 'w+'), fields, delimiter='\t')
+    w.writerow({v:v for v in fields})
+    for pdbid, relatives in comparing.iteritems():
+        bow1 = '%s%s' % (pdbid.lower(), 'A')
+        bow1_file = bcb.ejoin('%s.hhfrag.bow' % bow1)
+        for r in relatives:
+            bow2 = '%s%s' % (r['hit_pdb'].lower(), r['hit_chain'])
+            bow2_file = bcb.ejoin('%s.hhfrag.bow' % bow2)
+            hhfrag_dist = bcb.cmd('bow-dist', bow1_file, bow2_file).strip()
+            w.writerow({
+                'Query PDB': bow1,
+                'Target PDB': bow2,
+                'FragBag': r['hit_cosine'],
+                'HHfrag': hhfrag_dist,
+            })
+
+bcb.cached([summary], summarize)
+

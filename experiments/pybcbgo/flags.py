@@ -32,6 +32,12 @@ def used(name):
     return hasattr(config, name.replace('-', '_'))
 
 
+def assert_flag(name):
+    if not used(name):
+        eprintln('Flag %s is required by this experiment.' % name)
+        sys.exit(1)
+
+
 def init():
     global config
 
@@ -103,6 +109,18 @@ __flags = {
         aa('--pdb-dir', dest='pdb_dir', type=str,
            default='/data/bio/pdb',
            help='The location of a full PDB directory.'),
+        verify_path,
+    ),
+    'frag-lib': (
+        aa('--frag-lib', dest='frag_lib', type=str,
+           default='./data/fraglibs/centers400_11',
+           help='Path to a fragment library.'),
+        verify_path,
+    ),
+    'bow-db': (
+        aa('--bow-db', dest='bow_db', type=str,
+           default='/data/bio/bowdbs/pdb',
+           help='The location of a BOW database.'),
         verify_path,
     ),
     'pdb-hhm-db': (

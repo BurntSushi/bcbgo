@@ -1,3 +1,5 @@
+import csv
+from cStringIO import StringIO
 import glob
 import os
 import os.path
@@ -190,8 +192,7 @@ def pdbids_to_fasta(pdbids):
 
 def fastas_to_fmap(fastas):
     for fasta in fastas:
-        fmap_name = re.sub('fasta$', 'fmap', os.path.basename(fasta))
-        fmap_file = ejoin(fmap_name)
+        fmap_file = ejoin(base_ext(fasta, 'fmap'))
 
         args = [
            'hhfrag-map',
@@ -207,4 +208,14 @@ def fastas_to_fmap(fastas):
         args += [fasta, fmap_file]
 
         cached_cmd([fmap_file], *args)
+
+def search_bowdb_pdb(pdb_file, chain='A'):
+    flags.assert_flag('bow_db')
+
+    out = StringIO(cmd('bowpdb', '--chain', chain, '--csv', '--limit', '100',
+                       flags.config.bow_db, pdb_file))
+    rows = []
+    for row in csv.DictReader(out, delimiter='\t'):
+        rows.append(row)
+    return rows
 
