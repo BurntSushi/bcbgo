@@ -47,6 +47,9 @@ bcb.set_results_dir(results_dir)
 comparing = {}
 for pdbid in map(str.strip, open(flags.config.pdbids)):
     hits = bcb.search_bowdb_pdb(bcb.pdb_path(pdbid))
+    if len(hits) == 0:
+        bcb.eprintln('Something is screwy with %s... Skipping.' % pdbid)
+        continue
     hits = filter(lambda row: row['hit_pdb'].lower() != pdbid.lower(), hits)
     comparing[pdbid] = [hits[0], hits[1],
                         hits[49], hits[50],
