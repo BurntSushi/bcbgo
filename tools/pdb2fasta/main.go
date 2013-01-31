@@ -29,20 +29,6 @@ func main() {
 		fatalf("Could not read PDB file '%s': %s", flag.Arg(0), err)
 	}
 
-	var fasOut io.Writer
-	if flag.NArg() == 1 {
-		fasOut = os.Stdout
-	} else {
-		if len(flagSplit) > 0 {
-			fatalf("The '--split' option is incompatible with a single " +
-				"output file.")
-		}
-		fasOut, err = os.Create(flag.Arg(1))
-		if err != nil {
-			fatalf("Could not create FASTA file '%s': %s", flag.Arg(1), err)
-		}
-	}
-
 	fasEntries := make([]seq.Sequence, 0, 5)
 	if !flagSeparateChains {
 		var fasEntry seq.Sequence
@@ -77,10 +63,24 @@ func main() {
 			fasEntries = append(fasEntries, fasEntry)
 		}
 	}
-
 	if len(fasEntries) == 0 {
 		fatalf("Could not find any chains with amino acids.")
 	}
+
+	var fasOut io.Writer
+	if flag.NArg() == 1 {
+		fasOut = os.Stdout
+	} else {
+		if len(flagSplit) > 0 {
+			fatalf("The '--split' option is incompatible with a single " +
+				"output file.")
+		}
+		fasOut, err = os.Create(flag.Arg(1))
+		if err != nil {
+			fatalf("Could not create FASTA file '%s': %s", flag.Arg(1), err)
+		}
+	}
+
 	if len(flagSplit) == 0 {
 		if err := fasta.NewWriter(fasOut).WriteAll(fasEntries); err != nil {
 			fatalf("Could not write FASTA: %s", err)
