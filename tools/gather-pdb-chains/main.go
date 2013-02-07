@@ -1,60 +1,39 @@
 package main
 
+// This needs to be updated to read straight from PDB select 25 databases.
+// Or at least, be capable of it (we may want to read lists of PDB
+// entries from other kinds of sources).
+
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"path"
 	"strings"
 
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 var (
-	flagPdbDir    = "/data/bio/pdb"
 	flagSkipCheck = false
 )
 
 func init() {
-	log.SetFlags(0)
-
-	flag.StringVar(&flagPdbDir, "pdb-dir", flagPdbDir,
-		"The path to the directory containing the PDB database.")
 	flag.BoolVar(&flagSkipCheck, "skip-check", flagSkipCheck,
 		"When set, PDB files will not be checked for irreparable corruption.")
 
-	flag.Usage = usage
-	flag.Parse()
-}
-
-func usage() {
-	log.Println("Usage: gather-pdb-chains [flags] input-file output-dir")
-	flag.PrintDefaults()
-	os.Exit(1)
+	util.FlagUse("pdb-dir")
+	util.FlagParse("input-file output-dir", "")
+	util.AssertNArg(2)
 }
 
 func main() {
-	if flag.NArg() != 2 {
-		usage()
-	}
+	outDir := util.Arg(1)
+	util.AssertIsDir(outDir)
 
-	outDir := flag.Arg(1)
-	info, err := os.Stat(outDir)
-	if err != nil {
-		log.Fatalf("Directory '%s' is not accessible: %s", outDir, err)
-	}
-	if !info.IsDir() {
-		log.Fatalf("'%s' is not a directory.", outDir)
-	}
-
-	f, err := os.Open(flag.Arg(0))
-	assert(err)
-
-	entries, err := getEntries(f)
-	assert(err)
+	entries, err := getEntries(util.OpenFile(flag.Arg(0)))
+	util.Assert(err)
 
 	// We have to traverse each PDB structure and make sure none of them
 	// are corrupt. If they are, the user will have to manually collect them,
@@ -62,14 +41,13 @@ func main() {
 	if !flagSkipCheck {
 		for _, entry := range entries {
 			e, err := pdb.ReadPDB(entry.Path())
-			if err != nil {
-				log.Println(err)
+			if util.Warning(err) {
 				continue
 			}
 
 			chain := e.Chain(entry.Chain)
 			if chain == nil {
-				log.Fatalf("Could not find chain '%c' in PDB entry '%s'.",
+				util.Warnf("Could not find chain '%c' in PDB entry '%s'.",
 					entry.Chain, entry.Path())
 			}
 			chain.SequenceCaAtoms()
@@ -77,8 +55,7 @@ func main() {
 	}
 	for _, entry := range entries {
 		fname := fmt.Sprintf("%s%c.ent.gz", entry.IdCode, entry.Chain)
-		dest := path.Join(outDir, fname)
-		assert(copyFile(entry.Path(), dest))
+		util.CopyFile(entry.Path(), path.Join(outDir, fname))
 	}
 }
 
@@ -93,14 +70,13 @@ func newEntry(idchain string) entry {
 
 func (e entry) Path() string {
 	fname := fmt.Sprintf("pdb%s.ent.gz", e.IdCode)
-	return path.Join(flagPdbDir, e.IdCode[1:3], fname)
+	return path.Join(util.FlagPdbDir, e.IdCode[1:3], fname)
 }
 
 func getEntries(f *os.File) ([]entry, error) {
-	lines, err := readLines(f)
-	assert(err)
+	lines := util.ReadLines(f)
 	if len(lines) == 0 {
-		log.Fatalf("Could not find any PDB entries in '%s'.", f.Name())
+		util.Fatalf("Could not find any PDB entries in '%s'.", f.Name())
 	}
 
 	entries := make([]entry, 0, len(lines))
@@ -130,45 +106,4 @@ func getEntries(f *os.File) ([]entry, error) {
 		}
 	}
 	return entries, nil
-}
-
-func readLines(f *os.File) ([]string, error) {
-	buf := bufio.NewReader(f)
-	lines := make([]string, 0, 100)
-	for {
-		line, err := buf.ReadString('\n')
-		if err == io.EOF {
-			if len(line) == 0 {
-				break
-			}
-		} else if err != nil {
-			return nil, err
-		}
-		line = strings.TrimSpace(line)
-		if len(line) > 0 {
-			lines = append(lines, line)
-		}
-	}
-	return lines, nil
-}
-
-func copyFile(src, dest string) error {
-	fsrc, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-
-	fdest, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(fdest, fsrc)
-	return err
-}
-
-func assert(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
 }

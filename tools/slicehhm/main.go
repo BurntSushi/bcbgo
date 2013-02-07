@@ -1,49 +1,26 @@
 package main
 
 import (
-	"flag"
-	"log"
 	"os"
-	"strconv"
 
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/io/hhm"
 )
 
 func init() {
-	log.SetFlags(0)
-
-	flag.Usage = usage
-	flag.Parse()
-}
-
-func usage() {
-	log.Println("Usage: slicehhm hhm-file start end")
-	os.Exit(1)
+	util.FlagParse("hhm-file start end", "")
+	util.AssertNArg(3)
 }
 
 func main() {
-	if flag.NArg() != 3 {
-		usage()
-	}
-	hhmFile := flag.Arg(0)
+	hhmFile := util.Arg(0)
+	start := util.ParseInt(util.Arg(1))
+	end := util.ParseInt(util.Arg(2))
 
-	start, err := strconv.Atoi(flag.Arg(1))
-	assert(err)
-
-	end, err := strconv.Atoi(flag.Arg(2))
-	assert(err)
-
-	fhhm, err := os.Open(hhmFile)
-	assert(err)
+	fhhm := util.OpenFile(hhmFile)
 
 	qhhm, err := hhm.Read(fhhm)
-	assert(err)
+	util.Assert(err)
 
-	hhm.Write(os.Stdout, qhhm.Slice(start, end))
-}
-
-func assert(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
+	util.Assert(hhm.Write(os.Stdout, qhhm.Slice(start, end)))
 }

@@ -4,41 +4,28 @@ package main
 
 import (
 	"flag"
-	"log"
-	"os"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/io/hhm"
 )
 
 var (
-	flagDatabase = "nr20"
-	flagQuiet    = false
+	flagQuiet = false
 )
 
 func init() {
-	log.SetFlags(0)
-
-	flag.StringVar(&flagDatabase, "db", flagDatabase,
-		"The database to use to generate MSAs.")
 	flag.BoolVar(&flagQuiet, "quiet", flagQuiet,
 		"When set, hhblits/hhmake output will be hidden.")
-	flag.Usage = usage
-	flag.Parse()
-}
 
-func usage() {
-	log.Println("Usage: buildhhm [flags] in-fasta-file out-hhm-file")
-	flag.PrintDefaults()
-	os.Exit(1)
+	util.FlagUse("seq-db")
+	util.FlagParse("in-fasta-file out-hhm-file", "")
+	util.AssertNArg(2)
 }
 
 func main() {
-	if flag.NArg() != 2 {
-		usage()
-	}
-	inFasta := flag.Arg(0)
-	outHHM := flag.Arg(1)
+	inFasta := util.Arg(0)
+	outHHM := util.Arg(1)
 
 	hhblits := hhsuite.HHBlitsDefault
 	hhmake := hhsuite.HHMakePseudo
@@ -46,16 +33,9 @@ func main() {
 	hhmake.Verbose = !flagQuiet
 
 	HHM, err := hhsuite.BuildHHM(
-		hhblits, hhmake, hhsuite.Database(flagDatabase), inFasta)
-	if err != nil {
-		log.Fatalf("Error building HHM: %s\n", err)
-	}
+		hhblits, hhmake, util.FlagSeqDB, inFasta)
+	util.Assert(err, "Error building HHM")
 
-	foutHHM, err := os.Create(outHHM)
-	if err != nil {
-		log.Fatalf("Error creating HHM file (%s): %s", outHHM, err)
-	}
-	if err := hhm.Write(foutHHM, HHM); err != nil {
-		log.Fatalf("Error writing HHM (%s): %s", outHHM, err)
-	}
+	util.Assert(hhm.Write(util.CreateFile(outHHM), HHM),
+		"Error writing HHM '%s'", outHHM)
 }
