@@ -156,7 +156,7 @@ func (lib *Library) BestFragment(
 
 	bestRmsd, bestFragNum := 0.0, -1
 	for _, frag := range lib.fragments {
-		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.OneChain().CaAtoms())
+		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.CaAtoms)
 		if bestFragNum == -1 || testRmsd < bestRmsd {
 			bestRmsd, bestFragNum = testRmsd, frag.Ident
 		}
