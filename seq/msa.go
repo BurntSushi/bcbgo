@@ -114,7 +114,7 @@ func (m *MSA) AddFasta(adds Sequence) {
 	// and replace '-' with '.' in insertion columns.
 	for col := 0; col < m.length; col++ {
 		seqHasInsert := s.Residues[col].HMMState() == Insertion
-		if m.columnHasInsertion(col) || seqHasInsert {
+		if seqHasInsert || m.columnHasInsertion(col) {
 			for _, other := range m.Entries {
 				if other.Residues[col] == '-' {
 					other.Residues[col] = '.'
