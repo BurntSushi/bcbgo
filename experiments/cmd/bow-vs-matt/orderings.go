@@ -7,6 +7,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/apps/matt"
 	"github.com/BurntSushi/bcbgo/bowdb"
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
@@ -88,7 +89,7 @@ func getMattOrdering(
 	for i, result := range results {
 		target := argsets[i][1]
 		if errs[i] != nil {
-			errorf("Could not get Matt RMSD for %s (chain %c) against "+
+			util.Warnf("Could not get Matt RMSD for %s (chain %c) against "+
 				"%s (chain %c): %s",
 				query.IdCode, query.Chain, target.IdCode, target.Chain, errs[i])
 			continue
@@ -115,10 +116,7 @@ func createChains(pdbFiles []string) []*pdb.Chain {
 	chains := make([]*pdb.Chain, 0, len(pdbFiles))
 	for _, pdbFile := range pdbFiles {
 		entry, err := pdb.ReadPDB(pdbFile)
-		if err != nil {
-			errorf("Could not parse PDB file '%s' because: %s\n", pdbFile, err)
-			continue
-		}
+		util.Warning(err, "Could not open PDB file '%s'", pdbFile)
 
 		for _, chain := range entry.Chains {
 			if !chain.IsProtein() {

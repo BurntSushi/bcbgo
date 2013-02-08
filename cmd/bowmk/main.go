@@ -4,116 +4,66 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"path"
-	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 
 	"github.com/BurntSushi/bcbgo/bowdb"
-	"github.com/BurntSushi/bcbgo/fragbag"
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
 var (
 	flagCpuProfile = ""
-	flagGoMaxProcs = runtime.NumCPU()
 	flagOverwrite  = false
-	flagQuiet      = false
 )
 
-func writer(db *bowdb.DB,
-	pchan chan progressJob, pool pool) (chan struct{}, error) {
+func init() {
+	flag.StringVar(&flagCpuProfile, "cpuprofile", flagCpuProfile,
+		"When set, a CPU profile will be written to the file provided.")
+	flag.BoolVar(&flagOverwrite, "overwrite", flagOverwrite,
+		"When set, any existing database will be completely overwritten.")
 
-	done := make(chan struct{}, 0)
-	go func() {
-		for result := range pool.results {
-			pchan <- progressJob{result.chain.Entry.Path, nil}
-			if err := db.Write(result.chain, result.bow); err != nil {
-				fatalf("%s\n", err)
-			}
-		}
-		done <- struct{}{}
-	}()
-	return done, nil
-}
-
-type progressJob struct {
-	path string
-	err  error
-}
-
-func progress(total int) (chan progressJob, chan struct{}) {
-	pchan := make(chan progressJob, 15)
-	successCnt, errCnt := 0, 0
-	counted := make(map[string]struct{}, 100)
-	done := make(chan struct{}, 0)
-	go func() {
-		for pjob := range pchan {
-			if _, ok := counted[pjob.path]; ok {
-				continue
-			}
-
-			counted[pjob.path] = struct{}{}
-			if pjob.err != nil {
-				errorf("\rCould not parse PDB file '%s' because: %s\n",
-					pjob.path, pjob.err)
-				errCnt++
-			} else {
-				successCnt++
-			}
-			verbosef("\r%d of %d PDB files processed. "+
-				"(%0.2f%% done with %d errors.)",
-				successCnt+errCnt, total,
-				100.0*(float64(successCnt+errCnt)/float64(total)),
-				errCnt)
-		}
-		done <- struct{}{}
-	}()
-	return pchan, done
+	util.FlagUse("cpu", "verbose")
+	util.FlagParse(
+		"bowdb-path frag-lib-path (pdb-dir | (pdb-file [pdb-file ...]))", "")
+	util.AssertLeastNArg(3)
 }
 
 func main() {
-	if flag.NArg() < 3 {
-		usage()
-	}
-	dbPath := flag.Arg(0)
-	libPath := flag.Arg(1)
-	pdbFiles := flag.Args()[2:]
+	dbPath := util.Arg(0)
+	libPath := util.Arg(1)
+	fileArgs := flag.Args()[2:]
 
 	if flagOverwrite {
-		if err := os.RemoveAll(dbPath); err != nil {
-			fatalf("Could not remove '%s' directory because: %s.", dbPath, err)
-		}
-	}
-	if len(pdbFiles) == 1 && isDir(pdbFiles[0]) {
-		pdbFiles = recursiveFilesInDir(pdbFiles[0])
+		util.Assert(os.RemoveAll(dbPath),
+			"Could not remove '%s' directory", dbPath)
 	}
 
-	lib, err := fragbag.NewLibrary(libPath)
-	if err != nil {
-		fatalf("Could not open fragment library '%s': %s\n", lib, err)
+	pdbFiles := make([]string, 0)
+	for _, fordir := range fileArgs {
+		var more []string
+		if util.IsDir(fordir) {
+			more = util.RecursiveFiles(fordir)
+		} else {
+			more = []string{fordir}
+		}
+		pdbFiles = append(pdbFiles, more...)
 	}
-	verbosef("Using library %s.\n", lib)
+
+	lib := util.FragmentLibrary(libPath)
+	util.Verbosef("Using library %s.\n", lib)
 
 	db, err := bowdb.Create(lib, dbPath)
-	if err != nil {
-		fatalf("%s\n", err)
-	}
+	util.Assert(err)
 
-	pool := newBowWorkers(lib, max(1, flagGoMaxProcs))
+	pool := newBowWorkers(lib, max(1, runtime.GOMAXPROCS(0)))
 	progressChan, doneProgress := progress(len(pdbFiles))
 	doneWriting, err := writer(db, progressChan, pool)
-	if err != nil {
-		fatalf("Could not create database file: %s\n", err)
-	}
+	util.Assert(err)
 
 	if len(flagCpuProfile) > 0 {
-		f, err := os.Create(flagCpuProfile)
-		if err != nil {
-			fatalf("%s\n", err)
-		}
+		f := util.CreateFile(flagCpuProfile)
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
@@ -144,55 +94,58 @@ func main() {
 	<-doneWriting
 	close(progressChan)
 	<-doneProgress
-	verbosef("\n")
+	util.Verbosef("\n")
 
-	if err := db.WriteClose(); err != nil {
-		fatalf("There was an error closing the database: %s\n", err)
-	}
+	util.Assert(db.WriteClose())
 }
 
-func init() {
-	flag.StringVar(&flagCpuProfile, "cpuprofile", flagCpuProfile,
-		"When set, a CPU profile will be written to the file provided.")
-	flag.IntVar(&flagGoMaxProcs, "p", flagGoMaxProcs,
-		"The maximum number of CPUs that can be executing simultaneously.")
-	flag.BoolVar(&flagOverwrite, "overwrite", flagOverwrite,
-		"When set, any existing database will be completely overwritten.")
-	flag.BoolVar(&flagQuiet, "quiet", flagQuiet,
-		"When set, no progress bar will be shown.\n"+
-			"\tErrors will still be printed to stderr.")
-	flag.Usage = usage
-	flag.Parse()
+func writer(db *bowdb.DB,
+	pchan chan progressJob, pool pool) (chan struct{}, error) {
 
-	runtime.GOMAXPROCS(flagGoMaxProcs)
+	done := make(chan struct{}, 0)
+	go func() {
+		for result := range pool.results {
+			pchan <- progressJob{result.chain.Entry.Path, nil}
+			util.Assert(db.Write(result.chain, result.bow))
+		}
+		done <- struct{}{}
+	}()
+	return done, nil
 }
 
-func usage() {
-	fmt.Fprintf(os.Stderr,
-		"Usage: %s database-path frag-lib-directory "+
-			"(pdb-dir | (pdb-file [pdb-file ...]))\n",
-		path.Base(os.Args[0]))
-	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr,
-		"\nex. './%s data/fraglibs/centers400_11 data/samples/*.pdb'\n",
-		path.Base(os.Args[0]))
-	os.Exit(1)
+type progressJob struct {
+	path string
+	err  error
 }
 
-func verbosef(format string, v ...interface{}) {
-	if flagQuiet {
-		return
-	}
-	fmt.Fprintf(os.Stderr, format, v...)
-}
+func progress(total int) (chan progressJob, chan struct{}) {
+	pchan := make(chan progressJob, 15)
+	successCnt, errCnt := 0, 0
+	counted := make(map[string]struct{}, 100)
+	done := make(chan struct{}, 0)
+	go func() {
+		for pjob := range pchan {
+			if _, ok := counted[pjob.path]; ok {
+				continue
+			}
 
-func errorf(format string, v ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, v...)
-}
-
-func fatalf(format string, v ...interface{}) {
-	errorf(format, v...)
-	os.Exit(1)
+			counted[pjob.path] = struct{}{}
+			if pjob.err != nil {
+				util.Warnf("\rCould not parse PDB file '%s' because: %s\n",
+					pjob.path, pjob.err)
+				errCnt++
+			} else {
+				successCnt++
+			}
+			util.Verbosef("\r%d of %d PDB files processed. "+
+				"(%0.2f%% done with %d errors.)",
+				successCnt+errCnt, total,
+				100.0*(float64(successCnt+errCnt)/float64(total)),
+				errCnt)
+		}
+		done <- struct{}{}
+	}()
+	return pchan, done
 }
 
 func max(a, b int) int {
@@ -200,25 +153,4 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func isDir(f string) bool {
-	fi, err := os.Stat(f)
-	return err == nil && fi.IsDir()
-}
-
-func recursiveFilesInDir(dir string) []string {
-	files := make([]string, 0, 50)
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			errorf("Could not read '%s' because: %s\n", path, err)
-			return nil
-		}
-		if info.IsDir() {
-			return nil
-		}
-		files = append(files, path)
-		return nil
-	})
-	return files
 }

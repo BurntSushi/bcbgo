@@ -16,7 +16,7 @@ import (
 var (
 	FlagCpu = runtime.NumCPU()
 
-	FlagPdbDir = "/data/bio/pdb"
+	FlagPdbDir = path.Join("/", "data", "bio", "pdb")
 
 	flagSeqDB = "nr20"
 	FlagSeqDB hhsuite.Database
@@ -25,6 +25,8 @@ var (
 	FlagPdbHhmDB hhfrag.PDBDatabase
 
 	FlagBlits = false
+
+	FlagVerbose = true
 )
 
 func init() {
@@ -74,6 +76,12 @@ var commonFlags = map[string]*commonFlag{
 		set: func() {
 			flag.BoolVar(&FlagBlits, "blits", FlagBlits,
 				"When set, hhblits will be used in lieu of hhsearch.")
+		},
+	},
+	"verbose": {
+		set: func() {
+			flag.BoolVar(&FlagVerbose, "verbose", FlagVerbose,
+				"When set, diagnostic output will be shown on stderr.")
 		},
 	},
 }

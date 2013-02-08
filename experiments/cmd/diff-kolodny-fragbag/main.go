@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 
+	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
@@ -17,30 +17,38 @@ var (
 	flagOldStyle bool
 )
 
+func init() {
+	flag.StringVar(&flagFragbag, "fragbag", "fragbag",
+		"The old fragbag executable.")
+	flag.BoolVar(&flagOldStyle, "oldstyle", false,
+		"When true, NewBowPDBOldStyle will be used to compute BOW vectors.")
+
+	util.FlagParse(
+		"old-library-file new-library-path pdb-file [pdb-file ...]",
+		"Note that if the old library and the new library don't have the\n"+
+			"same number of fragments and the same fragment size, bad things\n"+
+			"will happen.\n")
+	util.AssertLeastNArg(3)
+}
+
+func stderrf(format string, v ...interface{}) {
+	fmt.Fprintf(os.Stderr, format, v...)
+}
+
 func main() {
-	if flag.NArg() < 3 {
-		usage()
-	}
+	oldLibFile, newLibPath := util.Arg(0), util.Arg(1)
+	lib := util.FragmentLibrary(newLibPath)
 
-	oldLibFile, newLibPath := flag.Arg(0), flag.Arg(1)
-	lib, err := fragbag.NewLibrary(newLibPath)
-	if err != nil {
-		fatalf("%s\n", err)
-	}
-
-	errorf("Loading PDB files into memory...\n")
-	entries := make([]*pdb.Entry, flag.NArg()-2)
+	stderrf("Loading PDB files into memory...\n")
+	entries := make([]*pdb.Entry, util.NArg()-2)
 	for i, pdbfile := range flag.Args()[2:] {
-		entries[i], err = pdb.ReadPDB(pdbfile)
-		if err != nil {
-			fatalf("%s\n", err)
-		}
+		entries[i] = util.PDBRead(pdbfile)
 	}
 
-	errorf("Comparing the results of old fragbag and new fragbag on each " +
-		"PDB file...\n")
+	stderrf("Comparing the results of old fragbag and new fragbag on " +
+		"each PDB file...\n")
 	for _, entry := range entries {
-		errorf("Testing %s...\n", entry.Path)
+		stderrf("Testing %s...\n", entry.Path)
 		fmt.Printf("Testing %s\n", entry.Path)
 
 		// Try to run old fragbag first. The output is an old-style BOW.
@@ -85,7 +93,7 @@ func main() {
 		fmt.Printf("\nDiff:\n%s\n", diff)
 		divider()
 	}
-	errorf("Done!\n")
+	stderrf("Done!\n")
 }
 
 func runOldFragbag(libFile, pdbFile string, size, fraglen int) (string, error) {
@@ -107,34 +115,4 @@ func runOldFragbag(libFile, pdbFile string, size, fraglen int) (string, error) {
 
 func divider() {
 	fmt.Println("----------------------------------------------------")
-}
-
-func errorf(format string, v ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, v...)
-}
-
-func fatalf(format string, v ...interface{}) {
-	errorf(format, v...)
-	os.Exit(1)
-}
-
-func init() {
-	flag.StringVar(&flagFragbag, "fragbag", "fragbag",
-		"The old fragbag executable.")
-	flag.BoolVar(&flagOldStyle, "oldstyle", false,
-		"When true, NewBowPDBOldStyle will be used to compute BOW vectors.")
-	flag.Usage = usage
-	flag.Parse()
-}
-
-func usage() {
-	fmt.Fprintf(os.Stderr,
-		"Usage: %s [flags] "+
-			"old-library-file new-library-path pdb-file [ pdb-file ... ]\n",
-		path.Base(os.Args[0]))
-	flag.PrintDefaults()
-	fmt.Fprintf(os.Stderr, "\nNote that if the old library and the new "+
-		"library don't have the same number of fragments and the same "+
-		"fragment size, bad things will happen.\n")
-	os.Exit(1)
 }

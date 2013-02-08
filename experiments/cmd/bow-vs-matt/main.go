@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"runtime"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/BurntSushi/bcbgo/apps/matt"
 	"github.com/BurntSushi/bcbgo/bowdb"
+	"github.com/BurntSushi/bcbgo/cmd/util"
 )
 
 type results []result
@@ -37,27 +37,26 @@ type result struct {
 	results bowdb.SearchResults
 }
 
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	util.FlagUse("cpu")
+	util.FlagParse("database-path frag-lib-dir query-pdb-file "+
+		"[query-pdb-file ...]", "")
+	util.AssertLeastNArg(2)
+}
+
 func main() {
-	if flag.NArg() < 2 {
-		usage()
-	}
-	dbPath := flag.Arg(0)
-	fragLibDir := flag.Arg(1)
+	dbPath := util.Arg(0)
+	fragLibDir := util.Arg(1)
 	pdbFiles := flag.Args()[2:]
 
-	if err := createBowDb(dbPath, fragLibDir, pdbFiles); err != nil {
-		fatalf("%s\n", err)
-	}
+	util.Assert(createBowDb(dbPath, fragLibDir, pdbFiles))
 
 	db, err := bowdb.Open(dbPath)
-	if err != nil {
-		fatalf("%s\n", err)
-	}
+	util.Assert(err)
 
 	searcher, err := db.NewFullSearcher()
-	if err != nil {
-		fatalf("Could not initialize full searcher: %s\n", err)
-	}
+	util.Assert(err, "Could not initialize searcher")
 
 	bowOpts := bowdb.DefaultSearchOptions
 	bowOpts.Limit = 200
@@ -81,14 +80,14 @@ func main() {
 
 		bowOrdered, err := getBowOrdering(searcher, bowOpts, bow)
 		if err != nil {
-			errorf("Could not get BOW ordering for %s (chain %c): %s\n",
+			util.Warnf("Could not get BOW ordering for %s (chain %c): %s\n",
 				chain.Entry.IdCode, chain.Ident, err)
 			continue
 		}
 
 		mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs)
 		if err != nil {
-			errorf("Could not get Matt ordering for %s (chain %c): %s\n",
+			util.Warnf("Could not get Matt ordering for %s (chain %c): %s\n",
 				chain.Entry.IdCode, chain.Ident, err)
 			continue
 		}
@@ -103,9 +102,7 @@ func main() {
 		fmt.Println("\n")
 	}
 
-	if err := db.ReadClose(); err != nil {
-		fatalf("There was an error closing the database: %s\n", err)
-	}
+	util.Assert(db.ReadClose())
 }
 
 func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
@@ -115,7 +112,7 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 
 	args := []string{dbPath, fragLibDir}
 	args = append(args, pdbFiles...)
-	cmd := exec.Command("create-bowdb", args...)
+	cmd := exec.Command("bowmk", args...)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -124,30 +121,6 @@ func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {
 			strings.Join(cmd.Args, " "), err)
 	}
 	return nil
-}
-
-func init() {
-	flag.Usage = usage
-	flag.Parse()
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
-}
-
-func usage() {
-	errorf("Usage: %s database-path frag-lib-directory "+
-		"query-pdb-file [query-pdb-file ...]\n",
-		path.Base(os.Args[0]))
-	flag.PrintDefaults()
-	os.Exit(1)
-}
-
-func errorf(format string, v ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, v...)
-}
-
-func fatalf(format string, v ...interface{}) {
-	errorf(format, v...)
-	os.Exit(1)
 }
 
 func max(a, b int) int {

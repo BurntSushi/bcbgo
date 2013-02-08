@@ -7,8 +7,22 @@ import (
 	"os"
 )
 
+func printf(format string, v ...interface{}) {
+	if len(format) > 0 && format[0] == '\r' {
+		fmt.Fprintf(os.Stderr, format, v...)
+	} else {
+		log.Printf(format, v...)
+	}
+}
+
+func Verbosef(format string, v ...interface{}) {
+	if FlagVerbose {
+		printf(format, v...)
+	}
+}
+
 func Warnf(format string, v ...interface{}) {
-	log.Printf(format, v...)
+	printf(format, v...)
 }
 
 func Warning(err error, v ...interface{}) bool {

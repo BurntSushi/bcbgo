@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/BurntSushi/bcbgo/bowdb"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/hhfrag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
@@ -15,6 +16,12 @@ func FragmentLibrary(path string) *fragbag.Library {
 	lib, err := fragbag.NewLibrary(path)
 	Assert(err, "Could not open fragment library '%s'", path)
 	return lib
+}
+
+func OpenBOWDB(path string) *bowdb.DB {
+	db, err := bowdb.Open(path)
+	Assert(err, "Could not open BOW database '%s'", path)
+	return db
 }
 
 func PDBRead(path string) *pdb.Entry {
