@@ -3,7 +3,7 @@
 '''
 1. Start with a random selection of PDB entries.
 
-2. Search the PDB BOW database for top 2 hits and bottom 2 hits of 100 best.
+2. Search the PDB BOW database for 2 top hits, 2 middle hits and 2 bad hits.
 
 3. Compute FragBag BOWs and HHfrag BOWs for each PDB entry.
 
@@ -46,19 +46,26 @@ bcb.set_results_dir(results_dir)
 
 comparing = {}
 for pdbid in map(str.strip, open(flags.config.pdbids)):
-    hits = bcb.search_bowdb_pdb(bcb.pdb_path(pdbid))
-    if len(hits) == 0:
+    def search(min=0.0, max=1.0):
+        fp = bcb.pdb_path(pdbid)
+        c = bcb.pdb_chain(pdbid)
+        return bcb.search_bowdb_pdb(fp, chain=c, min=min, max=max)
+    good = search()
+    soso = search(min=0.35)
+    bad = search(min=0.7)
+    if 0 in map(len, [good, soso, bad]):
         bcb.eprintln('Something is screwy with %s... Skipping.' % pdbid)
         continue
-    hits = filter(lambda row: row['hit_pdb'].lower() != pdbid.lower(), hits)
-    comparing[pdbid] = [hits[0], hits[1],
-                        hits[49], hits[50],
-                        hits[-2], hits[-1]]
+
+    comparing[pdbid] = []
+    for rs in (good, soso, bad):
+        hits = filter(lambda row: row['HitID'] != row['QueryID'], rs)
+        comparing[pdbid].append(hits[0])
+        comparing[pdbid].append(hits[1])
 
 for pdbid, relatives in comparing.iteritems():
-    chains = map(lambda r: '%s%s' % (r['hit_pdb'].lower(), r['hit_chain']),
-                 relatives)
-    chains.append('%s%s' % (pdbid.lower(), 'A'))
+    chains = [bcb.pdb_case(r['HitID']) for r in relatives]
+    chains.append(bcb.pdb_case(pdbid))
     bcb.pdbids_to_fasta(chains)
 
 bcb.fastas_to_fmap(bcb.eglob('*.fasta'))
@@ -74,16 +81,16 @@ def summarize():
     w = csv.DictWriter(open(summary, 'w+'), fields, delimiter='\t')
     w.writerow({v:v for v in fields})
     for pdbid, relatives in comparing.iteritems():
-        bow1 = '%s%s' % (pdbid.lower(), 'A')
+        bow1 = bcb.pdb_case(pdbid)
         bow1_file = bcb.ejoin('%s.hhfrag.bow' % bow1)
         for r in relatives:
-            bow2 = '%s%s' % (r['hit_pdb'].lower(), r['hit_chain'])
+            bow2 = bcb.pdb_case(r['HitID'])
             bow2_file = bcb.ejoin('%s.hhfrag.bow' % bow2)
             hhfrag_dist = bcb.cmd('bow-dist', bow1_file, bow2_file).strip()
             w.writerow({
                 'Query PDB': bow1,
                 'Target PDB': bow2,
-                'FragBag': r['hit_cosine'],
+                'FragBag': r['Cosine'],
                 'HHfrag': hhfrag_dist,
             })
 

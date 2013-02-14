@@ -5,7 +5,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/BurntSushi/bcbgo/bowdb"
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
 )
 
@@ -17,37 +17,22 @@ func init() {
 func main() {
 	db := util.OpenBOWDB(util.Arg(0))
 
-	// Read in all of the entires in the BOW database.
-	entries, err := db.ReadAll()
-	util.Assert(err)
-
-	searcher, err := db.NewFullSearcher()
-	util.Assert(err, "Could not initialize searcher")
-
 	// Set our search options.
-	bowOpts := bowdb.DefaultSearchOptions
-	bowOpts.Limit = len(entries)
+	bowOpts := bow.SearchDefault
+	bowOpts.Limit = -1
 
-	fmt.Println("QueryID\tQueryChain\tResultID\tResultChain" +
-		"\tEuclid\tCosine")
-	for _, entry := range entries {
-		results, err := searcher.Search(bowOpts, entry.BOW)
-		if err != nil {
-			util.Warnf("Could not get BOW ordering for %s (chain %c): %s\n",
-				entry.IdCode, entry.ChainIdent, err)
-			continue
-		}
+	fmt.Println("QueryID\tResultID\tCosine\tEuclid")
+	for _, entry := range db.Entries {
+		results := db.SearchEntry(bowOpts, entry)
 
-		for _, result := range results.Results {
+		for _, result := range results {
 			fmt.Printf("%s\t%c\t%s\t%c\t%0.4f\t%0.4f\n",
-				entry.IdCode, entry.ChainIdent,
-				result.IdCode, result.ChainIdent,
-				result.Euclid, result.Cosine)
+				entry.Id, result.Entry.Id, result.Cosine, result.Euclid)
 		}
 		fmt.Println("")
 	}
 
-	util.Assert(db.ReadClose())
+	util.Assert(db.Close())
 }
 
 func max(a, b int) int {

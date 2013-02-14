@@ -14,7 +14,8 @@ func init() {
 
 func main() {
 	fmap := util.FmapRead(util.Arg(0))
-	for _, frags := range fmap {
+	fmt.Printf("%s\n\n", fmap.Name)
+	for _, frags := range fmap.Segments {
 		fmt.Printf("\nSEGMENT: %d %d (%d)\n",
 			frags.Start, frags.End, len(frags.Frags))
 		frags.Write(os.Stdout)

@@ -8,10 +8,9 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
-	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/fasta"
 	"github.com/BurntSushi/bcbgo/io/hhm"
-	"github.com/BurntSushi/bcbgo/rmsd"
+	"github.com/BurntSushi/bcbgo/io/pdb"
 	"github.com/BurntSushi/bcbgo/seq"
 )
 
@@ -23,10 +22,10 @@ type MapConfig struct {
 }
 
 var DefaultConfig = MapConfig{
-	WindowMin:       6,
-	WindowMax:       21,
-	WindowIncrement: 3,
-	Blits:           false,
+	WindowMin:       30,
+	WindowMax:       35,
+	WindowIncrement: 5,
+	Blits:           true,
 }
 
 func getOneFastaSequence(queryFasta string) (s seq.Sequence, err error) {
@@ -52,7 +51,7 @@ func getOneFastaSequence(queryFasta string) (s seq.Sequence, err error) {
 }
 
 func (m MapConfig) MapFromFasta(pdbDb PDBDatabase, seqDb hhsuite.Database,
-	queryFasta string) (FragmentMap, error) {
+	queryFasta string) (*FragmentMap, error) {
 
 	qseq, err := getOneFastaSequence(queryFasta)
 	if err != nil {
@@ -68,7 +67,7 @@ func (m MapConfig) MapFromFasta(pdbDb PDBDatabase, seqDb hhsuite.Database,
 }
 
 func (m MapConfig) MapFromHHM(pdbDb PDBDatabase, seqDb hhsuite.Database,
-	queryFasta string, queryHHM string) (FragmentMap, error) {
+	queryFasta string, queryHHM string) (*FragmentMap, error) {
 
 	qseq, err := getOneFastaSequence(queryFasta)
 	if err != nil {
@@ -89,7 +88,7 @@ func (m MapConfig) MapFromHHM(pdbDb PDBDatabase, seqDb hhsuite.Database,
 }
 
 func (m MapConfig) computeMap(
-	pdbDb PDBDatabase, qseq seq.Sequence, qhhm *hhm.HHM) (FragmentMap, error) {
+	pdbDb PDBDatabase, qseq seq.Sequence, qhhm *hhm.HHM) (*FragmentMap, error) {
 
 	type maybeFrag struct {
 		frags Fragments
@@ -141,45 +140,47 @@ func (m MapConfig) computeMap(
 		close(fragsChan)
 	}()
 
-	fmap := make(FragmentMap, 0, 50)
+	fmap := &FragmentMap{
+		Name:     qseq.Name,
+		Segments: make([]Fragments, 0, 50),
+	}
 	for maybeFrag := range fragsChan {
 		if maybeFrag.err != nil {
 			return nil, maybeFrag.err
 		}
-		fmap = append(fmap, maybeFrag.frags)
+		fmap.Segments = append(fmap.Segments, maybeFrag.frags)
 	}
 	sort.Sort(fmap)
 	return fmap, nil
 }
 
-type FragmentMap []Fragments
-
-func (fmap FragmentMap) Len() int {
-	return len(fmap)
+type FragmentMap struct {
+	Name     string
+	Segments []Fragments
 }
 
-func (fmap FragmentMap) Less(i, j int) bool {
-	return fmap[i].Start < fmap[j].Start
+func (fmap *FragmentMap) Len() int {
+	return len(fmap.Segments)
 }
 
-func (fmap FragmentMap) Swap(i, j int) {
-	fmap[i], fmap[j] = fmap[j], fmap[i]
+func (fmap *FragmentMap) Less(i, j int) bool {
+	return fmap.Segments[i].Start < fmap.Segments[j].Start
 }
 
-func (fmap FragmentMap) BOW(lib *fragbag.Library) fragbag.BOW {
-	bow := fragbag.NewBow(lib.Name(), lib.Size())
-	mem := rmsd.NewQcMemory(lib.FragmentSize())
-	for _, fragGroup := range fmap {
+func (fmap *FragmentMap) Swap(i, j int) {
+	fmap.Segments[i], fmap.Segments[j] = fmap.Segments[j], fmap.Segments[i]
+}
+
+func (fmap *FragmentMap) IdString() string {
+	return fmap.Name
+}
+
+func (fmap *FragmentMap) AtomChunks() [][]pdb.Coords {
+	chunks := make([][]pdb.Coords, 0, len(fmap.Segments)*10)
+	for _, fragGroup := range fmap.Segments {
 		for _, frag := range fragGroup.Frags {
-			if len(frag.CaAtoms) < lib.FragmentSize() {
-				continue
-			}
-			for i := 0; i <= len(frag.CaAtoms)-lib.FragmentSize(); i++ {
-				atoms := frag.CaAtoms[i : i+lib.FragmentSize()]
-				bestFragNum, _ := lib.BestFragment(atoms, mem)
-				bow.Freqs[bestFragNum] += 1
-			}
+			chunks = append(chunks, frag.CaAtoms)
 		}
 	}
-	return bow
+	return chunks
 }

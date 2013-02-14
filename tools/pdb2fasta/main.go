@@ -37,10 +37,6 @@ func init() {
 	if util.NArg() != 1 && util.NArg() != 2 {
 		util.Usage()
 	}
-	if len(flagChain) > 0 && len(flagSplit) == 0 {
-		util.Fatalf("The '-chain' option must be accompanied by the " +
-			"'-split' option.")
-	}
 }
 
 func main() {
@@ -111,7 +107,11 @@ func main() {
 }
 
 func chainHeader(chain *pdb.Chain) string {
-	return fmt.Sprintf("%s%c", strings.ToLower(chain.Entry.IdCode), chain.Ident)
+	ident := chain.Ident
+	if ident == ' ' {
+		ident = 'A'
+	}
+	return fmt.Sprintf("%s%c", strings.ToLower(chain.Entry.IdCode), ident)
 }
 
 func isChainUsable(chain *pdb.Chain) bool {

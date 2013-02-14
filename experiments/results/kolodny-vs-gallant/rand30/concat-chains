@@ -1,0 +1,124 @@
+Loading PDB files into memory...
+Comparing the results of old fragbag and new fragbag on each PDB file...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1cxi.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1cxi.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2dts.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2dts.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2ces.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2ces.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1ii2.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1ii2.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3g5r.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3g5r.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1o3g.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1o3g.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3amk.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3amk.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb4a5t.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb4a5t.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2wya.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2wya.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3qfm.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3qfm.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2vqj.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2vqj.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2waf.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2waf.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3ndq.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3ndq.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1tom.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1tom.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1htj.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1htj.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3nhh.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3nhh.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gjs.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gjs.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1sij.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1sij.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1se0.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1se0.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gel.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gel.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2boe.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2boe.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1du2.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1du2.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gll.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2gll.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2eqh.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2eqh.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2yxb.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2yxb.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3e87.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb3e87.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb4csc.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb4csc.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1c2b.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1c2b.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1gb9.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb1gb9.ent
+PASSED.
+----------------------------------------------------
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2o87.ent...
+Testing /tmp/bcbgo/kolodny-vs-gallant/rand30/pdb2o87.ent
+PASSED.
+----------------------------------------------------
+Done!
+

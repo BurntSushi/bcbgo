@@ -152,6 +152,16 @@ def pdb_chain(pdbid):
     return None
 
 
+def pdb_case(pdbid):
+    if len(pdbid) not in (4, 5):
+        eprintln('Unrecognized PDB identifier: %s' % pdbid)
+        exit(1)
+    if len(pdbid) == 4:
+        return pdbid.lower()
+    else:
+        return pdbid[0:4].lower() + pdbid[4].upper()
+
+
 def ejoin(*args):
     __assert_exp_dir()
     return os.path.join(__exp_dir, *args)
@@ -197,22 +207,26 @@ def fastas_to_fmap(fastas):
         args = [
            'hhfrag-map',
            '--cpu', str(flags.config.cpu),
-           '--seqdb', flags.config.seq_hhm_db,
-           '--pdbdb', flags.config.pdb_hhm_db,
-           '--win-inc', str(flags.config.hhfrag_inc),
-           '--win-min', str(flags.config.hhfrag_min),
-           '--win-max', str(flags.config.hhfrag_max),
+           '--seq-db', flags.config.seq_hhm_db,
+           '--pdb-hhm-db', flags.config.pdb_hhm_db,
+           '--hhfrag-inc', str(flags.config.hhfrag_inc),
+           '--hhfrag-min', str(flags.config.hhfrag_min),
+           '--hhfrag-max', str(flags.config.hhfrag_max),
         ]
-        if flags.config.blits:
-            args.append('--blits')
+        if not flags.config.blits:
+            args.append('--blits=false')
         args += [fasta, fmap_file]
 
         cached_cmd([fmap_file], *args)
 
-def search_bowdb_pdb(pdb_file, chain='A'):
+def search_bowdb_pdb(pdb_file, chain='', limit=100, min=0.0, max=1.0):
     flags.assert_flag('bow_db')
 
-    out = StringIO(cmd('bowpdb', '--chain', chain, '--csv', '--limit', '100',
+    out = StringIO(cmd('bowsearch', '-output', 'csv',
+                       '-limit', '%d' % limit,
+                       '-min', '%f' % min,
+                       '-max', '%f' % max,
+                       '--chain', chain,
                        flags.config.bow_db, pdb_file))
     rows = []
     for row in csv.DictReader(out, delimiter='\t'):

@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	FlagCpu = runtime.NumCPU()
+	FlagCpu     = runtime.NumCPU()
+	FlagCpuProf = ""
 
 	FlagPdbDir = path.Join("/", "data", "bio", "pdb")
 
@@ -24,7 +25,7 @@ var (
 	flagPdbHhmDB = "pdb-select25-2012"
 	FlagPdbHhmDB hhfrag.PDBDatabase
 
-	FlagBlits = false
+	HHfragConf = hhfrag.DefaultConfig
 
 	FlagVerbose = true
 )
@@ -46,6 +47,12 @@ var commonFlags = map[string]*commonFlag{
 		},
 		init: func() {
 			runtime.GOMAXPROCS(FlagCpu)
+		},
+	},
+	"cpuprof": {
+		set: func() {
+			flag.StringVar(&FlagCpuProf, "cpuprof", FlagCpuProf,
+				"When set, a CPU profile will be written to the file provided.")
 		},
 	},
 	"pdb-dir": {
@@ -74,8 +81,29 @@ var commonFlags = map[string]*commonFlag{
 	},
 	"blits": {
 		set: func() {
-			flag.BoolVar(&FlagBlits, "blits", FlagBlits,
+			flag.BoolVar(&HHfragConf.Blits, "blits", HHfragConf.Blits,
 				"When set, hhblits will be used in lieu of hhsearch.")
+		},
+	},
+	"hhfrag-min": {
+		set: func() {
+			flag.IntVar(&HHfragConf.WindowMin, "hhfrag-min",
+				HHfragConf.WindowMin,
+				"The minimum HMM window size for HHfrag.")
+		},
+	},
+	"hhfrag-max": {
+		set: func() {
+			flag.IntVar(&HHfragConf.WindowMax, "hhfrag-max",
+				HHfragConf.WindowMax,
+				"The maximum HMM window size for HHfrag.")
+		},
+	},
+	"hhfrag-inc": {
+		set: func() {
+			flag.IntVar(&HHfragConf.WindowIncrement, "hhfrag-inc",
+				HHfragConf.WindowIncrement,
+				"The sliding window increment for HHfrag.")
 		},
 	},
 	"verbose": {
@@ -104,6 +132,11 @@ func Arg(i int) string {
 	return flag.Arg(i)
 }
 
+// Args just calls `flag.Args`.
+func Args() []string {
+	return flag.Args()
+}
+
 // NArg just calls `flag.NArg`. It's included here to avoid
 // an extra import to `flag` just to call NArg.
 func NArg() int {
@@ -121,7 +154,7 @@ func FlagParse(positional string, desc string) {
 		log.Printf("Usage: %s [flags] %s\n\n",
 			path.Base(os.Args[0]), positional)
 		if len(desc) > 0 {
-			log.Printf("%s\n", desc)
+			log.Printf("%s\n\n", desc)
 		}
 		flag.VisitAll(func(fl *flag.Flag) {
 			var def string

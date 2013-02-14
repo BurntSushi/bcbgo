@@ -1,26 +1,23 @@
 export GOBIN=./bin
 
-all: gofmt install install-tools data/fraglibs/centers400_11
+all: gofmt install install-tools
 
 install:
-	go install ./apps/* ./bowdb ./fragbag ./hhfrag ./io/* ./rmsd
-	go install ./cmd/...
+	go install -compiler gc ./apps/* ./bow ./fragbag ./hhfrag ./io/* ./rmsd ./seq
+	go install -compiler gc ./cmd/...
 
 install-tools:
-	go install ./tools/...
+	go install -compiler gc ./tools/...
 
 install-exp:
-	go install ./experiments/cmd/...
+	go install -compiler gc ./experiments/cmd/...
 
 clean:
 	rm -f bin/*
 
 gofmt:
-	gofmt -w */*.go */*/*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go
-	colcheck */*.go */*/*.go cmd/*/*.go */example/*/*.go experiments/cmd/*/*.go
-
-data/fraglibs/%: data/fraglibs/%.brk
-	scripts/translate-fraglib "data/fraglibs/$*.brk" "data/fraglibs/$*"
+	gofmt -w */*.go */*/*.go cmd/*/*.go experiments/cmd/*/*.go
+	colcheck */*.go */*/*.go cmd/*/*.go experiments/cmd/*/*.go
 
 # Utilities
 push:

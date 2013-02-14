@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
@@ -24,11 +24,11 @@ func init() {
 		"When true, NewBowPDBOldStyle will be used to compute BOW vectors.")
 
 	util.FlagParse(
-		"old-library-file new-library-path pdb-file [pdb-file ...]",
+		"library-file pdb-file [pdb-file ...]",
 		"Note that if the old library and the new library don't have the\n"+
 			"same number of fragments and the same fragment size, bad things\n"+
 			"will happen.\n")
-	util.AssertLeastNArg(3)
+	util.AssertLeastNArg(2)
 }
 
 func stderrf(format string, v ...interface{}) {
@@ -36,12 +36,12 @@ func stderrf(format string, v ...interface{}) {
 }
 
 func main() {
-	oldLibFile, newLibPath := util.Arg(0), util.Arg(1)
-	lib := util.FragmentLibrary(newLibPath)
+	libFile := util.Arg(0)
+	lib := util.FragmentLibrary(libFile)
 
 	stderrf("Loading PDB files into memory...\n")
-	entries := make([]*pdb.Entry, util.NArg()-2)
-	for i, pdbfile := range flag.Args()[2:] {
+	entries := make([]*pdb.Entry, util.NArg()-1)
+	for i, pdbfile := range flag.Args()[1:] {
 		entries[i] = util.PDBRead(pdbfile)
 	}
 
@@ -52,7 +52,7 @@ func main() {
 		fmt.Printf("Testing %s\n", entry.Path)
 
 		// Try to run old fragbag first. The output is an old-style BOW.
-		oldBowStr, err := runOldFragbag(oldLibFile, entry.Path, lib.Size(),
+		oldBowStr, err := runOldFragbag(libFile, entry.Path, lib.Size(),
 			lib.FragmentSize())
 		if err != nil {
 			fmt.Println(err)
@@ -61,7 +61,7 @@ func main() {
 			continue
 		}
 
-		oldBow, err := lib.NewOldStyleBow(oldBowStr)
+		oldBow, err := bow.NewOldStyleBow(lib.Size(), oldBowStr)
 		if err != nil {
 			fmt.Printf("Could not parse the following as an old style "+
 				"BOW:\n%s\n", oldBowStr)
@@ -71,16 +71,16 @@ func main() {
 		}
 
 		// Now use package fragbag to compute a BOW.
-		var newBow fragbag.BOW
+		var newBow bow.BOW
 		if flagOldStyle {
-			newBow = lib.NewBowPDBOldStyle(entry)
+			newBow = bow.ComputeBOW(lib, bow.PDBEntryOldStyle{entry})
 		} else {
-			newBow = lib.NewBowPDB(entry)
+			newBow = bow.ComputeBOW(lib, entry)
 		}
 
 		// Create a diff and check if they are the same. If so, we passed.
 		// Otherwise, print an error report.
-		diff := fragbag.NewBowDiff(oldBow, newBow)
+		diff := bow.NewBowDiff(oldBow, newBow)
 		if diff.IsSame() {
 			fmt.Println("PASSED.")
 			divider()

@@ -35,7 +35,7 @@ func main() {
 
 	total, trueps := 0, 0
 	qcorrupt, tcorrupt := 0, 0
-	for _, frags := range fmap {
+	for _, frags := range fmap.Segments {
 		for _, frag := range frags.Frags {
 			hit := frag.Hit
 

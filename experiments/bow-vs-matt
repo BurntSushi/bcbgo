@@ -1,0 +1,38 @@
+#!/usr/bin/env python2.7
+
+import os
+import re
+import sys
+
+import pybcbgo as bcb
+import pybcbgo.flags as flags
+
+flags.use_all('pdb-dir', 'tmp-dir', 'results-dir', 'ignore-cache', 'no-cache',
+              'frag-lib')
+flags.use('pdbids', (
+    lambda: flags.add(dest='pdbids', type=str,
+                      help='A file containing PDB ids, one per line.'),
+    flags.verify_path,
+))
+flags.init()
+
+exp_dirname = os.path.basename(flags.config.pdbids)
+results_dirname = exp_dirname
+
+exp_dir = os.path.join(flags.config.tmp_dir, exp_dirname)
+results_dir = os.path.join(flags.config.results_dir, results_dirname)
+
+bcb.make()
+bcb.set_exp_dir(exp_dir)
+bcb.set_results_dir(results_dir)
+
+log_file = bcb.rjoin('results')
+def compare():
+    w = open(log_file, 'w+')
+    print >> w, bcb.cmd('bow-vs-matt',
+                        bcb.ejoin('bowdb'),
+                        flags.config.frag_lib,
+                        *map(str.strip, open(flags.config.pdbids).readlines()))
+    w.close()
+bcb.cached([log_file], compare)
+

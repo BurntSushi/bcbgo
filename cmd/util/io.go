@@ -34,7 +34,29 @@ func IsDir(path string) bool {
 	return err == nil && fi.IsDir()
 }
 
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || !os.IsNotExist(err)
+}
+
+func AllFilesFromArgs(fileArgs []string) []string {
+	files := make([]string, 0)
+	for _, fordir := range fileArgs {
+		var more []string
+		if IsDir(fordir) {
+			more = RecursiveFiles(fordir)
+		} else {
+			more = []string{fordir}
+		}
+		files = append(files, more...)
+	}
+	return files
+}
+
 func RecursiveFiles(dir string) []string {
+	if !strings.HasSuffix(dir, "/") {
+		dir = dir + "/"
+	}
 	files := make([]string, 0)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

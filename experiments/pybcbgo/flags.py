@@ -113,7 +113,7 @@ __flags = {
     ),
     'frag-lib': (
         aa('--frag-lib', dest='frag_lib', type=str,
-           default='./data/fraglibs/centers400_11',
+           default='./data/fraglibs/centers400_11.brk',
            help='Path to a fragment library.'),
         verify_path,
     ),
@@ -125,7 +125,7 @@ __flags = {
     ),
     'pdb-hhm-db': (
         aa('--pdb-hhm-db', dest='pdb_hhm_db', type=str,
-           default='pdb-select25',
+           default='pdb-select25-2012',
            help='The location of a PDB-HHM database generated '+
                 'by `build-pdb-hhm-db`. As with seq_hhm_db, this should '+
                 'be the prefix of the database. The full path is derived '+
@@ -144,25 +144,25 @@ __flags = {
     ),
     'hhfrag-inc': (
         aa('--hhfrag-inc', dest='hhfrag_inc', type=int,
-           default=3,
+           default=5,
            help='The window increment step to use with HHfrag.'),
         None,
     ),
     'hhfrag-min': (
         aa('--hhfrag-min', dest='hhfrag_min', type=int,
-           default=6,
+           default=30,
            help='The minimum window size to use with HHfrag.'),
         None,
     ),
     'hhfrag-max': (
         aa('--hhfrag-max', dest='hhfrag_max', type=int,
-           default=21,
+           default=35,
            help='The maximum window size to use with HHfrag.'),
         None,
     ),
     'blits': (
-        aa('--blits', dest='blits', action='store_true',
-           help='When set, HHblits will be used in lieu of HHsearch.'),
+        aa('--noblits', dest='blits', action='store_false',
+           help='When set, HHsearch will be used in lieu of HHblits.'),
         None,
     ),
     'results-dir': (
@@ -200,7 +200,7 @@ __flags = {
         make_path,
     ),
     'verbose': (
-        aa('--verbose', dest='verbose', action='store_true',
+        aa('--quiet', dest='verbose', action='store_false',
            help='Emit as much diagnostic output as possible.'),
         None,
     ),

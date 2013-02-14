@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
 )
 
@@ -24,6 +25,6 @@ func main() {
 		util.Fatalf("Could not find chain with identifier '%c'.", chain[0])
 	}
 
-	bow := lib.NewBowChain(thechain)
+	bow := bow.ComputeBOW(lib, thechain)
 	util.BOWWrite(util.CreateFile(bowOut), bow)
 }

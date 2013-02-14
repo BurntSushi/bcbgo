@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
 )
 
@@ -14,6 +15,6 @@ func main() {
 	lib := util.FragmentLibrary(util.Arg(0))
 	fmap := util.FmapRead(util.Arg(1))
 
-	bow := fmap.BOW(lib)
+	bow := bow.ComputeBOW(lib, fmap)
 	util.BOWWrite(util.CreateFile(util.Arg(2)), bow)
 }

@@ -1,0 +1,9 @@
+RMSDThreshold: 1.500000
+TotalFragments: 345
+TruePositives: 173
+Precision: 0.501449
+CorruptQuery: 0
+CorruptTemplate: 8
+TotalResidues: 260
+CoveredResidues: 187
+Coverage: 0.719231

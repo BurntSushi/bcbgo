@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/apps/matt"
-	"github.com/BurntSushi/bcbgo/bowdb"
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
@@ -47,37 +46,32 @@ func (o ordering) String() string {
 
 type chain struct {
 	idCode string
-	ident  byte
 	dist   float64
 }
 
 func (c chain) String() string {
-	return fmt.Sprintf("%s\t%c\t%0.4f", c.idCode, c.ident, c.dist)
+	return fmt.Sprintf("%s\t%0.4f", c.idCode, c.dist)
 }
 
-func getBowOrdering(searcher bowdb.Searcher,
-	opts bowdb.SearchOptions, bow fragbag.BOW) (ordering, error) {
+func getBowOrdering(db *bow.DB,
+	opts bow.SearchOptions, bower bow.Bower) ordering {
 
-	results, err := searcher.Search(opts, bow)
-	if err != nil {
-		return nil, err
-	}
+	results := db.Search(opts, bower)
 
-	ordered := make(ordering, len(results.Results))
-	for i, result := range results.Results {
+	ordered := make(ordering, len(results))
+	for i, result := range results {
 		ordered[i] = chain{
-			idCode: result.IdCode,
-			ident:  result.ChainIdent,
+			idCode: result.Entry.Id,
 			dist:   result.Cosine,
 		}
 	}
 
 	// These are already sorted.
-	return ordered, nil
+	return ordered
 }
 
 func getMattOrdering(
-	conf matt.Config, query matt.PDBArg, rest []matt.PDBArg) (ordering, error) {
+	conf matt.Config, query matt.PDBArg, rest []matt.PDBArg) ordering {
 
 	argsets := make([][]matt.PDBArg, len(rest))
 	for i, target := range rest {
@@ -95,13 +89,12 @@ func getMattOrdering(
 			continue
 		}
 		ordered = append(ordered, chain{
-			idCode: target.IdCode,
-			ident:  target.Chain,
+			idCode: fmt.Sprintf("%s%c", target.IdCode, target.Chain),
 			dist:   100 * (result.RMSD / float64(result.CoreLength)), // SAS
 		})
 	}
 	sort.Sort(ordered)
-	return ordered, nil
+	return ordered
 }
 
 func createMattArgs(chains []*pdb.Chain) []matt.PDBArg {

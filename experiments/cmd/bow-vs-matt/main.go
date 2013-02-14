@@ -25,7 +25,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/BurntSushi/bcbgo/apps/matt"
-	"github.com/BurntSushi/bcbgo/bowdb"
+	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
 )
 
@@ -34,7 +34,7 @@ type results []result
 type result struct {
 	entry   string
 	chain   byte
-	results bowdb.SearchResults
+	results bow.SearchResult
 }
 
 func init() {
@@ -52,13 +52,10 @@ func main() {
 
 	util.Assert(createBowDb(dbPath, fragLibDir, pdbFiles))
 
-	db, err := bowdb.Open(dbPath)
+	db, err := bow.OpenDB(dbPath)
 	util.Assert(err)
 
-	searcher, err := db.NewFullSearcher()
-	util.Assert(err, "Could not initialize searcher")
-
-	bowOpts := bowdb.DefaultSearchOptions
+	bowOpts := bow.SearchDefault
 	bowOpts.Limit = 200
 	mattOpts := matt.DefaultConfig
 	mattOpts.Verbose = false
@@ -76,21 +73,9 @@ func main() {
 			"Matt dist\n")
 	for i, chain := range chains {
 		marg := mattArgs[i]
-		bow := db.Library.NewBowChain(chain)
 
-		bowOrdered, err := getBowOrdering(searcher, bowOpts, bow)
-		if err != nil {
-			util.Warnf("Could not get BOW ordering for %s (chain %c): %s\n",
-				chain.Entry.IdCode, chain.Ident, err)
-			continue
-		}
-
-		mattOrdered, err := getMattOrdering(mattOpts, marg, mattArgs)
-		if err != nil {
-			util.Warnf("Could not get Matt ordering for %s (chain %c): %s\n",
-				chain.Entry.IdCode, chain.Ident, err)
-			continue
-		}
+		bowOrdered := getBowOrdering(db, bowOpts, chain)
+		mattOrdered := getMattOrdering(mattOpts, marg, mattArgs)
 
 		fmt.Printf("Ordering for %s (chain %c)\n",
 			chain.Entry.IdCode, chain.Ident)
@@ -102,7 +87,7 @@ func main() {
 		fmt.Println("\n")
 	}
 
-	util.Assert(db.ReadClose())
+	util.Assert(db.Close())
 }
 
 func createBowDb(dbPath string, fragLibDir string, pdbFiles []string) error {

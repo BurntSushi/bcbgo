@@ -1,0 +1,305 @@
+Ordering for 1HSW (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1HSWA        0.0000       1HSWA       0.0000
+2B7SA        0.2725       3NWNA       6.9448
+1R1BA        0.2850       2OQ0A       7.2408
+3PJ3A        0.3113       1MNUL       7.2484
+3M8EB        0.3156       3PJ3A       7.2811
+3M8EA        0.3390       2OQ0C       7.9000
+3NWNA        0.3630       1V2IB       8.0171
+2D02A        0.6750       1MNUH       8.3885
+1MNUL        0.8936       2B7SA       8.5361
+1MNUH        0.9046       1V2IA       8.8034
+2OQ0B        0.9081       3M8EA       8.8522
+2OQ0C        0.9090       2D02A       9.3550
+1V2IB        0.9126       1R1BA       10.1031
+1V2IA        0.9132       2OQ0D       10.3133
+2OQ0D        0.9143       2OQ0B       10.3733
+2OQ0A        0.9152       3M8EB       15.8900
+
+Ordering for 3M8E (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+3M8EA        0.0000       3M8EA       0.0000
+3M8EB        0.0502       3M8EB       0.8835
+3PJ3A        0.2291       3PJ3A       5.7588
+1R1BA        0.2469       1MNUL       6.0200
+2B7SA        0.2584       2B7SA       7.4745
+3NWNA        0.3128       1V2IB       8.1943
+1HSWA        0.3390       1MNUH       8.6464
+2D02A        0.6130       1HSWA       8.8522
+2OQ0B        0.7478       2D02A       8.9520
+2OQ0A        0.7493       1V2IA       9.2429
+2OQ0C        0.7502       1R1BA       9.7595
+2OQ0D        0.7522       2OQ0A       10.9440
+1V2IA        0.8289       2OQ0D       13.4788
+1V2IB        0.8420       3NWNA       14.3565
+1MNUL        0.8773       2OQ0B       15.5364
+1MNUH        0.9197       2OQ0C       20.2833
+
+Ordering for 3M8E (chain B)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+3M8EB        0.0000       3M8EB       0.0000
+3M8EA        0.0502       3M8EA       0.8835
+1R1BA        0.1836       3PJ3A       5.9184
+3PJ3A        0.1917       1MNUL       6.9400
+2B7SA        0.2180       1V2IB       7.6211
+3NWNA        0.2746       2D02A       8.4333
+1HSWA        0.3156       1V2IA       8.6828
+2D02A        0.6371       1MNUH       8.7185
+2OQ0B        0.7920       2B7SA       9.1064
+2OQ0A        0.7939       1R1BA       9.8811
+2OQ0C        0.7940       2OQ0A       11.5045
+2OQ0D        0.8073       1HSWA       14.3000
+1V2IA        0.8568       2OQ0D       14.5318
+1V2IB        0.8679       2OQ0C       15.1762
+1MNUL        0.8944       2OQ0B       15.2089
+1MNUH        0.9290       3NWNA       15.9026
+
+Ordering for 2B7S (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2B7SA        0.0000       2B7SA       0.0000
+3PJ3A        0.1604       3NWNA       4.6818
+1R1BA        0.1872       1V2IB       6.7393
+3NWNA        0.2134       2OQ0D       6.9660
+3M8EB        0.2180       2OQ0A       7.1191
+3M8EA        0.2584       3M8EA       7.4745
+1HSWA        0.2725       2OQ0B       7.5512
+2D02A        0.5825       1MNUH       7.6324
+1V2IB        0.7555       3PJ3A       8.0891
+1MNUL        0.7568       1HSWA       8.5361
+1V2IA        0.7671       1MNUL       8.6413
+1MNUH        0.7703       2D02A       8.7136
+2OQ0A        0.7720       3M8EB       9.1064
+2OQ0C        0.7842       1V2IA       14.5024
+2OQ0B        0.7948       1R1BA       15.2773
+2OQ0D        0.8040       2OQ0C       16.4197
+
+Ordering for 1V2I (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1V2IA        0.0000       1V2IA       0.0000
+1V2IB        0.0220       1V2IB       0.1765
+1MNUH        0.2735       1MNUL       5.5929
+1MNUL        0.2810       2D02A       5.6220
+2OQ0B        0.3875       2OQ0B       6.0027
+2OQ0C        0.4003       2OQ0C       6.1829
+2OQ0A        0.4117       3PJ3A       6.4941
+2OQ0D        0.4176       2OQ0D       7.2054
+2D02A        0.5860       3NWNA       7.2194
+3NWNA        0.6388       2OQ0A       7.5361
+2B7SA        0.7671       1R1BA       8.5615
+3PJ3A        0.8251       3M8EB       8.6828
+3M8EA        0.8289       1HSWA       8.8034
+3M8EB        0.8568       3M8EA       9.2429
+1HSWA        0.9132       1MNUH       9.7388
+1R1BA        0.9855       2B7SA       14.1843
+
+Ordering for 1V2I (chain B)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1V2IB        0.0000       1V2IB       0.0000
+1V2IA        0.0220       1V2IA       0.1765
+1MNUH        0.2505       1MNUL       5.7565
+1MNUL        0.2679       3NWNA       5.7947
+2OQ0B        0.3885       2OQ0C       5.8647
+2OQ0C        0.4053       2OQ0A       5.9833
+2OQ0A        0.4222       2D02A       6.0667
+2OQ0D        0.4318       2B7SA       6.7393
+2D02A        0.5817       3PJ3A       7.2117
+3NWNA        0.6298       3M8EB       7.6211
+2B7SA        0.7555       1HSWA       8.0171
+3PJ3A        0.8251       3M8EA       8.1943
+3M8EA        0.8420       2OQ0D       8.3551
+3M8EB        0.8679       1MNUH       9.5534
+1HSWA        0.9126       2OQ0B       10.1896
+1R1BA        0.9854       1R1BA       12.2882
+
+Ordering for 3PJ3 (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+3PJ3A        0.0000       3PJ3A       0.0000
+1R1BA        0.1451       3M8EA       5.6137
+2B7SA        0.1604       3M8EB       5.9184
+3M8EB        0.1917       2D02A       6.0973
+3NWNA        0.2131       1V2IA       6.4941
+3M8EA        0.2291       1R1BA       6.6222
+1HSWA        0.3113       3NWNA       6.6762
+2D02A        0.6177       2OQ0C       7.0368
+2OQ0D        0.8014       2OQ0A       7.2118
+2OQ0A        0.8029       1HSWA       7.2811
+2OQ0C        0.8059       1MNUL       7.2860
+2OQ0B        0.8090       2OQ0B       7.3642
+1V2IA        0.8251       2OQ0D       7.5182
+1V2IB        0.8251       2B7SA       8.0891
+1MNUL        0.8396       1V2IB       8.4500
+1MNUH        0.8679       1MNUH       8.5304
+
+Ordering for 2D02 (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2D02A        0.0000       2D02A       0.0000
+2OQ0C        0.5813       2OQ0D       5.5944
+1V2IB        0.5817       2OQ0B       5.6722
+2B7SA        0.5825       1V2IB       5.9118
+1V2IA        0.5860       2OQ0A       5.9529
+2OQ0B        0.6111       1MNUH       6.2208
+3M8EA        0.6130       1V2IA       6.3720
+3PJ3A        0.6177       2OQ0C       7.4620
+2OQ0D        0.6199       1R1BA       7.9000
+2OQ0A        0.6279       3M8EB       8.4333
+3NWNA        0.6279       3PJ3A       8.5806
+3M8EB        0.6371       2B7SA       8.7136
+1HSWA        0.6750       3M8EA       8.9520
+1MNUL        0.6795       1HSWA       9.2167
+1MNUH        0.6909       1MNUL       9.8667
+1R1BA        0.7587       3NWNA       10.9311
+
+Ordering for 1MNU (chain L)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1MNUL        0.0000       1MNUL       0.0000
+1MNUH        0.1876       1MNUH       2.2669
+1V2IB        0.2679       3NWNA       4.5400
+1V2IA        0.2810       1V2IB       4.8918
+2OQ0B        0.4862       1V2IA       5.5929
+2OQ0A        0.5270       3M8EA       6.0200
+2OQ0C        0.5297       3M8EB       6.9400
+2OQ0D        0.5770       2OQ0B       7.0303
+3NWNA        0.6017       1HSWA       7.2484
+2D02A        0.6795       3PJ3A       7.2860
+2B7SA        0.7568       2B7SA       8.6413
+3PJ3A        0.8396       2OQ0A       8.6429
+3M8EA        0.8773       2OQ0C       8.6457
+1HSWA        0.8936       2OQ0D       8.6486
+3M8EB        0.8944       2D02A       9.8667
+1R1BA        0.9807       1R1BA       12.5500
+
+Ordering for 1MNU (chain H)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1MNUH        0.0000       1MNUH       0.0000
+1MNUL        0.1876       1R1BA       1.8800
+1V2IB        0.2505       1MNUL       2.2084
+1V2IA        0.2735       3NWNA       5.9828
+2OQ0B        0.5565       2D02A       6.2208
+2OQ0C        0.5785       2OQ0C       6.3771
+2OQ0A        0.5846       2OQ0B       6.7608
+3NWNA        0.6025       2B7SA       7.6324
+2OQ0D        0.6203       1HSWA       7.7920
+2D02A        0.6909       3PJ3A       8.5304
+2B7SA        0.7703       3M8EA       8.6464
+3PJ3A        0.8679       3M8EB       8.7185
+1HSWA        0.9046       1V2IB       9.6907
+3M8EA        0.9197       1V2IA       9.7388
+3M8EB        0.9290       2OQ0D       10.9886
+1R1BA        0.9804       2OQ0A       11.0057
+
+Ordering for 2OQ0 (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2OQ0A        0.0000       2OQ0A       0.0000
+2OQ0C        0.0712       2OQ0D       0.2436
+2OQ0D        0.0847       2OQ0C       0.4392
+2OQ0B        0.0929       2OQ0B       0.4450
+1V2IA        0.4117       2D02A       5.9529
+1V2IB        0.4222       1V2IB       5.9833
+1MNUL        0.5270       2B7SA       7.1191
+1MNUH        0.5846       3PJ3A       7.2118
+2D02A        0.6279       1HSWA       7.2408
+3M8EA        0.7493       1V2IA       7.5361
+2B7SA        0.7720       1MNUL       8.6429
+3NWNA        0.7756       1R1BA       10.1125
+3M8EB        0.7939       3NWNA       10.2923
+3PJ3A        0.8029       3M8EA       10.9440
+1HSWA        0.9152       3M8EB       11.5045
+1R1BA        0.9788       1MNUH       15.3366
+
+Ordering for 2OQ0 (chain B)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2OQ0B        0.0000       2OQ0B       0.0000
+2OQ0C        0.0628       2OQ0C       0.3508
+2OQ0A        0.0929       2OQ0D       0.3875
+2OQ0D        0.0930       2OQ0A       0.4450
+1V2IA        0.3875       2D02A       5.6722
+1V2IB        0.3885       1V2IA       6.0027
+1MNUL        0.4862       3NWNA       6.6962
+1MNUH        0.5565       1MNUH       6.7308
+2D02A        0.6111       1MNUL       7.0303
+3M8EA        0.7478       3PJ3A       7.3075
+3NWNA        0.7583       2B7SA       7.5512
+3M8EB        0.7920       1V2IB       10.1896
+2B7SA        0.7948       1R1BA       10.8875
+3PJ3A        0.8090       1HSWA       13.8561
+1HSWA        0.9081       3M8EB       15.2089
+1R1BA        0.9844       3M8EA       15.5364
+
+Ordering for 2OQ0 (chain C)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2OQ0C        0.0000       2OQ0C       0.0000
+2OQ0B        0.0628       2OQ0B       0.3508
+2OQ0D        0.0636       2OQ0D       0.3776
+2OQ0A        0.0712       2OQ0A       0.4392
+1V2IA        0.4003       1V2IB       5.8647
+1V2IB        0.4053       1V2IA       6.1829
+1MNUL        0.5297       1MNUH       6.3771
+1MNUH        0.5785       3PJ3A       7.0791
+2D02A        0.5813       2D02A       7.4620
+3M8EA        0.7502       1HSWA       7.9000
+2B7SA        0.7842       1MNUL       8.6457
+3NWNA        0.7879       1R1BA       9.4773
+3M8EB        0.7940       2B7SA       11.5870
+3PJ3A        0.8059       3NWNA       11.8073
+1HSWA        0.9090       3M8EA       13.9432
+1R1BA        0.9820       3M8EB       14.0156
+
+Ordering for 2OQ0 (chain D)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+2OQ0D        0.0000       2OQ0D       0.0000
+2OQ0C        0.0636       2OQ0A       0.2436
+2OQ0A        0.0847       2OQ0C       0.3776
+2OQ0B        0.0930       2OQ0B       0.3875
+1V2IA        0.4176       2D02A       5.5944
+1V2IB        0.4318       3NWNA       5.7367
+1MNUL        0.5770       2B7SA       6.9660
+2D02A        0.6199       1V2IA       7.2054
+1MNUH        0.6203       3PJ3A       7.5197
+3M8EA        0.7522       1V2IB       8.3551
+3PJ3A        0.8014       1MNUL       8.6486
+2B7SA        0.8040       1HSWA       8.9464
+3M8EB        0.8073       1R1BA       10.0281
+3NWNA        0.8113       3M8EA       10.3673
+1HSWA        0.9143       1MNUH       10.7861
+1R1BA        0.9871       3M8EB       14.5318
+
+Ordering for 3NWN (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+3NWNA        0.0000       3NWNA       0.0000
+1R1BA        0.2108       1MNUL       4.5400
+3PJ3A        0.2131       2B7SA       4.6818
+2B7SA        0.2134       2OQ0D       5.7367
+3M8EB        0.2746       1V2IB       5.7947
+3M8EA        0.3128       1MNUH       5.9828
+1HSWA        0.3630       3PJ3A       6.6762
+1MNUL        0.6017       2OQ0B       6.6962
+1MNUH        0.6025       1HSWA       7.0863
+2D02A        0.6279       1V2IA       7.2194
+1V2IB        0.6298       2OQ0A       8.0663
+1V2IA        0.6388       3M8EB       8.6609
+2OQ0B        0.7583       2D02A       10.9311
+2OQ0A        0.7756       2OQ0C       11.0558
+2OQ0C        0.7879       3M8EA       11.9642
+2OQ0D        0.8113       1R1BA       14.0302
+
+Ordering for 1R1B (chain A)
+BOW entry    BOW chain    BOW dist    Matt entry    Matt chain    Matt dist
+1R1BA        0.0000       1R1BA       0.0000
+3PJ3A        0.1451       1MNUH       1.8800
+3M8EB        0.1836       3PJ3A       6.6222
+2B7SA        0.1872       2D02A       8.3115
+3NWNA        0.2108       1V2IA       8.5615
+3M8EA        0.2469       3NWNA       8.6139
+1HSWA        0.2850       2OQ0C       9.4773
+2D02A        0.7587       3M8EA       9.7595
+2OQ0A        0.9788       3M8EB       9.8811
+1MNUH        0.9804       1HSWA       10.1031
+1MNUL        0.9807       2OQ0A       10.1125
+2OQ0C        0.9820       2OQ0D       10.6348
+2OQ0B        0.9844       2OQ0B       10.8875
+1V2IB        0.9854       1V2IB       12.2882
+1V2IA        0.9855       1MNUL       12.5500
+2OQ0D        0.9871       2B7SA       15.2773
+
+

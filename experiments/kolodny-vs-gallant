@@ -1,0 +1,65 @@
+#!/usr/bin/env python2.7
+
+import os
+import re
+import sys
+
+import pybcbgo as bcb
+import pybcbgo.flags as flags
+
+flags.use_all('pdb-dir', 'tmp-dir', 'results-dir', 'ignore-cache', 'no-cache',
+              'frag-lib')
+flags.use('old-fragbag', (
+    lambda: flags.add(dest='old_fragbag', type=str,
+                      help='The old FragBag executable.'),
+    flags.verify_path,
+))
+flags.use('pdbids', (
+    lambda: flags.add(dest='pdbids', type=str,
+                      help='A file containing PDB ids, one per line.'),
+    flags.verify_path,
+))
+flags.init()
+
+exp_dirname = os.path.basename(flags.config.pdbids)
+results_dirname = exp_dirname
+
+exp_dir = os.path.join(flags.config.tmp_dir, exp_dirname)
+results_dir = os.path.join(flags.config.results_dir, results_dirname)
+
+bcb.make()
+bcb.set_exp_dir(exp_dir)
+bcb.set_results_dir(results_dir)
+
+gzpdbfiles = map(str.strip, list(open(flags.config.pdbids).readlines()))
+pdbfiles = []
+
+# The old fragbag can't handle gzipped PDB files...
+for pdbgz in gzpdbfiles:
+    if pdbgz.endswith('.gz'):
+        pdbf = bcb.ejoin(os.path.basename(re.sub('\.gz$', '', pdbgz)))
+        print >> open(pdbf, 'w+'), bcb.cmd('gunzip', '-c', pdbgz)
+        pdbfiles.append(pdbf)
+    else:
+        pdbfiles.append(pdbgz)
+
+concat_file = bcb.rjoin('concat-chains')
+def oldstyle():
+    w = open(concat_file, 'w+')
+    print >> w, bcb.cmd('diff-kolodny-fragbag', '--oldstyle',
+                        '--fragbag', flags.config.old_fragbag,
+                        flags.config.frag_lib,
+                        *pdbfiles)
+    w.close()
+bcb.cached([concat_file], oldstyle)
+
+separate_file = bcb.rjoin('separate-chains')
+def newstyle():
+    w = open(separate_file, 'w+')
+    print >> w, bcb.cmd('diff-kolodny-fragbag',
+                        '--fragbag', flags.config.old_fragbag,
+                        flags.config.frag_lib,
+                        *pdbfiles)
+    w.close()
+bcb.cached([separate_file], newstyle)
+

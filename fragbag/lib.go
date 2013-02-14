@@ -1,17 +1,15 @@
 package fragbag
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"path"
-	"path/filepath"
-	"runtime"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/rmsd"
 )
 
 // Library represents a Fragbag fragment library. Fragbag fragment libraries
@@ -33,90 +31,76 @@ import (
 type Library struct {
 	Path         string
 	fragmentSize int
-	fragments    []*LibFragment
+	fragments    []Fragment
 }
 
-// NewLibrary constucts a new Fragbag library given a path to the directory
-// containing the fragment files. It will return an error if the directory
-// or any of the fragment files aren't readable, if there are no fragment files,
-// or if there is any variability among fragment sizes in all fragments.
-func NewLibrary(path string) (*Library, error) {
-	infos, err := ioutil.ReadDir(path)
+// NewLibrary constucts a new Fragbag library given a path to the fragment
+// library file.
+// It will return an error if the file is not readable, if there are no
+// fragments, or if there is any variability among fragment sizes in all
+// fragments.
+func NewLibrary(fpath string) (*Library, error) {
+	f, err := os.Open(fpath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	contents, err := ioutil.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
 
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return nil,
-			fmt.Errorf("Could not get absolute path for '%s': %s.", path, err)
-	}
-
 	lib := &Library{
-		Path:         absPath,
+		Path:         fpath,
 		fragmentSize: 0,
-		fragments:    nil,
+		fragments:    make([]Fragment, 0),
 	}
 
-	// Add all files in the directory that have names that are translatable
-	// to 16-bit integers.
-	fragNums := make([]int, 0, 100)
-	for _, info := range infos {
-		if fragNum64, err := strconv.ParseInt(info.Name(), 10, 16); err == nil {
-			fragNums = append(fragNums, int(fragNum64))
+	fragments := bytes.Split(contents, []byte("TER"))
+	flen := 0
+	for i, fragment := range fragments {
+		fragment = bytes.TrimSpace(fragment)
+		if len(fragment) == 0 {
+			continue
 		}
-	}
-
-	// If there aren't any fragments, return an error. No empty libraries!
-	if len(fragNums) == 0 {
-		return nil, fmt.Errorf("The library at '%s' does not contain any "+
-			"fragments.", path)
-	}
-
-	// Check that the fragment numbering is contiguous, and populate
-	// our fragments slice.
-	lib.fragments = make([]*LibFragment, len(fragNums))
-	sort.Sort(sort.IntSlice(fragNums))
-	lastNum := -1
-	for _, fragNum := range fragNums {
-		if lastNum != fragNum-1 {
-			if lastNum == -1 {
-				return nil, fmt.Errorf("Fragment files must start numbering "+
-					"at 1 and be contiguous. However, the first fragment "+
-					"number in library '%s' is %d.",
-					path, fragNum)
-			}
-			return nil, fmt.Errorf("Fragment files must start numbering "+
-				"at 1 and be contiguous. However, a fragment of number "+
-				"%d was found after a fragment of number %d.",
-				fragNum, lastNum)
-		}
-		lastNum = fragNum
-
-		lib.fragments[fragNum], err = lib.newLibFragment(fragNum)
+		frag, err := lib.newFragment(i, fragment)
 		if err != nil {
-			return nil, fmt.Errorf("The fragment file '%d' in the '%s' "+
-				"library could not be read as a PDB file: %s",
-				fragNum, path, err)
+			return nil, fmt.Errorf("Could not read fragment '%d': %s", i, err)
 		}
-	}
-
-	// Set the fragment size of this library to the size of one of the
-	// fragments. Then make sure every other fragment has the same size.
-	for _, frag := range lib.fragments {
-		size := len(frag.CaAtoms)
-		if lib.fragmentSize == 0 {
-			lib.fragmentSize = size
-		} else {
-			if size != lib.fragmentSize {
-				return nil, fmt.Errorf("In the library at '%s', fragment %d "+
-					"has a size of %d, but another fragment has a size of %d.",
-					path, frag.Ident, size, lib.fragmentSize)
-			}
+		if len(frag.CaAtoms) == 0 {
+			return nil, fmt.Errorf("No Ca atoms for fragment '%d'.", i)
 		}
+		if flen == 0 {
+			flen = len(frag.CaAtoms)
+		} else if flen != len(frag.CaAtoms) {
+			return nil,
+				fmt.Errorf("Fragment '%d' has length %d, but others have "+
+					"length %d.", i, len(frag.CaAtoms), flen)
+		}
+		lib.fragments = append(lib.fragments, frag)
 	}
-
+	lib.fragmentSize = flen
 	return lib, nil
+}
+
+// Copy copies the full fragment library to the path provied.
+func (lib *Library) Copy(dest string) error {
+	fdest, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+
+	fsrc, err := os.Open(lib.Path)
+	if err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(fdest, fsrc); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Size returns the number of fragments in the library.
@@ -129,133 +113,18 @@ func (lib *Library) FragmentSize() int {
 	return lib.fragmentSize
 }
 
+func (lib *Library) Fragments() []Fragment {
+	return lib.fragments
+}
+
 // Fragment returns a LibFragment corresponding to the fragment number
 // fragNum. Fragment will panic if such a fragment does not exist.
-func (lib *Library) Fragment(fragNum int) *LibFragment {
+func (lib *Library) Fragment(fragNum int) Fragment {
 	if fragNum >= 0 && fragNum < len(lib.fragments) {
 		return lib.fragments[fragNum]
 	}
 	panic(fmt.Sprintf("Fragment number %d does not exist in the "+
 		"'%s' fragment library.", fragNum, lib))
-}
-
-// BestFragment runs Kabsch using the provided PDB argument against all
-// fragments in the library and returns the fragment number with the best RMSD.
-//
-// BestFragment panics if the length of atoms is not equivalent to the
-// fragment size of the library.
-func (lib *Library) BestFragment(
-	atoms []pdb.Coords, mem rmsd.QcMemory) (int, float64) {
-
-	if len(atoms) != lib.FragmentSize() {
-		panic(fmt.Sprintf("BestFragment can only be called with a list of "+
-			"atoms with length equivalent to the fragment size of the "+
-			"library. The length of the list given is %d, but the fragment "+
-			"size of the library is %d.", len(atoms), lib.FragmentSize()))
-	}
-
-	bestRmsd, bestFragNum := 0.0, -1
-	for _, frag := range lib.fragments {
-		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.CaAtoms)
-		if bestFragNum == -1 || testRmsd < bestRmsd {
-			bestRmsd, bestFragNum = testRmsd, frag.Ident
-		}
-	}
-	return bestFragNum, bestRmsd
-}
-
-type rmsdPoolJob struct {
-	fragNum int
-	atoms   []pdb.Coords
-}
-
-type rmsdPoolResult struct {
-	fragNum int
-	rmsd    float64
-}
-
-// BestFragments runs Kabsch in parallel over the entire fragment library
-// for *each* set of atoms provided. The best fragment for each atom set
-// is returned in a slice of integers whose indices correspond exactly to
-// the indices of 'atomSets'.
-func (lib *Library) BestFragments(atomSets [][]pdb.Coords) []int {
-	// Create the worker pool.
-	jobs, results := lib.rmsdWorkers(0, 0)
-	bestFrags := make([]int, len(atomSets))
-
-	for setIndex, atoms := range atomSets {
-		if len(atoms) != lib.FragmentSize() {
-			panic(fmt.Sprintf("BestFragments can only be called with sets "+
-				"of atoms with length equivalent to the fragment size of the "+
-				"library. The length a set given is %d, but the "+
-				"fragment size of the library is %d.",
-				len(atoms), lib.FragmentSize()))
-		}
-		// Start a goroutine that reads the results returned from the worker
-		// pool, and determines the best matching fragment in terms of
-		// smallest RMSD.
-		bestFragChan := make(chan int, 0)
-		go func() {
-			bestFrag, bestRmsd := -1, 0.0
-			for i := 0; i < lib.Size(); i++ {
-				result := <-results
-				if bestFrag == -1 || result.rmsd < bestRmsd {
-					bestFrag, bestRmsd = result.fragNum, result.rmsd
-				}
-			}
-			bestFragChan <- bestFrag
-		}()
-
-		// Send out all of the jobs to the workers.
-		for i := 0; i < lib.Size(); i++ {
-			jobs <- rmsdPoolJob{
-				fragNum: i,
-				atoms:   atoms,
-			}
-		}
-
-		// Wait for the best fragment computation to finish, then move on to
-		// the next atom set.
-		//
-		// This is CRITICAL! If we don't wait (i.e., slapping this into
-		// a goroutine), then it's quite likely that results from one atom set
-		// will get confused for another atom set.
-		bestFrags[setIndex] = <-bestFragChan
-	}
-	return bestFrags
-}
-
-// rmsdWorkers starts a pool of workers ready to compute the RMSD of any two
-// atom slices. If 'numWorkers' is 0, then GOMAXPROCS workers will be started.
-// If 'bufferSize' is 0, then the buffer will be set to the number of fragments
-// in the library. The bigger the buffer, the more memory will be used.
-func (lib *Library) rmsdWorkers(
-	numWorkers int, bufferSize int) (chan rmsdPoolJob, chan rmsdPoolResult) {
-
-	workers := numWorkers
-	if workers == 0 {
-		workers = runtime.GOMAXPROCS(0)
-	}
-	bufSize := bufferSize
-	if bufSize == 0 {
-		bufSize = lib.Size()
-	}
-
-	jobs := make(chan rmsdPoolJob, bufSize)
-	results := make(chan rmsdPoolResult, bufSize)
-	for i := 0; i < workers; i++ {
-		go func() {
-			for job := range jobs {
-				results <- rmsdPoolResult{
-					fragNum: job.fragNum,
-					rmsd: rmsd.QCRMSD(
-						job.atoms,
-						lib.Fragment(job.fragNum).CaAtoms),
-				}
-			}
-		}()
-	}
-	return jobs, results
 }
 
 // String returns a string with the name of the library (base name of the
@@ -270,9 +139,9 @@ func (lib *Library) Name() string {
 	return path.Base(lib.Path)
 }
 
-// LibFragment corresponds to a single fragment file in a fragment library.
+// Fragment corresponds to a single fragment file in a fragment library.
 // It holds the fragment number identifier and embeds a PDB entry.
-type LibFragment struct {
+type Fragment struct {
 	library *Library
 	Ident   int
 	*pdb.Entry
@@ -283,13 +152,13 @@ type LibFragment struct {
 // given a fragment library. A pdb.Entry is also created and embedded with
 // the Location corresponding to a file path concatenation of the library path
 // and the fragment number.
-func (lib *Library) newLibFragment(fragNum int) (*LibFragment, error) {
-	path := path.Join(lib.Path, fmt.Sprintf("%d", fragNum))
-	entry, err := pdb.ReadPDB(path)
+func (lib *Library) newFragment(fragNum int, frag []byte) (Fragment, error) {
+	entry, err := pdb.Read(
+		bytes.NewReader(frag), fmt.Sprintf("%s:%d", lib.Path, fragNum))
 	if err != nil {
-		return nil, err
+		return Fragment{}, err
 	}
-	return &LibFragment{
+	return Fragment{
 		library: lib,
 		Ident:   fragNum,
 		Entry:   entry,
@@ -298,7 +167,7 @@ func (lib *Library) newLibFragment(fragNum int) (*LibFragment, error) {
 }
 
 // String returns the fragment number, library and its corresponding atoms.
-func (frag *LibFragment) String() string {
+func (frag *Fragment) String() string {
 	atoms := make([]string, len(frag.CaAtoms))
 	for i, atom := range frag.CaAtoms {
 		atoms[i] = fmt.Sprintf("\t%s", atom)
