@@ -60,6 +60,7 @@ for pdbid in map(str.strip, open(flags.config.pdbids)):
         hits = filter(lambda row: row['HitID'] != row['QueryID'], rs)
         comparing[pdbid].append(hits[0])
         comparing[pdbid].append(hits[1])
+        comparing[pdbid].append(hits[2])
 
 for pdbid, relatives in comparing.iteritems():
     chains = [bcb.pdb_case(r['HitID']) for r in relatives]
