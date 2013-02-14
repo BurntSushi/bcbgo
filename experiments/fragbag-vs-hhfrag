@@ -14,8 +14,6 @@ import csv
 import os
 import sys
 
-import numpy as np
-
 import pybcbgo as bcb
 import pybcbgo.flags as flags
 
