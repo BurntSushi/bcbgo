@@ -135,7 +135,7 @@ func (bow1 BOW) Cosine(bow2 BOW) float64 {
 		mag1 += f1 * f1
 		mag2 += f2 * f2
 	}
-	r := 1.0 - (float64(dot) / math.Sqrt(float64(mag1*mag2)))
+	r := 1.0 - (float64(dot) / math.Sqrt(float64(mag1)*float64(mag2)))
 	if math.IsNaN(r) {
 		return 1.0
 	}
