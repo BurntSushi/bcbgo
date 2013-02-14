@@ -224,7 +224,7 @@ def fastas_to_fmap(fastas):
 def fastas_to_fmap_parallel(fastas):
     args = [
        'hhfrag-map-many',
-       '--cpu', str(flags.config.cpu),
+       '--cpu', str(min(12, flags.config.cpu)),
        '--seq-db', flags.config.seq_hhm_db,
        '--pdb-hhm-db', flags.config.pdb_hhm_db,
        '--hhfrag-inc', str(flags.config.hhfrag_inc),
