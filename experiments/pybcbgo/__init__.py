@@ -194,7 +194,9 @@ def pdbids_to_fasta(pdbids):
         if chain is not None:
             fasta_file = ejoin('%s.fasta' % pdbid)
             cached_cmd([fasta_file],
-                       'pdb2fasta', '--chain', chain, pdb_file, fasta_file)
+                       'pdb2fasta',
+                       '--chain', chain, '--separate-chains',
+                       '--split', __exp_dir, pdb_file,)
         else:
             cached_cmd(tglob('%s*.fasta' % pdbid),
                        'pdb2fasta', '--separate-chains', '--split',

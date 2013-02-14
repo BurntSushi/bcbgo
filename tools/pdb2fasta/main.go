@@ -25,8 +25,7 @@ func init() {
 		"When set, each chain will get its own FASTA entry.")
 	flag.StringVar(&flagChain, "chain", flagChain,
 		"This may be set to one or more chain identifiers. Only amino acids "+
-			"belonging to a chain specified will be included.\n"+
-			"If this is set, then 'split' MUST also be set.")
+			"belonging to a chain specified will be included."+)
 	flag.StringVar(&flagSplit, "split", flagSplit,
 		"When set, each FASTA entry produced will be written to a file in the "+
 			"specified directory with the PDB id code and chain identifier as "+
