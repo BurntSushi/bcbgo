@@ -219,7 +219,23 @@ def fastas_to_fmap(fastas):
 
         cached_cmd([fmap_file], *args)
 
-def search_bowdb_pdb(pdb_file, chain='', limit=100, min=0.0, max=1.0):
+def fastas_to_fmap_parallel(fastas):
+    args = [
+       'hhfrag-map-many',
+       '--cpu', str(flags.config.cpu),
+       '--seq-db', flags.config.seq_hhm_db,
+       '--pdb-hhm-db', flags.config.pdb_hhm_db,
+       '--hhfrag-inc', str(flags.config.hhfrag_inc),
+       '--hhfrag-min', str(flags.config.hhfrag_min),
+       '--hhfrag-max', str(flags.config.hhfrag_max),
+    ]
+    if not flags.config.blits:
+        args.append('--blits=false')
+    args += [__exp_dir] + fastas
+
+    cached_cmd(map(lambda f: ejoin(base_ext(f, 'fmap')), fastas), *args)
+
+def search_bowdb_pdb(prot_file, chain='', limit=100, min=0.0, max=1.0):
     flags.assert_flag('bow_db')
 
     out = StringIO(cmd('bowsearch', '-output', 'csv',
@@ -227,9 +243,30 @@ def search_bowdb_pdb(pdb_file, chain='', limit=100, min=0.0, max=1.0):
                        '-min', '%f' % min,
                        '-max', '%f' % max,
                        '--chain', chain,
-                       flags.config.bow_db, pdb_file))
+                       flags.config.bow_db, prot_file))
     rows = []
     for row in csv.DictReader(out, delimiter='\t'):
         rows.append(row)
     return rows
+
+def mk_bowdb(name, protein_files):
+    flags.assert_flag('frag-lib')
+
+    bowdb = ejoin(name)
+
+    args = [
+       'bowmk',
+       '--overwrite', # let the `cached_cmd` work out the deets
+       '--cpu', str(flags.config.cpu),
+       '--seq-db', flags.config.seq_hhm_db,
+       '--pdb-hhm-db', flags.config.pdb_hhm_db,
+       '--hhfrag-inc', str(flags.config.hhfrag_inc),
+       '--hhfrag-min', str(flags.config.hhfrag_min),
+       '--hhfrag-max', str(flags.config.hhfrag_max),
+    ]
+    if not flags.config.blits:
+        args.append('--blits=false')
+    args += [bowdb, flags.config.frag_lib] + protein_files
+
+    cached_cmd([bowdb], *args)
 

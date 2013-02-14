@@ -67,7 +67,7 @@ for pdbid, relatives in comparing.iteritems():
     chains.append(bcb.pdb_case(pdbid))
     bcb.pdbids_to_fasta(chains)
 
-bcb.fastas_to_fmap(bcb.eglob('*.fasta'))
+bcb.fastas_to_fmap_parallel(bcb.eglob('*.fasta'))
 
 for fmap in bcb.eglob('*.fmap'):
     bow_file = bcb.ejoin(bcb.base_ext(fmap, 'hhfrag.bow'))
