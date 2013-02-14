@@ -29,6 +29,7 @@ func main() {
 		go func() {
 			wg.Add(1)
 			for fasta := range fastaChan {
+				util.Verbosef("Computing map for '%s'...", fasta)
 				fmap := util.GetFmap(fasta)
 				outF := path.Join(outDir, fmt.Sprintf("%s.fmap", fmap.Name))
 				util.FmapWrite(util.CreateFile(outF), fmap)
