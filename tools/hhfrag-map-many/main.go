@@ -14,7 +14,7 @@ func init() {
 	util.FlagUse("cpu", "seq-db", "pdb-hhm-db", "blits",
 		"hhfrag-min", "hhfrag-max", "hhfrag-inc")
 	util.FlagParse("out-dir target-fasta", "")
-	util.AssertNArg(2)
+	util.AssertLeastNArg(2)
 }
 
 func main() {
