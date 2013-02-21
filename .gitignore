@@ -1,5 +1,6 @@
 .*.swp
 TAGS
+tags
 data/kolodny-fragbag-testset
 data/experiments
 data/bowdbs

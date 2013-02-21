@@ -31,6 +31,7 @@ tags:
 			-and -not -wholename './examples/*' \
 		\) -print0 \
 		| xargs -0 gotags > TAGS
+	find ./ -name '*.py' -print0 | xargs -0 ctags >> TAGS
 
 loc:
 	find ./ -name '*.go' -print | sort | xargs wc -l
