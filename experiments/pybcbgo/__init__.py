@@ -1,6 +1,8 @@
+from collections import defaultdict
 import csv
 from cStringIO import StringIO
 import glob
+import hashlib
 import os
 import os.path
 import re
@@ -70,6 +72,31 @@ def make():
 
 def readable(f):
     return os.access(f, os.R_OK)
+
+
+def parse_range(s):
+    '''
+    Takes a range of the form `^(\d+)-(\d+)$` and returns a corresponding
+    `xrange` object.
+
+    If no hypen is found in `s`, then `xrange(int(s), int(s)+1)` is returned.
+
+    Any other format is an error.
+    '''
+    if '-' not in s:
+        try:
+            n = int(s)
+        except ValueError:
+            eprintln('Could not parse range "%s".' % s)
+            exit(1)
+        return xrange(n, n+1)
+
+    mg = re.match('^(\d+)-(\d+)$', s)
+    if mg is None:
+        eprintln('Could not parse range "%s".' % s)
+        exit(1)
+
+    return xrange(int(mg.group(1)), int(mg.group(2)) + 1)
 
 
 def cached(files, fun):
@@ -237,22 +264,64 @@ def fastas_to_fmap_parallel(fastas):
 
     cached_cmd(map(lambda f: ejoin(base_ext(f, 'fmap')), fastas), *args)
 
-def search_bowdb_pdb(prot_file, chain='', limit=100, min=0.0, max=1.0):
-    flags.assert_flag('bow_db')
+def search_bowdb_pdb(prot_files, bow_db=None, chain='',
+                     limit=100, min=0.0, max=1.0):
+    flags.assert_flag('bow-db')
 
-    out = StringIO(cmd('bowsearch', '-output', 'csv',
-                       '-limit', '%d' % limit,
-                       '-min', '%f' % min,
-                       '-max', '%f' % max,
-                       '--chain', chain,
-                       flags.config.bow_db, prot_file))
+    if bow_db is None:
+        bow_db = flags.config.bow_db
+    else:
+        bow_db = ejoin(bow_db)
+    if isinstance(prot_files, basestring):
+        prot_files = [prot_files]
+
+    file_hash = hashlib.md5(''.join(prot_files)).hexdigest()
+    outname = 'bowsearch_limit-%d_min-%f_max-%f_chain-%s_%s' \
+        % (limit, min, max, chain, file_hash)
+    outname = ejoin(outname)
+
+    def runsearch():
+        print >> open(outname, 'w+'), \
+            cmd('bowsearch', '-output', 'csv',
+                '-limit', '%d' % limit,
+                '-min', '%f' % min,
+                '-max', '%f' % max,
+                '--chain', chain,
+                bow_db, *prot_files)
+    cached([outname], runsearch)
+
+    print outname
+
     rows = []
-    for row in csv.DictReader(out, delimiter='\t'):
+    for row in csv.DictReader(open(outname), delimiter='\t'):
+        row['Cosine'] = float(row['Cosine'])
+        row['Euclid'] = float(row['Euclid'])
         rows.append(row)
     return rows
 
+def search_bowdb_pdb_many(*args, **kwargs):
+    '''
+    Takes the same arguments as `search_bowdb_pdb`, but returns the rows
+    organized into a dict, with the query PDB ids as keys.
+    '''
+    results = search_bowdb_pdb(*args, **kwargs)
+    d = defaultdict(list)
+    for row in results:
+        d[row['QueryID']].append(row)
+    return d
+
+def mk_bowdb_pdbs(name, pdb_files):
+    flags.assert_flags('frag-lib')
+    bowdb = ejoin(name)
+
+    cached_cmd([bowdb],
+        'bowmk', '--overwrite', '--cpu', str(flags.config.cpu),
+        bowdb, flags.config.frag_lib, *pdb_files)
+
+
 def mk_bowdb(name, protein_files):
-    flags.assert_flag('frag-lib')
+    flags.assert_flags('frag-lib', 'seq-hhm-db', 'pdb-hhm-db',
+                       'hhfrag-inc', 'hhfrag-min', 'hhfrag-max', 'blits')
 
     bowdb = ejoin(name)
 

@@ -32,6 +32,11 @@ def used(name):
     return hasattr(config, name.replace('-', '_'))
 
 
+def assert_flags(*names):
+    for name in names:
+        assert_flag(name)
+
+
 def assert_flag(name):
     if not used(name):
         eprintln('Flag %s is required by this experiment.' % name)
@@ -110,6 +115,20 @@ __flags = {
            default='/data/bio/pdb',
            help='The location of a full PDB directory.'),
         verify_path,
+    ),
+    'sabmark-dir': (
+        aa('--sabmark-dir', dest='sabmark_dir', type=str,
+           default='/data/bio/SABmark',
+           help='The location of the SABmark directory with PDB files, '+
+                'and "sup_fp" and "twi_fp" sub-directories.'),
+        verify_path,
+    ),
+    'sabmark-set': (
+        aa('--sabmark-set', dest='sabmark_set', type=str,
+           choices=['twilight', 'superfamily'],
+           default='superfamily',
+           help='The SABmark alignment set to use.'),
+        None,
     ),
     'frag-lib': (
         aa('--frag-lib', dest='frag_lib', type=str,
