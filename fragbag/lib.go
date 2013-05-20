@@ -14,20 +14,6 @@ import (
 
 // Library represents a Fragbag fragment library. Fragbag fragment libraries
 // are fixed both in the number of fragments and in the size of each fragment.
-//
-// A Fragbag library traditionally existed as one monolithic '.brk' file, but
-// this implementation uses a slightly different form called General Fragment
-// Form. The key distinction is that a library is represented on disk as a
-// directory where each fragment in the library corresponds to a single file
-// with a 16-bit integer name. (i.e., "4" and "2000" are valid fragment file
-// names, but "one" and "1000000" are not.)
-//
-// The only invariants imposed by this package is that every fragment in a
-// library must be the same size, and fragment numbers must start from 1 and
-// be contiguous.
-//
-// Files in a Fragbag library directory that do not correspond to 16-bit
-// integer names are simply ignored.
 type Library struct {
 	Path         string
 	fragmentSize int
