@@ -10,6 +10,22 @@ import (
 	"github.com/BurntSushi/bcbgo/rmsd"
 )
 
+// Bower should be:
+//
+// Id() string
+// Data() string
+//
+// Then `StructureBower`
+// AtomChunks() [][]pdb.Coords
+//
+// And `SeqBower`
+// Residues() []seq.Residue
+//
+// Move to Fragbag package.
+// Split Library into Structure and Sequence libraries.
+//
+// Similarly for DB in `bow` package. Code reuse through embedding.
+
 type Bower interface {
 	IdString() string
 	AtomChunks() [][]pdb.Coords
