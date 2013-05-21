@@ -2,8 +2,10 @@ package util
 
 import (
 	"encoding/gob"
+	"fmt"
 	"io"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 
@@ -29,6 +31,33 @@ func PDBRead(path string) *pdb.Entry {
 	entry, err := pdb.ReadPDB(path)
 	Assert(err, "Could not open PDB file '%s'", path)
 	return entry
+}
+
+func PDBReadId(pid string) (*pdb.Entry, *pdb.Chain) {
+	if len(pid) < 4 || len(pid) > 5 {
+		Fatalf("PDB ids must contain 4 or 5 characters, but '%s' has %d.",
+			pid, len(pid))
+	}
+	pdbPath := os.Getenv("PDB_PATH")
+	if len(pdbPath) == 0 || !IsDir(pdbPath) {
+		Fatalf("The PDB_PATH environment variable must be set to open " +
+			"PDB chains by just their ID.\n" +
+			"PDB_PATH should be set to the directory containing a full " +
+			"copy of the PDB database.")
+	}
+
+	pdbid := strings.ToLower(pid[0:4])
+	group := pdbid[1:3]
+	basename := fmt.Sprintf("pdb%s.ent.gz", pdbid)
+	e := PDBRead(path.Join(pdbPath, group, basename))
+	if len(pid) == 5 {
+		chain := e.Chain(pid[4])
+		if chain == nil {
+			Fatalf("Could not find chain '%s' in PDB entry '%s'.", pid[4], pid)
+		}
+		return e, chain
+	}
+	return e, nil
 }
 
 func GetFmap(fpath string) *hhfrag.FragmentMap {
@@ -112,4 +141,12 @@ func IsPDB(fpath string) bool {
 		return strings.HasSuffix(fpath, ext)
 	}
 	return suffix(".ent.gz") || suffix(".pdb") || suffix(".ent")
+}
+
+func IsChainID(s string) bool {
+	return len(s) == 5
+}
+
+func IsPDBID(s string) bool {
+	return len(s) == 4
 }

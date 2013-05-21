@@ -46,6 +46,9 @@ var commonFlags = map[string]*commonFlag{
 				"The max number of CPUs to use.")
 		},
 		init: func() {
+			if FlagCpu < 1 {
+				FlagCpu = 1
+			}
 			runtime.GOMAXPROCS(FlagCpu)
 		},
 	},
