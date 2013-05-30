@@ -39,6 +39,16 @@ func Exists(path string) bool {
 	return err == nil || !os.IsNotExist(err)
 }
 
+func AssertOverwritable(path string, overwritable bool) {
+	if Exists(path) {
+		if overwritable {
+			Assert(os.RemoveAll(path), "Could not remove %s", path)
+		} else {
+			Fatalf("%s already exists.", path)
+		}
+	}
+}
+
 func AllFilesFromArgs(fileArgs []string) []string {
 	files := make([]string, 0)
 	for _, fordir := range fileArgs {

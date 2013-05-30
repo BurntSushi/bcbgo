@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"runtime/pprof"
 	"strings"
 	"sync"
@@ -22,11 +21,11 @@ func init() {
 	flag.BoolVar(&flagOverwrite, "overwrite", flagOverwrite,
 		"When set, any existing database will be completely overwritten.")
 	flag.BoolVar(&flagPdbSelect, "pdb-select", flagPdbSelect,
-		"When set, the input will be read as a PDB Select file.")
+		"When set, the protein list will be read as a PDB Select file.")
 
 	util.FlagUse("cpu", "cpuprof", "verbose")
 	util.FlagParse(
-		"frag-lib-path protein-list fseqdb-out-file",
+		"struct-lib protein-list seq-lib-outfile",
 		"Where 'protein-list' is a plain text file with PDB chain\n"+
 			"identifiers on each line. e.g., '1P9GA'.")
 	util.AssertLeastNArg(3)
@@ -35,13 +34,11 @@ func init() {
 func main() {
 	libPath := util.Arg(0)
 	protList := util.Arg(1)
-	dbPath := util.Arg(2)
+	saveto := util.Arg(2)
 
-	_ = util.FragmentLibrary(libPath)
-	if flagOverwrite {
-		util.Assert(os.RemoveAll(dbPath),
-			"Could not remove '%s' directory", dbPath)
-	}
+	_ = util.StructureLibrary(libPath)
+	util.AssertOverwritable(saveto, flagOverwrite)
+
 	if len(util.FlagCpuProf) > 0 {
 		f := util.CreateFile(util.FlagCpuProf)
 		pprof.StartCPUProfile(f)

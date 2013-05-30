@@ -7,65 +7,66 @@ import (
 
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/rmsd"
+	"github.com/BurntSushi/bcbgo/seq"
 )
 
-// Bower should be:
-//
-// Id() string
-// Data() string
-//
-// Then `StructureBower`
-// AtomChunks() [][]pdb.Coords
-//
-// And `SeqBower`
-// Residues() []seq.Residue
-//
-// Move to Fragbag package.
-// Split Library into Structure and Sequence libraries.
-//
-// Similarly for DB in `bow` package. Code reuse through embedding.
+// A StructureBower corresponds to any value that can have a bag-of-words
+// computed from its tertiary structure (three dimensional coordinates).
+type StructureBower interface {
+	// A globally unique identifier for this value.
+	// e.g., a PDB identifier "1ctf" or a PDB identifier with a chain
+	// identifier "1ctfA".
+	Id() string
 
-type Bower interface {
-	IdString() string
-	AtomChunks() [][]pdb.Coords
+	// An arbitrary string of data that will be stored with it in a BOW
+	// database. No restrictions.
+	Data() string
+
+	// A list of regions of atom coordinates (usually from alpha-carbons only).
+	// Invariant: "best" fragments are only computed *within* each region
+	// of atom coordinates and never across them.
+	// For example, a single chain in a PDB file would have only one sub-list
+	// corresponding to all the atoms in its chain. Similarly for a SCOP
+	// domain.
+	// But for a whole PDB entry, each sub-list corresponds to the atom
+	// coordinates of a single chain so that "best" fragments are not computed
+	// across chain boundaries.
+	Atoms() [][]pdb.Coords
 }
 
-func ComputeBOWMem(
-	lib *fragbag.Library, bower Bower, mem rmsd.QcMemory) BOW {
+type SequenceBower interface {
+	// A global unique identifier for this value.
+	// (e.g., a sequence accession number.)
+	Id() string
+
+	// An arbitrary string of data that will be stored with it in a BOW
+	// database. No restrictions.
+	Data() string
+
+	// A list of regions of residues.
+	// Invariant: "best" fragments are only computed *within* each region
+	// of residues and never across them.
+	// Usually, this only contains a single sub-list of all the residues in
+	// a target sequence.
+	Residues() [][]seq.Residue
+}
+
+func StructureBOW(lib *fragbag.StructureLibrary, bower StructureBower) BOW {
+	var best, uplimit int
 
 	b := NewBow(lib.Size())
-	libSize := lib.FragmentSize()
-	frags := lib.Fragments()
-	for _, chunk := range bower.AtomChunks() {
+	libSize := lib.FragmentSize
+	for _, chunk := range bower.Atoms() {
 		if len(chunk) < libSize {
 			continue
 		}
-		for i := 0; i <= len(chunk)-libSize; i++ {
-			atoms := chunk[i : i+libSize]
-			bestFragNum := bestFragment(frags, mem, atoms)
-			b.Freqs[bestFragNum] += 1
+		uplimit = len(chunk) - libSize
+		for i := 0; i <= uplimit; i++ {
+			best = lib.Best(chunk[i : i+libSize])
+			b.Freqs[best] += 1
 		}
 	}
 	return b
-}
-
-func ComputeBOW(lib *fragbag.Library, bower Bower) BOW {
-	mem := rmsd.NewQcMemory(lib.FragmentSize())
-	return ComputeBOWMem(lib, bower, mem)
-}
-
-func bestFragment(frags []fragbag.Fragment,
-	mem rmsd.QcMemory, atoms []pdb.Coords) int {
-
-	bestRmsd, bestFragNum := 0.0, -1
-	for _, frag := range frags {
-		testRmsd := rmsd.QCRMSDMem(mem, atoms, frag.CaAtoms)
-		if bestFragNum == -1 || testRmsd < bestRmsd {
-			bestRmsd, bestFragNum = testRmsd, frag.Ident
-		}
-	}
-	return bestFragNum
 }
 
 // BOW represents a bag-of-words vector of size N for a particular fragment

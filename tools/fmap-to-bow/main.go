@@ -12,9 +12,9 @@ func init() {
 }
 
 func main() {
-	lib := util.FragmentLibrary(util.Arg(0))
+	lib := util.StructureLibrary(util.Arg(0))
 	fmap := util.FmapRead(util.Arg(1))
 
-	bow := bow.ComputeBOW(lib, fmap)
+	bow := bow.StructureBOW(lib, fmap)
 	util.BOWWrite(util.CreateFile(util.Arg(2)), bow)
 }

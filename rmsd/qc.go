@@ -110,12 +110,12 @@ import (
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
-type QcMemory struct {
+type Memory struct {
 	coords1, coords2 [3][]float64
 }
 
-func NewQcMemory(cols int) QcMemory {
-	mem := QcMemory{}
+func NewMemory(cols int) Memory {
+	mem := Memory{}
 	for i := 0; i < 3; i++ {
 		mem.coords1[i] = make([]float64, cols)
 		mem.coords2[i] = make([]float64, cols)
@@ -123,11 +123,11 @@ func NewQcMemory(cols int) QcMemory {
 	return mem
 }
 
-func QCRMSD(struct1, struct2 []pdb.Coords) float64 {
-	return QCRMSDMem(NewQcMemory(len(struct1)), struct1, struct2)
+func RMSD(struct1, struct2 []pdb.Coords) float64 {
+	return RMSDMem(NewMemory(len(struct1)), struct1, struct2)
 }
 
-func QCRMSDMem(mem QcMemory, struct1, struct2 []pdb.Coords) float64 {
+func RMSDMem(mem Memory, struct1, struct2 []pdb.Coords) float64 {
 	if len(struct1) != len(struct2) {
 		panic(fmt.Sprintf("Computing the RMSD of two structures require that "+
 			"they have equal length. But the lengths of the two structures "+
@@ -135,26 +135,50 @@ func QCRMSDMem(mem QcMemory, struct1, struct2 []pdb.Coords) float64 {
 	}
 
 	cols := len(struct1)
+	coords1, coords2 := mem.coords1, mem.coords2
 	for i := 0; i < cols; i++ {
-		mem.coords1[0][i] = struct1[i].X
-		mem.coords1[1][i] = struct1[i].Y
-		mem.coords1[2][i] = struct1[i].Z
+		coords1[0][i] = struct1[i].X
+		coords1[1][i] = struct1[i].Y
+		coords1[2][i] = struct1[i].Z
 
-		mem.coords2[0][i] = struct2[i].X
-		mem.coords2[1][i] = struct2[i].Y
-		mem.coords2[2][i] = struct2[i].Z
+		coords2[0][i] = struct2[i].X
+		coords2[1][i] = struct2[i].Y
+		coords2[2][i] = struct2[i].Z
 	}
-	return calcRMSD(mem.coords1, mem.coords2)
-}
-
-func calcRMSD(
-	coords1, coords2 [3][]float64) float64 {
 
 	centerCoords(coords1)
 	centerCoords(coords2)
-	E0, A := innerProduct(coords1, coords2)
 
-	return fastCalcRMSD(A, E0, len(coords1[0]))
+	var x1, x2, y1, y2, z1, z2 float64
+	numCoords := len(coords1[0])
+	fx1, fy1, fz1 := coords1[0], coords1[1], coords1[2]
+	fx2, fy2, fz2 := coords2[0], coords2[1], coords2[2]
+	var G1, G2 float64 = 0.0, 0.0
+	A := [9]float64{
+		0, 0, 0,
+		0, 0, 0,
+		0, 0, 0,
+	}
+	for i := 0; i < numCoords; i++ {
+		x1, y1, z1 = fx1[i], fy1[i], fz1[i]
+		x2, y2, z2 = fx2[i], fy2[i], fz2[i]
+
+		G1 += x1*x1 + y1*y1 + z1*z1
+		G2 += x2*x2 + y2*y2 + z2*z2
+
+		A[0] += x1 * x2
+		A[1] += x1 * y2
+		A[2] += x1 * z2
+
+		A[3] += y1 * x2
+		A[4] += y1 * y2
+		A[5] += y1 * z2
+
+		A[6] += z1 * x2
+		A[7] += z1 * y2
+		A[8] += z1 * z2
+	}
+	return fastCalcRMSD(A, 0.5*(G1+G2), len(coords1[0]))
 }
 
 func fastCalcRMSD(A [9]float64, E0 float64, numCoords int) float64 {
@@ -267,6 +291,7 @@ func innerProduct(coords1, coords2 [3][]float64) (float64, [9]float64) {
 
 func centerCoords(coords [3][]float64) {
 	numCoords := len(coords[0])
+	numCoordsF := float64(numCoords)
 	var xsum, ysum, zsum float64 = 0.0, 0.0, 0.0
 	fx, fy, fz := coords[0], coords[1], coords[2]
 
@@ -275,9 +300,9 @@ func centerCoords(coords [3][]float64) {
 		ysum += fy[i]
 		zsum += fz[i]
 	}
-	xsum /= float64(numCoords)
-	ysum /= float64(numCoords)
-	zsum /= float64(numCoords)
+	xsum /= numCoordsF
+	ysum /= numCoordsF
+	zsum /= numCoordsF
 	for i := 0; i < numCoords; i++ {
 		fx[i] -= xsum
 		fy[i] -= ysum

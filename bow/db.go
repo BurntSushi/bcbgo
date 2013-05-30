@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/rmsd"
 )
 
 // DB represents a BOW database. It is always connected to a particular
@@ -20,7 +19,7 @@ import (
 // a directory with a copy of the fragment library used to create the database
 // and a binary formatted file of all the frequency vectors computed.
 type DB struct {
-	Lib  *fragbag.Library
+	Lib  *fragbag.StructureLibrary
 	Path string
 	Name string
 	file *os.File
@@ -33,7 +32,7 @@ type DB struct {
 
 	// for writing only
 	writeBuf    *bytes.Buffer
-	writing     chan Bower
+	writing     chan StructureBower
 	wg          *sync.WaitGroup
 	writingDone chan struct{}
 	entries     chan Entry
@@ -48,7 +47,13 @@ func OpenDB(dir string) (*DB, error) {
 		Path: dir,
 		Name: path.Base(dir),
 	}
-	db.Lib, err = fragbag.NewLibrary(db.filePath("frag.lib"))
+
+	libf, err := os.Open(db.filePath("frag.lib"))
+	if err != nil {
+		return nil, err
+	}
+
+	db.Lib, err = fragbag.OpenStructureLibrary(libf)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +85,7 @@ func OpenDB(dir string) (*DB, error) {
 // Bower interface, and `Close` when finished adding.
 //
 // One a BOW database is created, it cannot be modified.
-func CreateDB(lib *fragbag.Library, dir string) (*DB, error) {
+func CreateDB(lib *fragbag.StructureLibrary, dir string) (*DB, error) {
 	var err error
 
 	_, err = os.Stat(dir)
@@ -97,7 +102,7 @@ func CreateDB(lib *fragbag.Library, dir string) (*DB, error) {
 		Name: path.Base(dir),
 
 		writeBuf:    new(bytes.Buffer),
-		writing:     make(chan Bower),
+		writing:     make(chan StructureBower),
 		entries:     make(chan Entry),
 		writingDone: make(chan struct{}),
 		wg:          new(sync.WaitGroup),
@@ -109,7 +114,12 @@ func CreateDB(lib *fragbag.Library, dir string) (*DB, error) {
 		return nil, fmt.Errorf("Could not create '%s': %s", fp, err)
 	}
 
-	if err := db.Lib.Copy(db.filePath("frag.lib")); err != nil {
+	libfp := db.filePath("frag.lib")
+	libf, err := os.Create(libfp)
+	if err != nil {
+		return nil, fmt.Errorf("Could not create '%s': %s", libfp, err)
+	}
+	if err := db.Lib.Save(libf); err != nil {
 		return nil, fmt.Errorf("Could not copy fragment library: %s", err)
 	}
 
@@ -117,11 +127,10 @@ func CreateDB(lib *fragbag.Library, dir string) (*DB, error) {
 	for i := 0; i < max(1, runtime.GOMAXPROCS(0)); i++ {
 		go func() {
 			db.wg.Add(1)
-			mem := rmsd.NewQcMemory(db.Lib.FragmentSize())
 			for bower := range db.writing {
 				db.entries <- Entry{
-					Id:  bower.IdString(),
-					BOW: ComputeBOWMem(db.Lib, bower, mem),
+					Id:  bower.Id(),
+					BOW: StructureBOW(db.Lib, bower),
 				}
 			}
 			db.wg.Done()
@@ -149,7 +158,7 @@ func CreateDB(lib *fragbag.Library, dir string) (*DB, error) {
 //
 // Add will panic if it is called on a BOW database that been opened for
 // reading.
-func (db *DB) Add(bower Bower) {
+func (db *DB) Add(bower StructureBower) {
 	if db.writing == nil {
 		panic("Cannot add to a BOW database opened in read mode.")
 	}

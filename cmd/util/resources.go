@@ -15,8 +15,8 @@ import (
 	"github.com/BurntSushi/bcbgo/io/pdb"
 )
 
-func FragmentLibrary(path string) *fragbag.Library {
-	lib, err := fragbag.NewLibrary(path)
+func StructureLibrary(path string) *fragbag.StructureLibrary {
+	lib, err := fragbag.OpenStructureLibrary(OpenFile(path))
 	Assert(err, "Could not open fragment library '%s'", path)
 	return lib
 }

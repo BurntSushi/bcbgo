@@ -69,7 +69,7 @@ func Chains(chain1 *pdb.Chain, start1, end1 int,
 	}
 
 	// We're good to go...
-	return QCRMSD(struct1, struct2), nil
+	return RMSD(struct1, struct2), nil
 }
 
 func max(a, b int) int {

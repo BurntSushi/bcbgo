@@ -40,7 +40,7 @@ func main() {
 			"Could not remove '%s' directory", dbPath)
 	}
 
-	db, err := bow.CreateDB(util.FragmentLibrary(libPath), dbPath)
+	db, err := bow.CreateDB(util.StructureLibrary(libPath), dbPath)
 	util.Assert(err)
 
 	if len(util.FlagCpuProf) > 0 {

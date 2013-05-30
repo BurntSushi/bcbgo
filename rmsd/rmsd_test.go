@@ -41,7 +41,7 @@ func ExampleRmsd() {
 		},
 	}
 	for _, test := range tests {
-		rms := QCRMSD(test[0], test[1])
+		rms := RMSD(test[0], test[1])
 		fmt.Printf("RMSD: %f\n", rms)
 
 		rms = rmsd(test[0], test[1])
@@ -159,18 +159,18 @@ func BenchmarkQCRmsd(b *testing.B) {
 		atoms1 := randomAtoms(11)
 		atoms2 := randomAtoms(11)
 		b.StartTimer()
-		QCRMSD(atoms1, atoms2)
+		RMSD(atoms1, atoms2)
 	}
 }
 
 func BenchmarkQCRmsdMemory(b *testing.B) {
-	mem := NewQcMemory(11)
+	mem := NewMemory(11)
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		atoms1 := randomAtoms(11)
 		atoms2 := randomAtoms(11)
 		b.StartTimer()
-		QCRMSDMem(mem, atoms1, atoms2)
+		RMSDMem(mem, atoms1, atoms2)
 	}
 }
 

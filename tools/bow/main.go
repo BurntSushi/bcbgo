@@ -17,7 +17,7 @@ func main() {
 	pdbEntryPath := util.Arg(2)
 	bowOut := util.Arg(3)
 
-	lib := util.FragmentLibrary(libPath)
+	lib := util.StructureLibrary(libPath)
 	entry := util.PDBRead(pdbEntryPath)
 
 	thechain := entry.Chain(chain[0])
@@ -25,6 +25,6 @@ func main() {
 		util.Fatalf("Could not find chain with identifier '%c'.", chain[0])
 	}
 
-	bow := bow.ComputeBOW(lib, thechain)
+	bow := bow.StructureBOW(lib, thechain)
 	util.BOWWrite(util.CreateFile(bowOut), bow)
 }

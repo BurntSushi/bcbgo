@@ -171,11 +171,15 @@ func (fmap *FragmentMap) Swap(i, j int) {
 	fmap.Segments[i], fmap.Segments[j] = fmap.Segments[j], fmap.Segments[i]
 }
 
-func (fmap *FragmentMap) IdString() string {
+func (fmap *FragmentMap) Id() string {
 	return fmap.Name
 }
 
-func (fmap *FragmentMap) AtomChunks() [][]pdb.Coords {
+func (fmap *FragmentMap) Data() string {
+	return ""
+}
+
+func (fmap *FragmentMap) Atoms() [][]pdb.Coords {
 	chunks := make([][]pdb.Coords, 0, len(fmap.Segments)*10)
 	for _, fragGroup := range fmap.Segments {
 		for _, frag := range fragGroup.Frags {

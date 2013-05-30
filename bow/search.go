@@ -52,10 +52,10 @@ func newSearchResult(query, entry Entry) SearchResult {
 	}
 }
 
-func (db *DB) Search(opts SearchOptions, bower Bower) []SearchResult {
+func (db *DB) Search(opts SearchOptions, bower StructureBower) []SearchResult {
 	query := Entry{
-		Id:  bower.IdString(),
-		BOW: ComputeBOW(db.Lib, bower),
+		Id:  bower.Id(),
+		BOW: StructureBOW(db.Lib, bower),
 	}
 	return db.SearchEntry(opts, query)
 }

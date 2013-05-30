@@ -81,7 +81,7 @@ func main() {
 	util.Assert(err)
 
 	out, outDone := outputter()
-	bowerChan := make(chan bow.Bower)
+	bowerChan := make(chan bow.StructureBower)
 	wg := new(sync.WaitGroup)
 	for i := 0; i < max(1, runtime.GOMAXPROCS(0)); i++ {
 		go func() {
@@ -121,7 +121,7 @@ func main() {
 }
 
 type searchResult struct {
-	query   bow.Bower
+	query   bow.StructureBower
 	results []bow.SearchResult
 }
 
@@ -159,7 +159,7 @@ func outputPlain(sr searchResult, first bool) {
 	if !first {
 		fmt.Println(strings.Repeat("-", 80))
 	}
-	header := fmt.Sprintf("%s (%d hits)", sr.query.IdString(), len(sr.results))
+	header := fmt.Sprintf("%s (%d hits)", sr.query.Id(), len(sr.results))
 
 	fmt.Println(header)
 	fmt.Println(strings.Repeat("-", len(header)))
@@ -173,7 +173,7 @@ func outputPlain(sr searchResult, first bool) {
 func outputCsv(sr searchResult, first bool) {
 	for _, result := range sr.results {
 		fmt.Printf("%s\t%s\t%0.4f\t%0.4f\n",
-			sr.query.IdString(), result.Entry.Id, result.Cosine, result.Euclid)
+			sr.query.Id(), result.Entry.Id, result.Cosine, result.Euclid)
 	}
 }
 
