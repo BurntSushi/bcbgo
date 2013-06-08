@@ -91,6 +91,10 @@ func (fp *FrequencyProfile) Profile(null *FrequencyProfile) *Profile {
 		panic(fmt.Sprintf("null model has %d columns; should have 1",
 			null.Len()))
 	}
+	if !fp.Alphabet.Equals(null.Alphabet) {
+		panic(fmt.Sprintf("freq profile alphabet '%s' is not equal to "+
+			"null profile alphabet '%s'.", fp.Alphabet, null.Alphabet))
+	}
 	p := NewProfileAlphabet(fp.Len(), fp.Alphabet)
 
 	// Compute the background emission probabilities.
