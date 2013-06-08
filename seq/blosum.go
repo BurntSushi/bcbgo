@@ -12,13 +12,11 @@ func getSim62(a, b Residue) int {
 	return blosum62[ai][bi]
 }
 
-const alpha62 = "ABCDEFGHIKLMNPQRSTVWXYZ-"
-
 var alpha62map = make(map[Residue]int)
 
 func init() {
-	for i, r := range alpha62 {
-		alpha62map[Residue(r)] = i
+	for i, r := range AlphaBlosum62 {
+		alpha62map[r] = i
 	}
 }
 

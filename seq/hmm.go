@@ -23,7 +23,7 @@ type HMM struct {
 
 	// The alphabet as defined by an ordering of residues.
 	// Indices in this slice correspond to indices in match/insertion emissions.
-	Alphabet []Residue
+	Alphabet Alphabet
 
 	// NULL model. (Amino acid background frequencies.)
 	// HMMER hmm files don't have this, but HHsuite hhm files do.
@@ -48,7 +48,7 @@ type EProbs map[Residue]Prob
 // NewEProbs creates a new EProbs map from the given alphabet. Keys of the map
 // are residues defined in the alphabet, and values are defaulted to the
 // minimum probability.
-func NewEProbs(alphabet []Residue) EProbs {
+func NewEProbs(alphabet Alphabet) EProbs {
 	ep := make(EProbs, len(alphabet))
 	for _, residue := range alphabet {
 		ep[residue] = MinProb
