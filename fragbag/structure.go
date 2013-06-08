@@ -10,20 +10,26 @@ import (
 	"github.com/BurntSushi/bcbgo/rmsd"
 )
 
-// Library represents a Fragbag fragment library. Fragbag fragment libraries
-// are fixed both in the number of fragments and in the size of each fragment.
+// StructureLibrary represents a Fragbag structural fragment library.
+// Fragbag fragment libraries are fixed both in the number of fragments and in
+// the size of each fragment.
 type StructureLibrary struct {
 	Ident        string
 	Fragments    []StructureFragment
 	FragmentSize int
 }
 
+// NewStructureLibrary initializes a new Fragbag structure library with the
+// given name. It is not written to disk until Save is called.
 func NewStructureLibrary(name string) *StructureLibrary {
 	lib := new(StructureLibrary)
 	lib.Ident = name
 	return lib
 }
 
+// Add adds a structural fragment to the library. The first call to Add may
+// contain any number of coordinates. All subsequent adds must contain the
+// same number of coordinates as the first.
 func (lib *StructureLibrary) Add(coords []pdb.Coords) error {
 	if lib.Fragments == nil || len(lib.Fragments) == 0 {
 		frag := StructureFragment{0, coords}
@@ -63,9 +69,8 @@ func (lib *StructureLibrary) Size() int {
 	return len(lib.Fragments)
 }
 
-// String returns a string with the name of the library (base name of the
-// library directory), the number of fragments in the library and the size
-// of each fragment.
+// String returns a string with the name of the library, the number of
+// fragments in the library and the size of each fragment.
 func (lib *StructureLibrary) String() string {
 	return fmt.Sprintf("%s (%d, %d)",
 		lib.Ident, len(lib.Fragments), lib.FragmentSize)
@@ -76,8 +81,8 @@ func (lib *StructureLibrary) Name() string {
 }
 
 // RMSDMemory creates reusable memory for use with RMSD calculation with
-// suitable size for this fragment library. Only one goroutine can use it
-// at a time.
+// suitable size for this fragment library. Only one goroutine can use the
+// memory at a time.
 func (lib *StructureLibrary) RMSDMemory() rmsd.Memory {
 	return rmsd.NewMemory(lib.FragmentSize)
 }
@@ -102,21 +107,21 @@ func (lib *StructureLibrary) bestMem(atoms []pdb.Coords, mem rmsd.Memory) int {
 	for _, frag := range lib.Fragments {
 		testRmsd = rmsd.RMSDMem(mem, atoms, frag.Atoms)
 		if bestFragNum == -1 || testRmsd < bestRmsd {
-			bestRmsd, bestFragNum = testRmsd, frag.number
+			bestRmsd, bestFragNum = testRmsd, frag.Number
 		}
 	}
 	return bestFragNum
 }
 
-// Fragment corresponds to a single fragment file in a fragment library.
-// It holds the fragment number identifier and embeds a PDB entry.
+// Fragment corresponds to a single structural fragment in a fragment library.
+// It holds the fragment number identifier and the 3 dimensional coordinates.
 type StructureFragment struct {
-	number int
+	Number int
 	Atoms  []pdb.Coords
 }
 
 func (frag *StructureFragment) FragNumber() int {
-	return frag.number
+	return frag.Number
 }
 
 // String returns the fragment number, library and its corresponding atoms.
@@ -125,5 +130,5 @@ func (frag *StructureFragment) String() string {
 	for i, atom := range frag.Atoms {
 		atoms[i] = fmt.Sprintf("\t%s", atom)
 	}
-	return fmt.Sprintf("> %d\n%s", frag.number, strings.Join(atoms, "\n"))
+	return fmt.Sprintf("> %d\n%s", frag.Number, strings.Join(atoms, "\n"))
 }
