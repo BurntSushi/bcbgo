@@ -17,7 +17,13 @@ import (
 
 func StructureLibrary(path string) *fragbag.StructureLibrary {
 	lib, err := fragbag.OpenStructureLibrary(OpenFile(path))
-	Assert(err, "Could not open fragment library '%s'", path)
+	Assert(err, "Could not open structural fragment library '%s'", path)
+	return lib
+}
+
+func SequenceLibrary(path string) *fragbag.SequenceLibrary {
+	lib, err := fragbag.OpenSequenceLibrary(OpenFile(path))
+	Assert(err, "Could not open sequence fragment library '%s'", path)
 	return lib
 }
 
@@ -33,8 +39,12 @@ func PDBRead(path string) *pdb.Entry {
 	return entry
 }
 
-func PDBReadId(pid string) (*pdb.Entry, *pdb.Chain) {
-	if len(pid) < 4 || len(pid) > 5 {
+// PDBPath takes a PDB identifier (e.g., "1ctf" or "1ctfA") and returns
+// the full path to the PDB file on the file system.
+//
+// The PDB_PATH environment variable must be set.
+func PDBPath(pid string) string {
+	if !IsPDBID(pid) && !IsChainID(pid) {
 		Fatalf("PDB ids must contain 4 or 5 characters, but '%s' has %d.",
 			pid, len(pid))
 	}
@@ -49,8 +59,12 @@ func PDBReadId(pid string) (*pdb.Entry, *pdb.Chain) {
 	pdbid := strings.ToLower(pid[0:4])
 	group := pdbid[1:3]
 	basename := fmt.Sprintf("pdb%s.ent.gz", pdbid)
-	e := PDBRead(path.Join(pdbPath, group, basename))
-	if len(pid) == 5 {
+	return path.Join(pdbPath, group, basename)
+}
+
+func PDBReadId(pid string) (*pdb.Entry, *pdb.Chain) {
+	e := PDBRead(PDBPath(pid))
+	if IsChainID(pid) {
 		chain := e.Chain(pid[4])
 		if chain == nil {
 			Fatalf("Could not find chain '%s' in PDB entry '%s'.", pid[4], pid)

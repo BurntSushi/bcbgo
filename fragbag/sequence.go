@@ -98,5 +98,5 @@ func (frag *SequenceFragment) FragNumber() int {
 }
 
 func (frag *SequenceFragment) String() string {
-	return fmt.Sprintf("> %d", frag.Number)
+	return fmt.Sprintf("> %d\n%s", frag.Number, frag.Profile)
 }

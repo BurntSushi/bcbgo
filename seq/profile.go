@@ -1,8 +1,10 @@
 package seq
 
 import (
+	"bytes"
 	"fmt"
 	"math"
+	"text/tabwriter"
 )
 
 // Profile represents a sequence profile in terms of log-odds scores.
@@ -38,6 +40,21 @@ func (p *Profile) Len() int {
 	return len(p.Emissions)
 }
 
+func (p *Profile) String() string {
+	buf := new(bytes.Buffer)
+	tabw := tabwriter.NewWriter(buf, 4, 0, 3, ' ', 0)
+	pf := func(ft string, v ...interface{}) { fmt.Fprintf(tabw, ft, v...) }
+	for _, r := range p.Alphabet {
+		pf("%c", rune(r))
+		for _, eprobs := range p.Emissions {
+			pf("\t%0.4f", eprobs[r])
+		}
+		pf("\n")
+	}
+	tabw.Flush()
+	return buf.String()
+}
+
 // FrequencyProfile represents a sequence profile in terms of raw frequencies.
 // A FrequencyProfile is useful as an intermediate representation. It can be
 // used to incrementally build a Profile.
@@ -52,14 +69,21 @@ type FrequencyProfile struct {
 	Alphabet Alphabet
 }
 
-// NewFrequencyProfile initializes a raw frequency profile with a default
+// NewNullProfile initializes a frequency profile that can be used to tabulate
+// a null model. This is equivalent to calling NewFrequencyProfile with the
+// number of columns set to 1.
+func NewNullProfile() *FrequencyProfile {
+	return NewFrequencyProfile(1)
+}
+
+// NewFrequencyProfile initializes a frequency profile with a default
 // alphabet that is compatible with this package's BLOSUM62 matrix.
 // Pseudo-count correction using Laplace's Rule is automatically applied.
 func NewFrequencyProfile(columns int) *FrequencyProfile {
 	return NewFrequencyProfileAlphabet(columns, AlphaBlosum62)
 }
 
-// NewFrequencyProfileAlphabet initializes a raw frequency profile with the
+// NewFrequencyProfileAlphabet initializes a frequency profile with the
 // given alphabet.
 // Pseudo-count correction using Laplace's Rule is automatically applied.
 func NewFrequencyProfileAlphabet(
@@ -79,6 +103,31 @@ func NewFrequencyProfileAlphabet(
 // Len returns the number of columns in the frequency profile.
 func (fp *FrequencyProfile) Len() int {
 	return len(fp.Freqs)
+}
+
+// Add adds the sequence to the given profile. The sequence must have length
+// equivalent to the number of columns in the profile. The sequence must also
+// only contain residues that are in the alphabet for the profile.
+//
+// As a special case, if the alphabet contains the 'X' residue, then any
+// unrecognized residues in the sequence with respect to the profile's alphabet
+// will be considered as an 'X' residue.
+func (fp *FrequencyProfile) Add(s Sequence) {
+	if fp.Len() != s.Len() {
+		panic(fmt.Sprintf("Profile has length %d but sequence has length %d",
+			fp.Len(), s.Len()))
+	}
+	for column := 0; column < fp.Len(); column++ {
+		r := s.Residues[column]
+		if _, ok := fp.Freqs[column][r]; ok {
+			fp.Freqs[column][r] += 1
+		} else if _, ok := fp.Freqs[column]['X']; ok {
+			fp.Freqs[column]['X'] += 1
+		} else {
+			panic(fmt.Sprintf("Unrecognized residue %c while using an "+
+				"alphabet without a wildcard: '%s'.", r, fp.Alphabet))
+		}
+	}
 }
 
 // Profile converts a raw frequency profile to a profile that uses a log-odds
