@@ -66,5 +66,5 @@ func (r Residue) HMMState() HMMState {
 	case r >= 'A' && r <= 'Z':
 		return Match
 	}
-	panic(fmt.Sprintf("Unknown residue: %c", r))
+	return Match
 }
