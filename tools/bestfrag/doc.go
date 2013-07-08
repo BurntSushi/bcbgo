@@ -21,6 +21,6 @@ A PDB file may either be plain text or compressed using the Lempel-Ziv coding
 (i.e., gzip). If the PDB file is gzipped, it must end with a '.gz' extension.
 
 Usage:
-	bestfrag fraglib pdb-file chain-id start stop
+	bestfrag fraglib pdb-file [ chain-id [ start stop ] ]
 */
 package main

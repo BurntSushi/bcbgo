@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
@@ -11,7 +12,7 @@ import (
 var lib *fragbag.StructureLibrary
 
 func init() {
-	u := "fraglib pdb-file [ chain-id start stop ]"
+	u := "fraglib pdb-file [ chain-id [ start stop ] ]"
 	util.FlagParse(u, "")
 	util.AssertLeastNArg(2)
 }
@@ -36,6 +37,11 @@ func main() {
 		if util.NArg() == 3 {
 			bestFragsForRegion(chain, atoms, 0, len(atoms))
 		} else {
+			if util.NArg() != 5 {
+				log.Println("Both a start and end must be provided.")
+				util.Usage()
+			}
+
 			s, e := util.Arg(3), util.Arg(4)
 			sn, en := util.ParseInt(s)-1, util.ParseInt(e)
 			if en-sn < lib.FragmentSize {
