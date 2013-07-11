@@ -10,6 +10,7 @@ import (
 	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/structure"
 )
 
 var flagOverwrite = false
@@ -52,7 +53,7 @@ func main() {
 	lib.Save(savetof)
 }
 
-func coords(num int, atomRecords []byte) []pdb.Coords {
+func coords(num int, atomRecords []byte) []structure.Coords {
 	r := bytes.NewReader(atomRecords)
 	name := fmt.Sprintf("fragment %d", num)
 

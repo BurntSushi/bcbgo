@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/TuftsBCB/io/pdb"
 	"github.com/TuftsBCB/structure"
 )
 
@@ -30,7 +29,7 @@ func NewStructureLibrary(name string) *StructureLibrary {
 // Add adds a structural fragment to the library. The first call to Add may
 // contain any number of coordinates. All subsequent adds must contain the
 // same number of coordinates as the first.
-func (lib *StructureLibrary) Add(coords []pdb.Coords) error {
+func (lib *StructureLibrary) Add(coords []structure.Coords) error {
 	if lib.Fragments == nil || len(lib.Fragments) == 0 {
 		frag := StructureFragment{0, coords}
 		lib.Fragments = append(lib.Fragments, frag)
@@ -90,7 +89,7 @@ func (lib *StructureLibrary) rmsdMemory() structure.Memory {
 // Best returns the number of the fragment that best corresponds
 // to the region of atoms provided.
 // The length of `atoms` must be equivalent to the fragment size.
-func (lib *StructureLibrary) Best(atoms []pdb.Coords) int {
+func (lib *StructureLibrary) Best(atoms []structure.Coords) int {
 	return lib.bestMem(atoms, lib.rmsdMemory())
 }
 
@@ -102,7 +101,7 @@ func (lib *StructureLibrary) Best(atoms []pdb.Coords) int {
 // from one goroutine at a time. Valid values can be constructed with
 // rmsdMemory.
 func (lib *StructureLibrary) bestMem(
-	atoms []pdb.Coords,
+	atoms []structure.Coords,
 	mem structure.Memory,
 ) int {
 	var testRmsd float64
@@ -120,7 +119,7 @@ func (lib *StructureLibrary) bestMem(
 // It holds the fragment number identifier and the 3 dimensional coordinates.
 type StructureFragment struct {
 	Number int
-	Atoms  []pdb.Coords
+	Atoms  []structure.Coords
 }
 
 func (frag *StructureFragment) FragNumber() int {

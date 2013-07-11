@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/structure"
 )
 
 var lib *fragbag.StructureLibrary
@@ -55,7 +56,7 @@ func main() {
 	}
 }
 
-func bestFragsForRegion(chain *pdb.Chain, atoms []pdb.Coords, s, e int) {
+func bestFragsForRegion(chain *pdb.Chain, atoms []structure.Coords, s, e int) {
 	fsize := lib.FragmentSize
 	for i := s; i <= e-fsize; i++ {
 		best := lib.Best(atoms[i : i+fsize])

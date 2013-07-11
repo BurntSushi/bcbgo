@@ -14,6 +14,7 @@ import (
 	"github.com/TuftsBCB/io/hhr"
 	"github.com/TuftsBCB/io/pdb"
 	"github.com/TuftsBCB/seq"
+	"github.com/TuftsBCB/structure"
 )
 
 type PDBDatabase hhsuite.Database
@@ -195,7 +196,7 @@ type Fragment struct {
 	Query    seq.Sequence
 	Template seq.Sequence
 	Hit      hhr.Hit
-	CaAtoms  []pdb.Coords
+	CaAtoms  []structure.Coords
 }
 
 // IsCorrupt returns true when a particular fragment could not be paired
@@ -267,7 +268,7 @@ func NewFragment(
 	}
 
 	// One again, we copy to avoid pinning memory.
-	frag.CaAtoms = make([]pdb.Coords, len(atoms))
+	frag.CaAtoms = make([]structure.Coords, len(atoms))
 	copy(frag.CaAtoms, atoms)
 
 	return frag, nil

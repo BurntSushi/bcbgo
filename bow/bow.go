@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/TuftsBCB/io/pdb"
 	"github.com/TuftsBCB/seq"
+	"github.com/TuftsBCB/structure"
 )
 
 // A StructureBower corresponds to any value that can have a bag-of-words
@@ -31,7 +31,7 @@ type StructureBower interface {
 	// But for a whole PDB entry, each sub-list corresponds to the atom
 	// coordinates of a single chain so that "best" fragments are not computed
 	// across chain boundaries.
-	Atoms() [][]pdb.Coords
+	Atoms() [][]structure.Coords
 }
 
 type SequenceBower interface {

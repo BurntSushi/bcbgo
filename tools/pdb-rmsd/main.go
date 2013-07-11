@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/TuftsBCB/structure"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 func init() {
@@ -23,7 +23,7 @@ func main() {
 	s1n, e1n := util.ParseInt(s1), util.ParseInt(e1)
 	s2n, e2n := util.ParseInt(s2), util.ParseInt(e2)
 
-	r, err := structure.PDB(
+	r, err := pdb.RMSD(
 		entry1, chain1[0], s1n, e1n, entry2, chain2[0], s2n, e2n)
 	util.Assert(err)
 	fmt.Println(r)
