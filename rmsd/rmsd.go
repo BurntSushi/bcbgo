@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 // RMSD implements a version of the Kabsch alogrithm that is described here:

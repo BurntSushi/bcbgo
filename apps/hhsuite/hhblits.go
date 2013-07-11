@@ -8,8 +8,8 @@ import (
 
 	"github.com/BurntSushi/cmd"
 
-	"github.com/BurntSushi/bcbgo/io/hhm"
-	"github.com/BurntSushi/bcbgo/io/hhr"
+	"github.com/TuftsBCB/io/hhm"
+	"github.com/TuftsBCB/io/hhr"
 )
 
 type HHBlitsConfig struct {

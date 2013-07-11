@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/io/hhr"
-	"github.com/BurntSushi/bcbgo/io/pdb"
 	"github.com/BurntSushi/bcbgo/rmsd"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/hhr"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/seq"
 )
 
 var (

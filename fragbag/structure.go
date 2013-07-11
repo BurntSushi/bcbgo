@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/io/pdb"
 	"github.com/BurntSushi/bcbgo/rmsd"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 // StructureLibrary represents a Fragbag structural fragment library.

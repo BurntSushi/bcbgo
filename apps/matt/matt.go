@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 // PDBArg corresponds to an argument to Matt. It can be just a file path

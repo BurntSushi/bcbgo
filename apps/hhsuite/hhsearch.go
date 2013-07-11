@@ -8,7 +8,7 @@ import (
 
 	"github.com/BurntSushi/cmd"
 
-	"github.com/BurntSushi/bcbgo/io/hhr"
+	"github.com/TuftsBCB/io/hhr"
 )
 
 type HHSearchConfig struct {

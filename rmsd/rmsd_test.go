@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 
 	matrix "github.com/skelterjohn/go.matrix"
 )

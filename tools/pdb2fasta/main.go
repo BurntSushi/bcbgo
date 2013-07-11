@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/io/fasta"
-	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/fasta"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/seq"
 )
 
 var (

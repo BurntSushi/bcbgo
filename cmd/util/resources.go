@@ -12,7 +12,7 @@ import (
 	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/fragbag"
 	"github.com/BurntSushi/bcbgo/hhfrag"
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 func StructureLibrary(path string) *fragbag.StructureLibrary {

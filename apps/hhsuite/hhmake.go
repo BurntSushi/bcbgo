@@ -8,7 +8,7 @@ import (
 
 	"github.com/BurntSushi/cmd"
 
-	"github.com/BurntSushi/bcbgo/io/hhm"
+	"github.com/TuftsBCB/io/hhm"
 )
 
 type HHMakeConfig struct {

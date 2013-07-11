@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/io/hhm"
+	"github.com/TuftsBCB/io/hhm"
 )
 
 func init() {

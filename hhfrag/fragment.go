@@ -10,10 +10,10 @@ import (
 	"text/tabwriter"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
-	"github.com/BurntSushi/bcbgo/io/hhm"
-	"github.com/BurntSushi/bcbgo/io/hhr"
-	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/hhm"
+	"github.com/TuftsBCB/io/hhr"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/seq"
 )
 
 type PDBDatabase hhsuite.Database

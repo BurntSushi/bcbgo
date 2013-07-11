@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/seq"
 )
 
 // A StructureBower corresponds to any value that can have a bag-of-words

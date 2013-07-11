@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 var (

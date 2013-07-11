@@ -107,7 +107,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/BurntSushi/bcbgo/io/pdb"
+	"github.com/TuftsBCB/io/pdb"
 )
 
 type Memory struct {

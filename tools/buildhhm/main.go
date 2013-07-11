@@ -7,7 +7,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
 	"github.com/BurntSushi/bcbgo/cmd/util"
-	"github.com/BurntSushi/bcbgo/io/hhm"
+	"github.com/TuftsBCB/io/hhm"
 )
 
 var (

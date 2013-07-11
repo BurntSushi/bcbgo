@@ -8,10 +8,10 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/bcbgo/apps/hhsuite"
-	"github.com/BurntSushi/bcbgo/io/fasta"
-	"github.com/BurntSushi/bcbgo/io/hhm"
-	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/fasta"
+	"github.com/TuftsBCB/io/hhm"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/seq"
 )
 
 type MapConfig struct {

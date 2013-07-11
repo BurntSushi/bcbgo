@@ -10,9 +10,9 @@ import (
 
 	"github.com/BurntSushi/bcbgo/cmd/util"
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/io/pdb"
-	"github.com/BurntSushi/bcbgo/io/pdb/slct"
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/io/pdb/slct"
+	"github.com/TuftsBCB/seq"
 )
 
 var (

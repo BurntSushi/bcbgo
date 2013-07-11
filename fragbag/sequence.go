@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/BurntSushi/bcbgo/seq"
+	"github.com/TuftsBCB/seq"
 )
 
 // SequenceLibrary represents a Fragbag sequence fragment library.
