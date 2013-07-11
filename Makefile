@@ -1,13 +1,10 @@
 export GOBIN=./bin
 
-all: gofmt install install-tools
+all: gofmt install
 
 install:
 	go install -compiler gc ./bow ./fragbag
 	go install -compiler gc ./cmd/...
-
-install-tools:
-	go install -compiler gc ./tools/...
 
 install-exp:
 	go install -compiler gc ./experiments/cmd/...
