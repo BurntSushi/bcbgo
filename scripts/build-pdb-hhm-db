@@ -127,3 +127,4 @@ hhblitsdb.pl \
   -ia3m "$transient" \
   -ihhm "$transient" \
   -cpu $num_cpus
+
