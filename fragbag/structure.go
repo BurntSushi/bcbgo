@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/rmsd"
 	"github.com/TuftsBCB/io/pdb"
+	"github.com/TuftsBCB/structure"
 )
 
 // StructureLibrary represents a Fragbag structural fragment library.
@@ -80,18 +80,18 @@ func (lib *StructureLibrary) Name() string {
 	return lib.Ident
 }
 
-// RMSDMemory creates reusable memory for use with RMSD calculation with
+// rmsdMemory creates reusable memory for use with RMSD calculation with
 // suitable size for this fragment library. Only one goroutine can use the
 // memory at a time.
-func (lib *StructureLibrary) RMSDMemory() rmsd.Memory {
-	return rmsd.NewMemory(lib.FragmentSize)
+func (lib *StructureLibrary) rmsdMemory() structure.Memory {
+	return structure.NewMemory(lib.FragmentSize)
 }
 
 // Best returns the number of the fragment that best corresponds
 // to the region of atoms provided.
 // The length of `atoms` must be equivalent to the fragment size.
 func (lib *StructureLibrary) Best(atoms []pdb.Coords) int {
-	return lib.bestMem(atoms, lib.RMSDMemory())
+	return lib.bestMem(atoms, lib.rmsdMemory())
 }
 
 // BestMem returns the number of the fragment that best corresponds
@@ -100,12 +100,15 @@ func (lib *StructureLibrary) Best(atoms []pdb.Coords) int {
 //
 // `mem` must be a region of reusable memory that should only be accessed
 // from one goroutine at a time. Valid values can be constructed with
-// RMSDMemory.
-func (lib *StructureLibrary) bestMem(atoms []pdb.Coords, mem rmsd.Memory) int {
+// rmsdMemory.
+func (lib *StructureLibrary) bestMem(
+	atoms []pdb.Coords,
+	mem structure.Memory,
+) int {
 	var testRmsd float64
 	bestRmsd, bestFragNum := 0.0, -1
 	for _, frag := range lib.Fragments {
-		testRmsd = rmsd.RMSDMem(mem, atoms, frag.Atoms)
+		testRmsd = structure.RMSDMem(mem, atoms, frag.Atoms)
 		if bestFragNum == -1 || testRmsd < bestRmsd {
 			bestRmsd, bestFragNum = testRmsd, frag.Number
 		}

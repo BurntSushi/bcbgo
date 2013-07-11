@@ -3,7 +3,7 @@ export GOBIN=./bin
 all: gofmt install install-tools
 
 install:
-	go install -compiler gc ./bow ./fragbag ./hhfrag ./rmsd
+	go install -compiler gc ./bow ./fragbag ./hhfrag
 	go install -compiler gc ./cmd/...
 
 install-tools:
