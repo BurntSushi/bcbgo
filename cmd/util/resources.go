@@ -11,7 +11,7 @@ import (
 
 	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/fragbag"
-	"github.com/BurntSushi/bcbgo/hhfrag"
+	"github.com/TuftsBCB/hhfrag"
 	"github.com/TuftsBCB/io/pdb"
 )
 
