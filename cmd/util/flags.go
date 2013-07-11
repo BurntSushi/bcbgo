@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/apps/hhsuite"
 	"github.com/BurntSushi/bcbgo/hhfrag"
+	"github.com/TuftsBCB/apps/hhsuite"
 )
 
 var (

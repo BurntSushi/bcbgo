@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/BurntSushi/bcbgo/apps/hhsuite"
+	"github.com/TuftsBCB/apps/hhsuite"
 	"github.com/TuftsBCB/io/hhm"
 	"github.com/TuftsBCB/io/hhr"
 	"github.com/TuftsBCB/io/pdb"

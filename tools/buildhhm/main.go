@@ -5,8 +5,8 @@ package main
 import (
 	"flag"
 
-	"github.com/BurntSushi/bcbgo/apps/hhsuite"
 	"github.com/BurntSushi/bcbgo/cmd/util"
+	"github.com/TuftsBCB/apps/hhsuite"
 	"github.com/TuftsBCB/io/hhm"
 )
 

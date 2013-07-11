@@ -7,7 +7,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/BurntSushi/bcbgo/apps/hhsuite"
+	"github.com/TuftsBCB/apps/hhsuite"
 	"github.com/TuftsBCB/io/fasta"
 	"github.com/TuftsBCB/io/hhm"
 	"github.com/TuftsBCB/io/pdb"

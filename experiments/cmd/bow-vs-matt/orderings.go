@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/BurntSushi/bcbgo/apps/matt"
 	"github.com/BurntSushi/bcbgo/bow"
 	"github.com/BurntSushi/bcbgo/cmd/util"
+	"github.com/TuftsBCB/apps/matt"
 	"github.com/TuftsBCB/io/pdb"
 )
 
