@@ -4,17 +4,13 @@ all: gofmt install
 
 install:
 	go install -compiler gc ./bow ./fragbag
-	go install -compiler gc ./cmd/...
 
 install-exp:
 	go install -compiler gc ./experiments/cmd/...
 
-clean:
-	rm -f bin/*
-
 gofmt:
-	gofmt -w */*.go */*/*.go cmd/*/*.go experiments/cmd/*/*.go
-	colcheck */*.go */*/*.go cmd/*/*.go experiments/cmd/*/*.go
+	gofmt -w */*.go experiments/cmd/*/*.go
+	colcheck */*.go experiments/cmd/*/*.go
 
 # Utilities
 push:
@@ -32,15 +28,6 @@ tags:
 
 loc:
 	find ./ -name '*.go' -print | sort | xargs wc -l
-
-test:
-	go test ./rmsd
-
-build-exp:
-	go build ./experiments/cmd/*
-
-bench-rmsd:
-	go test ./rmsd -run 'nomatch' -bench '.*'
 
 # Experiments with default parameters
 exp-hhfrag-bow:
